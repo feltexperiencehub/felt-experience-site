@@ -75,6 +75,7 @@ ul.ticks li b{color:#fff;font-weight:600}
 .door h3{margin-top:12px}
 .door p{color:var(--muted);font-size:15.5px;line-height:1.58;margin-top:11px}
 .door a{color:var(--accent);font-size:14.5px;font-weight:600;text-decoration:none;display:inline-block;margin-top:14px}
+.door-links{display:flex;gap:24px;flex-wrap:wrap}
 
 /* ---------- coaching fork ---------- */
 .fork{display:grid;grid-template-columns:1fr 1fr;gap:20px}
@@ -125,8 +126,12 @@ ul.ticks li b{color:#fff;font-weight:600}
 .tool .perk{color:var(--gold);font-weight:600}
 
 /* ---------- quote ---------- */
-.quote{font-family:var(--head);font-size:25px;font-weight:500;line-height:1.42;max-width:820px}
-.attrib{color:var(--muted);font-size:14.5px;margin-top:14px}
+.quotes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px;align-items:start}
+.qcard{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:24px 24px 20px}
+.qcard p{font-size:16.5px;line-height:1.6;color:#cfdbd2}
+.qcard p + p{margin-top:12px}
+.qcard cite{display:block;margin-top:14px;font-style:normal;font-size:14px;font-weight:600;color:var(--accent)}
+.attrib{color:var(--muted);font-size:14.5px;margin-top:20px}
 
 /* ---------- about ---------- */
 .about{border-top:1px solid var(--line);margin-top:66px;padding-top:42px;
@@ -144,7 +149,7 @@ footer .l{display:flex;gap:22px;flex-wrap:wrap}
 /* ---------- mobile ---------- */
 @media (max-width:900px){
   .wrap{padding:0 22px}
-  .doors,.fork,.cards,.cols,.grp,.about{grid-template-columns:1fr}
+  .doors,.fork,.cards,.cols,.grp,.about,.quotes{grid-template-columns:1fr}
   .doors{padding-top:44px}
   .rule{margin:46px 0 24px}
   .hero{padding-top:54px;padding-bottom:44px}
