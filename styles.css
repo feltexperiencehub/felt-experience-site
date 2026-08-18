@@ -58,7 +58,7 @@ ul.ticks li::before{content:'';position:absolute;left:2px;top:9px;width:6px;heig
 ul.ticks li b{color:#fff;font-weight:600}
 
 /* ---------- hero ---------- */
-.hero{padding:82px 0 62px;max-width:840px}
+.hero{padding-top:82px;padding-bottom:62px;max-width:840px}
 
 /* ---------- replayer band ---------- */
 .band{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#0F0F0F;padding:62px 0}
@@ -71,7 +71,7 @@ ul.ticks li b{color:#fff;font-weight:600}
 .band .after span{color:var(--muted);font-size:15px}
 
 /* ---------- card grids ---------- */
-.doors{padding:66px 0 10px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.doors{padding-top:66px;padding-bottom:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .door{border:1px solid var(--line);border-radius:12px;padding:28px 26px;background:var(--panel)}
 .door .k{font-family:var(--head);font-size:12.5px;font-weight:600;letter-spacing:.24em;
   text-transform:uppercase;color:var(--gold)}
@@ -150,7 +150,7 @@ footer .l{display:flex;gap:22px;flex-wrap:wrap}
   .doors,.fork,.cards,.cols,.grp,.about{grid-template-columns:1fr}
   .doors{padding-top:44px}
   .rule{margin:46px 0 24px}
-  .hero{padding:54px 0 44px}
+  .hero{padding-top:54px;padding-bottom:44px}
   .card:not(.g) .money{padding-top:0}
   .tool{grid-template-columns:1fr;gap:8px}
   .nav-links{gap:16px;font-size:14px}
