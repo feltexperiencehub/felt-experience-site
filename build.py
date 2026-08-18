@@ -62,9 +62,9 @@ RULE = '<div class="rule"><span>&#9824;</span><i></i></div>'
 # ---------------------------------------------------------------- home
 home = f"""
 <div class="wrap hero">
-  <h1>Solvers tell you what's correct.<br/><span class="g">Pools tell you where the money is.</span></h1>
-  <p class="lede">I'm Dustin. I've played no-limit hold'em cash professionally since 2007, currently up to 10/20.
-     Every week I break down real hands on YouTube, including the ones I got wrong.</p>
+  <h1>Solvers tell you what's correct.<br/><span class="g">I help you understand why.</span></h1>
+  <p class="lede">I'm Dustin. I've played online poker professionally since 2007, and currently up to
+     10/20 NL. Every week I break down real hands on YouTube, including the ones I got wrong.</p>
   <div class="cta">
     <a class="btn p" href="{YT}" target="_blank" rel="noopener">Watch on YouTube</a>
     <a class="btn s" href="coaching.html">Work with me</a>
@@ -76,7 +76,7 @@ home = f"""
   <div class="eyebrow">Free tool</div>
   <h2>Step through a hand right now</h2>
   <p class="sub">My hand replayer is free and needs no signup. Paste a hand history from PokerStars,
-     GGPoker, ACR, Ignition or ClubGG and walk it street by street.</p>
+     GGPoker, ACR, Ignition, or ClubGG, or manually create your own, and walk through it street by street.</p>
   <a class="shot" href="{REPLAY}" target="_blank" rel="noopener">
     <img src="assets/replayer.jpg" width="1500" height="843"
          alt="The Felt Experience hand replayer showing a six-handed cash game" />
@@ -95,8 +95,8 @@ home = f"""
   </div>
   <div class="door">
     <div class="k">Work with me</div><h3>Coaching &amp; staking</h3>
-    <p>One-on-one sessions, a monthly group, or coaching-for-profits and straight staking if you'd
-       rather play my roll.</p>
+    <p>One-on-one sessions, a monthly group, or staking and coaching-for-profits if you'd rather
+       play on my roll.</p>
     <a href="coaching.html">See coaching &rarr;</a>
   </div>
   <div class="door">
@@ -226,9 +226,9 @@ coaching = f"""
 staking = f"""
 <div class="wrap hero" style="padding-bottom:34px">
   <div class="eyebrow">Staking &amp; CFP</div>
-  <h1 style="margin-top:14px">Play my roll, or learn on it</h1>
-  <p class="lede">One application covers both programs: coaching-for-profits, where I coach you and take
-     a share of what you win, or straight staking, where you play my bankroll. Tell me about your game
+  <h1 style="margin-top:14px">Play on my roll, or learn on it</h1>
+  <p class="lede">One application covers both programs: staking, where you play on my roll, or coaching
+     for profits, where I coach you as well and take a share of what you win. Tell me about your game
      and I'll tell you which one fits.</p>
   <div class="cta"><a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply now</a></div>
 </div>
@@ -237,14 +237,14 @@ staking = f"""
   {RULE}
   <div class="cols">
     <div>
+      <div class="colhead">Staking</div>
+      <p class="sub" style="margin-top:0">TODO &mdash; explain the split, the stakes and sites you back,
+        volume expectations, and how settlement works.</p>
+    </div>
+    <div>
       <div class="colhead">Coaching for profits</div>
       <p class="sub" style="margin-top:0">TODO &mdash; explain how CFP works, what you provide, what
         share you take, and how makeup is handled.</p>
-    </div>
-    <div>
-      <div class="colhead">Straight staking</div>
-      <p class="sub" style="margin-top:0">TODO &mdash; explain the split, the stakes and sites you back,
-        volume expectations, and how settlement works.</p>
     </div>
   </div>
 
@@ -303,7 +303,7 @@ PAGES = [
   ("coaching.html", f"Poker Coaching — {SITE}",
    "One-on-one NLHE cash coaching for 100NL-1kNL players, and a $149/month coaching group.", coaching),
   ("staking.html", f"Staking & Coaching for Profits — {SITE}",
-   "Apply for coaching-for-profits or straight staking with Felt Experience Poker.", staking),
+   "Apply for staking or coaching for profits with Felt Experience Poker.", staking),
   ("clubs.html",   f"Club Access — {SITE}",
    "Access to selected ClubGG and PokerBros clubs for players and agents, with rakeback.", clubs),
   ("tools.html",   f"Poker Tools I Use — {SITE}",
