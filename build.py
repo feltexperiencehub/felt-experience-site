@@ -1,0 +1,316 @@
+#!/usr/bin/env python3
+"""Generates the static pages. Content lives here; edit this, then run `python3 build.py`."""
+import pathlib
+ROOT = pathlib.Path(__file__).parent
+
+SITE  = "Felt Experience Poker"
+TG    = "https://t.me/feltexperience"
+YT    = "https://youtube.com/@feltexperiencepoker"
+APPLY = "https://apply.feltexperiencepoker.com"
+REPLAY= "https://replayer.feltexperiencepoker.com"
+STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"
+MAIL  = "feltexperiencepoker@gmail.com"
+
+NAV = [("index.html","Home"),("coaching.html","Coaching"),("staking.html","Staking"),
+       ("clubs.html","Clubs"),("tools.html","Tools"),(REPLAY,"Replayer")]
+
+def shell(page, title, desc, body):
+    parts = []
+    for h, t in NAV:
+        cls = ' class="on"' if h == page else ''
+        ext = ' target="_blank" rel="noopener"' if h.startswith('http') else ''
+        parts.append('<a href="' + h + '"' + cls + ext + '>' + t + '</a>')
+    links = "".join(parts)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title}</title>
+<meta name="description" content="{desc}" />
+<link rel="canonical" href="https://feltexperiencepoker.com/{'' if page=='index.html' else page}" />
+<meta property="og:title" content="{title}" />
+<meta property="og:description" content="{desc}" />
+<meta property="og:type" content="website" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<nav><div class="wrap nav-in">
+  <a class="mark" href="index.html"><b>FELT</b> EXPERIENCE</a>
+  <div class="nav-links">{links}</div>
+</div></nav>
+{body}
+<div class="wrap"><footer>
+  <div class="c">&copy; {SITE}</div>
+  <div class="l">
+    <a href="{YT}" target="_blank" rel="noopener">YouTube</a>
+    <a href="https://x.com/feltexperience" target="_blank" rel="noopener">X</a>
+    <a href="{TG}" target="_blank" rel="noopener">Telegram @feltexperience</a>
+    <a href="mailto:{MAIL}">{MAIL}</a>
+  </div>
+</footer></div>
+</body>
+</html>
+"""
+
+RULE = '<div class="rule"><span>&#9824;</span><i></i></div>'
+
+# ---------------------------------------------------------------- home
+home = f"""
+<div class="wrap hero">
+  <h1>Solvers tell you what's correct.<br/><span class="g">Pools tell you where the money is.</span></h1>
+  <p class="lede">I'm Dustin. I've played no-limit hold'em cash professionally since 2007, currently up to 10/20.
+     Every week I break down real hands on YouTube, including the ones I got wrong.</p>
+  <div class="cta">
+    <a class="btn p" href="{YT}" target="_blank" rel="noopener">Watch on YouTube</a>
+    <a class="btn s" href="coaching.html">Work with me</a>
+  </div>
+</div>
+
+<div class="band"><div class="wrap">
+  {RULE.replace('margin','margin')}
+  <div class="eyebrow">Free tool</div>
+  <h2>Step through a hand right now</h2>
+  <p class="sub">My hand replayer is free and needs no signup. Paste a hand history from PokerStars,
+     GGPoker, ACR, Ignition or ClubGG and walk it street by street.</p>
+  <a class="shot" href="{REPLAY}" target="_blank" rel="noopener">
+    <img src="assets/replayer.jpg" width="1500" height="843"
+         alt="The Felt Experience hand replayer showing a six-handed cash game" />
+    <span class="tag">FREE &middot; NO SIGNUP</span>
+  </a>
+  <div class="after">
+    <span>Shared links unfurl into a picture of the hand, so you can post spots anywhere.</span>
+    <a class="btn s" href="{REPLAY}" target="_blank" rel="noopener">Open the replayer &rarr;</a>
+  </div>
+</div></div>
+
+<div class="wrap doors">
+  <div class="door">
+    <div class="k">Learn</div><h3>Free strategy</h3>
+    <p>Weekly play-and-explains, solver reviews and hand breakdowns. Start here if you don't know me yet.</p>
+    <a href="{YT}" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
+  </div>
+  <div class="door">
+    <div class="k">Work with me</div><h3>Coaching &amp; staking</h3>
+    <p>One-on-one sessions, a monthly group, or coaching-for-profits and straight staking if you'd
+       rather play my roll.</p>
+    <a href="coaching.html">See coaching &rarr;</a>
+  </div>
+  <div class="door">
+    <div class="k">Play</div><h3>Club access</h3>
+    <p>Selected ClubGG and PokerBros clubs for players and agents, with rakeback arrangements.</p>
+    <a href="clubs.html">Club info &rarr;</a>
+  </div>
+</div>
+
+<div class="wrap">
+  {RULE}
+  <p class="quote">&ldquo;REPLACE THIS WITH A REAL COMMENT FROM ONE OF YOUR VIDEOS.&rdquo;</p>
+  <div class="attrib">From the comments on <a href="https://youtu.be/CxMHNC5Qiz0">Turn Probe Masterclass</a></div>
+</div>
+"""
+
+# ---------------------------------------------------------------- coaching
+coaching = f"""
+<div class="wrap hero" style="padding-bottom:40px">
+  <div class="eyebrow">Coaching</div>
+  <h1 style="margin-top:14px">Two ways to work with me</h1>
+  <p class="lede">Both are built on the same thing: solver-informed heuristics crossed with what the
+     player pool actually does. Pick whichever fits how much you want to spend and how directly you
+     want my attention.</p>
+</div>
+
+<div class="wrap fork">
+  <div class="path">
+    <div class="who">Start here</div>
+    <h2>Coaching Group</h2>
+    <div class="price">$149 / month &middot; cancel anytime</div>
+    <p>Monthly live group calls, an ongoing Discord to talk hands in, and every past recording.
+       The lowest-commitment way to see whether the way I think helps your game.</p>
+    <a class="btn s" href="{STRIPE}" target="_blank" rel="noopener">Join the group</a>
+  </div>
+  <div class="path hi">
+    <div class="who">Most direct</div>
+    <h2>1-on-1 Coaching</h2>
+    <div class="price">From $625 &middot; 75-minute sessions</div>
+    <p>Your database, your hands, your leaks. For serious 100NL&ndash;1kNL players who want the spots
+       costing them money found and fixed rather than explained in general.</p>
+    <a class="btn p" href="{TG}" target="_blank" rel="noopener">Ask about 1-on-1</a>
+  </div>
+</div>
+
+<div class="wrap">
+  {RULE}
+  <h2>1-on-1 Coaching</h2>
+  <p class="sub">Sessions are built around what you bring. Most people arrive with a database and a
+     handful of spots they keep getting wrong; we start there rather than at chapter one.</p>
+
+  <div class="cols">
+    <div>
+      <div class="colhead">What sessions can cover</div>
+      <ul class="ticks">
+        <li>Database and leak analysis</li>
+        <li>Hand-history review</li>
+        <li>Solver study and interpretation</li>
+        <li>Population tendencies and exploits</li>
+        <li>Strategic heuristics and study planning</li>
+      </ul>
+    </div>
+    <div>
+      <div class="colhead">How it runs</div>
+      <ul class="ticks">
+        <li>Every session is <b>75 minutes</b></li>
+        <li>Two-session minimum &mdash; one is rarely enough to change anything</li>
+        <li>CHECK: send hands or database access ahead of each session</li>
+        <li>CHECK: scheduled directly with me, around your timezone</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pkg-note">Every session is <b>75 minutes</b></div>
+  <div class="cards">
+    <div class="card">
+      <div class="tier">2 Sessions</div><div class="count">Minimum booking</div>
+      <div class="money"><div class="price2">$625</div><div class="per">$312.50 per session</div></div>
+    </div>
+    <div class="card s">
+      <div class="tier">Silver Package</div><div class="count">5 sessions</div>
+      <div class="money"><div class="price2">$1,500</div><div class="per">$300 per session</div></div>
+    </div>
+    <div class="card g">
+      <div class="tier">Gold Package</div><div class="count">10 sessions</div>
+      <div class="money"><div class="price2">$2,750</div><div class="per">$275 per session</div>
+        <div class="extra">Includes 6 months in my private Discord group with monthly live calls and
+          ongoing hand discussions</div></div>
+    </div>
+  </div>
+  <div class="mid"><a class="btn p" href="{TG}" target="_blank" rel="noopener">Ask about 1-on-1 coaching &rarr;</a></div>
+
+  {RULE}
+  <h2>The Coaching Group</h2>
+  <p class="sub">A private group for players who want a more direct and personalised way to improve,
+     without booking individual sessions.</p>
+  <div class="grp">
+    <div>
+      <div class="colhead">Includes</div>
+      <ul class="ticks">
+        <li>Monthly live group coaching</li>
+        <li>Access to all past group coaching recordings</li>
+        <li>Private Discord study group</li>
+        <li>One personalised database review when you join</li>
+        <li>Access to custom HUDs and pop-ups</li>
+      </ul>
+    </div>
+    <div>
+      <div class="p">$149<small> / month</small></div>
+      <div class="fine">Cancel anytime. Once you sign up you'll be emailed an invite link within
+        one business day.</div>
+      <a class="btn p" style="margin-top:20px" href="{STRIPE}" target="_blank" rel="noopener">Join the group</a>
+    </div>
+  </div>
+
+  <div class="about">
+    <div><div class="colhead">About me</div></div>
+    <div><p>I've played no-limit hold'em cash professionally since 2007 and currently play up to 10/20.
+      I was a video coach for PokerStrategy and Red Chip Poker, and I run the Felt Experience Poker
+      YouTube channel, where I break down real hands every week &mdash; which is the fastest way to
+      find out whether we'd work well together before you spend anything.</p></div>
+  </div>
+</div>
+"""
+
+# ---------------------------------------------------------------- staking
+staking = f"""
+<div class="wrap hero" style="padding-bottom:34px">
+  <div class="eyebrow">Staking &amp; CFP</div>
+  <h1 style="margin-top:14px">Play my roll, or learn on it</h1>
+  <p class="lede">One application covers both programs: coaching-for-profits, where I coach you and take
+     a share of what you win, or straight staking, where you play my bankroll. Tell me about your game
+     and I'll tell you which one fits.</p>
+  <div class="cta"><a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply now</a></div>
+</div>
+
+<div class="wrap">
+  {RULE}
+  <div class="cols">
+    <div>
+      <div class="colhead">Coaching for profits</div>
+      <p class="sub" style="margin-top:0">TODO &mdash; explain how CFP works, what you provide, what
+        share you take, and how makeup is handled.</p>
+    </div>
+    <div>
+      <div class="colhead">Straight staking</div>
+      <p class="sub" style="margin-top:0">TODO &mdash; explain the split, the stakes and sites you back,
+        volume expectations, and how settlement works.</p>
+    </div>
+  </div>
+
+  {RULE}
+  <div class="colhead">What I look for</div>
+  <ul class="ticks">
+    <li>TODO &mdash; winrate and sample you want to see</li>
+    <li>TODO &mdash; volume expectations</li>
+    <li>TODO &mdash; study habits</li>
+  </ul>
+  <div class="mid" style="justify-content:flex-start;margin-top:28px">
+    <a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply for CFP / Staking &rarr;</a>
+  </div>
+</div>
+"""
+
+# ---------------------------------------------------------------- clubs
+clubs = f"""
+<div class="wrap hero" style="padding-bottom:34px">
+  <div class="eyebrow">Play</div>
+  <h1 style="margin-top:14px">Club access</h1>
+  <p class="lede">I offer access to selected ClubGG and PokerBros clubs for players and agents.
+     Message me on Telegram for club information and rakeback arrangements.</p>
+  <div class="cta">
+    <a class="btn p" href="{TG}" target="_blank" rel="noopener">Request club info</a>
+    <a class="btn s" href="staking.html">Looking for a stake instead?</a>
+  </div>
+</div>
+"""
+
+# ---------------------------------------------------------------- tools
+def tool(name, url, desc, perk=""):
+    p = f' <span class="perk">{perk}</span>' if perk else ""
+    return (f'<div class="tool"><div class="n">{name}</div>'
+            f'<div class="d">{desc}{p}</div>'
+            f'<a class="go" href="{url}" target="_blank" rel="noopener">Visit &rarr;</a></div>')
+
+tools = f"""
+<div class="wrap hero" style="padding-bottom:26px">
+  <div class="eyebrow">Tools</div>
+  <h1 style="margin-top:14px">What I actually use</h1>
+  <p class="lede">These are the tools I use to make studying, tracking and decision-making more
+     efficient. Some links give you a discount and pay me a commission.</p>
+</div>
+<div class="wrap">
+  {tool("Felt Experience Replayer", REPLAY, "My free poker hand replayer. No signup, works with hand histories from every major site.", "Free")}
+  {tool("GTO Wizard", "https://gtowizard.com/p/feltexperience/", "Top-tier study tool with high-speed custom solving.", "10% off through this link")}
+  {tool("Hand2Note", "https://hand2note.com?rid=71022", "Tracking, database, analysis and HUD software.", "Code FELT for 10% off")}
+  {tool("Jurojin", "https://affiliate.jurojinpoker.com/feltexperience/signup", "Multi-tabling software with custom hotkeys, layouts, overlays and timing tell data.", "31-day free full-access trial")}
+</div>
+"""
+
+PAGES = [
+  ("index.html",   f"{SITE} — No-Limit Hold'em Cash Game Strategy",
+   "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking and club access.", home),
+  ("coaching.html", f"Poker Coaching — {SITE}",
+   "One-on-one NLHE cash coaching for 100NL-1kNL players, and a $149/month coaching group.", coaching),
+  ("staking.html", f"Staking & Coaching for Profits — {SITE}",
+   "Apply for coaching-for-profits or straight staking with Felt Experience Poker.", staking),
+  ("clubs.html",   f"Club Access — {SITE}",
+   "Access to selected ClubGG and PokerBros clubs for players and agents, with rakeback.", clubs),
+  ("tools.html",   f"Poker Tools I Use — {SITE}",
+   "The study, tracking and multi-tabling tools I use, including my free hand replayer.", tools),
+]
+
+for page, title, desc, body in PAGES:
+    (ROOT / page).write_text(shell(page, title, desc, body))
+    print("wrote", page)
