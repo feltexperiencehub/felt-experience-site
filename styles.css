@@ -126,8 +126,8 @@ ul.ticks li b{color:#fff;font-weight:600}
 .tool .perk{color:var(--gold);font-weight:600}
 
 /* ---------- quote ---------- */
-.quotes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px;align-items:start}
-.qcard{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:24px 24px 20px}
+.quotes{columns:2;column-gap:18px;margin-top:22px}
+.qcard{break-inside:avoid;margin:0 0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:24px 24px 20px}
 .qcard p{font-size:16.5px;line-height:1.6;color:#cfdbd2}
 .qcard p + p{margin-top:12px}
 .qcard cite{display:block;margin-top:14px;font-style:normal;font-size:14px;font-weight:600;color:var(--accent)}
@@ -149,7 +149,8 @@ footer .l{display:flex;gap:22px;flex-wrap:wrap}
 /* ---------- mobile ---------- */
 @media (max-width:900px){
   .wrap{padding:0 22px}
-  .doors,.fork,.cards,.cols,.grp,.about,.quotes{grid-template-columns:1fr}
+  .doors,.fork,.cards,.cols,.grp,.about{grid-template-columns:1fr}
+  .quotes{columns:1}
   .doors{padding-top:44px}
   .rule{margin:46px 0 24px}
   .hero{padding-top:54px;padding-bottom:44px}

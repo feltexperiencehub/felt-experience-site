@@ -127,6 +127,10 @@ home = f"""
       <p>Your stuff just keeps getting better, easily my favourite channel atm</p>
       <cite>@pokerinfobot</cite>
     </blockquote>
+    <blockquote class="qcard">
+      <p>Perhaps the best poker content there is available for free.</p>
+      <cite>@sachaalter851</cite>
+    </blockquote>
   </div>
   <div class="attrib">From the comments on the <a href="{YT}" target="_blank" rel="noopener">Felt Experience Poker</a> channel</div>
 </div>
