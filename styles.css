@@ -10,7 +10,7 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;
   line-height:1.55;-webkit-font-smoothing:antialiased}
-img{max-width:100%;display:block}
+img{max-width:100%;height:auto;display:block}
 a{color:var(--accent)}
 .wrap{max-width:1200px;margin:0 auto;padding:0 40px}
 
@@ -64,9 +64,6 @@ ul.ticks li b{color:#fff;font-weight:600}
 .band{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#0F0F0F;padding:62px 0}
 .band h2{margin-top:6px}
 .shot{margin-top:30px;border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;position:relative}
-.shot .tag{position:absolute;left:16px;bottom:16px;background:rgba(0,0,0,.72);
-  border:1px solid var(--accent-dim);color:var(--accent);font-size:12.5px;font-weight:600;
-  letter-spacing:.06em;padding:7px 13px;border-radius:100px}
 .band .after{display:flex;align-items:center;justify-content:space-between;margin-top:22px;flex-wrap:wrap;gap:14px}
 .band .after span{color:var(--muted);font-size:15px}
 
