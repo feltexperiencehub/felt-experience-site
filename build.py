@@ -48,7 +48,6 @@ def shell(page, title, desc, body):
   <div class="c">&copy; {SITE}</div>
   <div class="l">
     <a href="{YT}" target="_blank" rel="noopener">YouTube</a>
-    <a href="https://x.com/feltexperience" target="_blank" rel="noopener">X</a>
     <a href="{TG}" target="_blank" rel="noopener">Telegram @feltexperience</a>
     <a href="mailto:{MAIL}">{MAIL}</a>
   </div>
@@ -95,8 +94,7 @@ home = f"""
   </div>
   <div class="door">
     <div class="k">Work with me</div><h3>Coaching &amp; staking</h3>
-    <p>One-on-one sessions, a monthly group, or staking and coaching-for-profits if you'd rather
-       play on my roll.</p>
+    <p>One-on-one sessions, a monthly group, or staking if you'd rather play on my roll.</p>
     <a href="coaching.html">See coaching &rarr;</a>
   </div>
   <div class="door">
