@@ -163,7 +163,8 @@ footer .c{color:var(--faint);font-size:13.5px}
   .hero{padding-top:54px;padding-bottom:44px}
   .card:not(.g) .money{padding-top:0}
   .tool{grid-template-columns:1fr;gap:8px}
-  .nav-links{gap:16px;font-size:14px}
+  .nav-links{gap:15px;font-size:14px}
+  .nav-links .hide-mobile{display:none}
   /* more headroom under the browser chrome on phones */
   .nav-in{padding-top:30px;padding-bottom:18px}
   .about{margin-top:48px}

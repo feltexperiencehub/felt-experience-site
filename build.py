@@ -26,7 +26,9 @@ def shell(page, title, desc, body):
     for h, t in NAV:
         cls = ' class="on"' if h == page else ''
         ext = ' target="_blank" rel="noopener"' if h.startswith('http') else ''
-        parts.append('<a href="' + url_for(h) + '"' + cls + ext + '>' + t + '</a>')
+        hide = ' class="hide-mobile"' if t == 'Replayer' and not cls else ''
+        if hide and cls: hide = ''
+        parts.append('<a href="' + url_for(h) + '"' + (cls or hide) + ext + '>' + t + '</a>')
     links = "".join(parts)
     return f"""<!DOCTYPE html>
 <html lang="en">
