@@ -277,7 +277,8 @@ clubs = f"""
   <div class="eyebrow">Play</div>
   <h1 style="margin-top:14px">Club access</h1>
   <p class="lede">I offer access to selected ClubGG and PokerBros clubs for players and agents.
-     Message me on Telegram for club information and rakeback arrangements.</p>
+     Message me on Telegram <a href="{TG}" target="_blank" rel="noopener">@feltexperience</a> for club
+     information and rakeback arrangements.</p>
   <div class="cta">
     <a class="btn p" href="{TG}" target="_blank" rel="noopener">Request club info</a>
     <a class="btn s" href="staking.html">Looking for a stake instead?</a>
