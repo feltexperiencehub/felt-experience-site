@@ -220,7 +220,7 @@ coaching = f"""
 
   {RULE}
   <h2>The Coaching Group</h2>
-  <p class="sub">A private group for players who want a more direct and personalised way to improve,
+  <p class="sub">A private group for players who want a more direct and personalized way to improve,
      without booking individual sessions.</p>
   <div class="grp">
     <div>
@@ -229,7 +229,7 @@ coaching = f"""
         <li>Monthly live group coaching</li>
         <li>Private Discord study group</li>
         <li>Access to all past group coaching recordings</li>
-        <li>One personalised database review when you join</li>
+        <li>One personalized database review when you join</li>
         <li>Access to custom HUDs and pop-ups</li>
       </ul>
     </div>
@@ -304,14 +304,14 @@ tools = f"""
 <div class="wrap hero" style="padding-bottom:26px">
   <div class="eyebrow">Tools</div>
   <h1 style="margin-top:14px">What I actually use</h1>
-  <p class="lede">These are the tools I use to make studying, tracking and decision-making more
+  <p class="lede">These are the tools I use to make studying, tracking, and decision-making more
      efficient. Some links give you a discount and pay me a commission.</p>
 </div>
 <div class="wrap">
   {tool("Felt Experience Replayer", REPLAY, "My free poker hand replayer. No signup, works with hand histories from every major site.", "Free")}
   {tool("GTO Wizard", "https://gtowizard.com/p/feltexperience/", "Top-tier study tool with high-speed custom solving.", "10% off through this link")}
   {tool("Hand2Note", "https://hand2note.com?rid=71022", "Tracking, database, analysis and HUD software.", "Code FELT for 10% off")}
-  {tool("Jurojin", "https://jurojinpoker.com/?ref=659", "Multi-tabling software with custom hotkeys, layouts, overlays and timing tell data.", "31-day free full-access trial")}
+  {tool("Jurojin", "https://jurojinpoker.com/?ref=659", "Multi-tabling software with custom hotkeys, layouts, overlays, and timing tell data.", "31-day free full-access trial")}
 </div>
 """
 
@@ -332,7 +332,7 @@ notfound = f"""
 
 PAGES = [
   ("index.html",   f"{SITE} – No-Limit Hold'em Cash Game Strategy",
-   "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking and club access.", home),
+   "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking, and club access.", home),
   ("coaching.html", f"Poker Coaching – {SITE}",
    "One-on-one NLHE cash coaching for 50NL-1kNL players, and a $149/month coaching group.", coaching),
   ("staking.html", f"Staking & Coaching for Profits – {SITE}",
@@ -340,7 +340,7 @@ PAGES = [
   ("clubs.html",   f"Club Access – {SITE}",
    "Access to selected ClubGG and PokerBros clubs for players and agents, with rakeback.", clubs),
   ("tools.html",   f"Poker Tools I Use – {SITE}",
-   "The study, tracking and multi-tabling tools I use, including my free hand replayer.", tools),
+   "The study, tracking, and multi-tabling tools I use, including my free hand replayer.", tools),
   ("404.html",     f"Page not found – {SITE}",
    "That page doesn't exist.", notfound),
 ]
