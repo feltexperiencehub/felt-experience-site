@@ -69,6 +69,7 @@ def shell(page, title, desc, body):
   </div>
   <div class="foot-meta">
     <div class="c">&copy; {SITE}</div>
+    <div class="c"><a href="/refunds">Refunds &amp; scheduling</a></div>
   </div>
 </footer></div>
 </body>
@@ -114,12 +115,12 @@ home = f"""
   </div>
   <div class="door">
     <div class="k">Work with me</div><h3>Coaching</h3>
-    <p>One-on-one sessions built around your game, or a monthly group at a lower commitment.</p>
+    <p>One-on-one sessions built around your game, or a monthly coaching group.</p>
     <a href="/coaching">Coaching &rarr;</a>
   </div>
   <div class="door">
     <div class="k">Get staked</div><h3>Staking &amp; CFP</h3>
-    <p>Play on my bankroll, or apply for coaching-for-profits and keep playing on your own roll.</p>
+    <p>Apply to play fully backed, or for coaching-for-profits while you keep playing your own roll.</p>
     <a href="/staking">Staking &rarr;</a>
   </div>
   <div class="door">
@@ -173,12 +174,11 @@ coaching = f"""
 
 <div class="wrap fork">
   <div class="path">
-    <div class="who">Start here</div>
+    <div class="who">Community</div>
     <h2>Coaching Group</h2>
     <div class="price">$149 / month &middot; cancel anytime</div>
-    <p>Monthly live group coaching calls, an active Discord server to discuss hands with myself
-       and other winning players, and every past recording. The lowest-commitment way to see whether
-       the way I think helps your game.</p>
+    <p>Monthly live group coaching calls, an active Discord server to discuss hands with me and
+       other winning players, and access to every group coaching recording.</p>
     <a class="btn s" href="{STRIPE}" target="_blank" rel="noopener">Join the group</a>
   </div>
   <div class="path hi">
@@ -231,8 +231,8 @@ coaching = f"""
 
   {RULE}
   <h2>The Coaching Group</h2>
-  <p class="sub">A private group for players who want a more direct and personalized way to improve,
-     without booking individual sessions.</p>
+  <p class="sub">A private group for players who want ongoing coaching alongside other winning
+     players, rather than a fixed number of sessions.</p>
   <div class="grp">
     <div>
       <div class="colhead">Includes</div>
@@ -341,6 +341,45 @@ notfound = f"""
 </div>
 """
 
+# ---------------------------------------------------------------- refunds
+refunds = f"""
+<div class="wrap hero" style="padding-bottom:40px">
+  <div class="eyebrow">Policies</div>
+  <h1 style="margin-top:14px">Refunds and scheduling</h1>
+  <p class="lede">The short version: if I haven't delivered it yet, you can have your money back.</p>
+</div>
+
+<div class="wrap">
+  {RULE}
+  <h2>1-on-1 coaching packages</h2>
+  <p class="sub">Unused sessions are refundable within 60 days of purchase. Completed sessions are
+     charged at the single-session rate of $312.50, and the balance is returned.</p>
+  <p class="sub">For example: if you buy the Gold Package and decide after three sessions that it
+     isn't working for you, those three are charged at $312.50 each and the remaining $1,812.50
+     is refunded.</p>
+  <p class="sub">Sessions are valid for 12 months from the date of purchase.</p>
+
+  {RULE}
+  <h2>The Coaching Group</h2>
+  <p class="sub">$149 per month, cancel anytime. Cancelling stops the next payment, and you keep
+     access for the rest of the month you have already paid for. Partial months aren't refunded.</p>
+
+  {RULE}
+  <h2>Scheduling</h2>
+  <p class="sub">I'll email you within one business day of your purchase to book your first session,
+     and we work the rest around your schedule.</p>
+  <p class="sub">Reschedule any time with at least 24 hours' notice. A session that's missed, or
+     cancelled with less than 24 hours' notice, counts as completed.</p>
+
+  {RULE}
+  <h2>Questions</h2>
+  <p class="sub">Email me at <a href="mailto:{MAIL}">{MAIL}</a> or message me on Telegram at
+     <a href="{TG}" target="_blank" rel="noopener">@feltexperience</a>, and I'll get back to you
+     within one business day.</p>
+</div>
+"""
+
+
 PAGES = [
   ("index.html",   f"{SITE} – No-Limit Hold'em Cash Game Strategy",
    "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking, and club access.", home),
@@ -352,6 +391,8 @@ PAGES = [
    "Access to selected ClubGG and PokerBros clubs for players and agents, with rakeback.", clubs),
   ("tools.html",   f"Poker Tools I Use – {SITE}",
    "The study, tracking, and multi-tabling tools I use, including my free hand replayer.", tools),
+  ("refunds.html", f"Refunds and Scheduling – {SITE}",
+   "Refund and scheduling policy for Felt Experience Poker coaching and the coaching group.", refunds),
   ("404.html",     f"Page not found – {SITE}",
    "That page doesn't exist.", notfound),
 ]
