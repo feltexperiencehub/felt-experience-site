@@ -45,11 +45,14 @@ def shell(page, title, desc, body):
 </div></nav>
 {body}
 <div class="wrap"><footer>
-  <div class="c">&copy; {SITE}</div>
-  <div class="l">
+  <div class="foot-contact">
+    <div class="colhead">Get in touch</div>
+    <div class="foot-line">Telegram: <a href="{TG}" target="_blank" rel="noopener">@feltexperience</a></div>
+    <div class="foot-line">Email: <a href="mailto:{MAIL}">{MAIL}</a></div>
+  </div>
+  <div class="foot-meta">
     <a href="{YT}" target="_blank" rel="noopener">YouTube</a>
-    <a href="{TG}" target="_blank" rel="noopener">Telegram @feltexperience</a>
-    <a href="mailto:{MAIL}">{MAIL}</a>
+    <div class="c">&copy; {SITE}</div>
   </div>
 </footer></div>
 </body>
