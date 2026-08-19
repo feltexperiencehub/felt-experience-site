@@ -11,8 +11,8 @@ REPLAY= "https://replayer.feltexperiencepoker.com"
 STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"
 MAIL  = "feltexperiencepoker@gmail.com"
 
-NAV = [("coaching.html","Coaching"),("staking.html","Staking"),("clubs.html","Clubs"),
-       ("tools.html","Tools"),(REPLAY,"Replayer"),(YT,"YouTube")]
+NAV = [(YT,"YouTube"),("coaching.html","Coaching"),("staking.html","Staking"),
+       ("clubs.html","Clubs"),("tools.html","Tools"),(REPLAY,"Replayer")]
 
 def shell(page, title, desc, body):
     parts = []
