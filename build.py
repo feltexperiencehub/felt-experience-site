@@ -174,8 +174,8 @@ coaching = f"""
 <div class="wrap">
   {RULE}
   <h2>1-on-1 Coaching</h2>
-  <p class="sub">Sessions are built around your game. We often start with diving into your database
-     to find your biggest leaks and go from there, and the gameplan is personalized for each player.</p>
+  <p class="sub">Sessions are built around your game. We often start by diving into your database
+     to find your biggest leaks. The plan is different for each player.</p>
 
   <div class="cols">
     <div>
