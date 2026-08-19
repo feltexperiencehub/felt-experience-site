@@ -244,38 +244,25 @@ coaching = f"""
 # ---------------------------------------------------------------- staking
 staking = f"""
 <div class="wrap hero" style="padding-bottom:34px">
-  <div class="eyebrow">Staking &amp; CFP</div>
-  <h1 style="margin-top:14px">Play on my roll, or learn on it</h1>
+  <div class="eyebrow">Apply</div>
+  <h1 style="margin-top:14px">Staking and coaching for profits</h1>
   <p class="lede">One application covers both programs: staking, where you play on my roll, or coaching
-     for profits, where I coach you as well and take a share of what you win. Tell me about your game
-     and I'll tell you which one fits.</p>
+     for profits, where I coach you as well and take a share of what you win while you keep playing on
+     your own roll.</p>
   <div class="cta"><a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply now</a></div>
 </div>
 
 <div class="wrap">
   {RULE}
-  <div class="cols">
-    <div>
-      <div class="colhead">Staking</div>
-      <p class="sub" style="margin-top:0">TODO &mdash; explain the split, the stakes and sites you back,
-        volume expectations, and how settlement works.</p>
-    </div>
-    <div>
-      <div class="colhead">Coaching for profits</div>
-      <p class="sub" style="margin-top:0">TODO &mdash; explain how CFP works, what you provide, what
-        share you take, and how makeup is handled.</p>
-    </div>
-  </div>
-
-  {RULE}
   <div class="colhead">What I look for</div>
   <ul class="ticks">
-    <li>TODO &mdash; winrate and sample you want to see</li>
-    <li>TODO &mdash; volume expectations</li>
-    <li>TODO &mdash; study habits</li>
+    <li>A baseline understanding of the game and decent preflop frequencies</li>
+    <li>Consistent volume</li>
+    <li>Growth mindset. Poker is a complex game and reaching the top levels requires a commitment
+        to consistently improve.</li>
   </ul>
-  <div class="mid" style="justify-content:flex-start;margin-top:28px">
-    <a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply for CFP / Staking &rarr;</a>
+  <div class="mid" style="justify-content:flex-start;margin-top:30px">
+    <a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply for staking or CFP &rarr;</a>
   </div>
 </div>
 """
