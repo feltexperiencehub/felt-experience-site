@@ -3,6 +3,13 @@
 import pathlib
 ROOT = pathlib.Path(__file__).parent
 
+import hashlib
+def asset(path):
+    """/assets/x.jpg?v=<hash> — long-cached but busts when the file changes."""
+    f = ROOT / path.lstrip('/')
+    h = hashlib.sha1(f.read_bytes()).hexdigest()[:8] if f.exists() else '0'
+    return path + '?v=' + h
+
 SITE  = "Felt Experience Poker"
 TG    = "https://t.me/feltexperience"
 YT    = "https://youtube.com/@feltexperiencepoker"
@@ -41,7 +48,7 @@ def shell(page, title, desc, body):
 <meta property="og:title" content="{title}" />
 <meta property="og:description" content="{desc}" />
 <meta property="og:type" content="website" />
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="{asset("/assets/favicon.svg")}" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -89,7 +96,7 @@ home = f"""
   <p class="sub">My hand replayer is free and needs no signup. Paste a hand history from PokerStars,
      GGPoker, ACR, Ignition, or ClubGG, or manually create your own, and walk through it street by street.</p>
   <a class="shot" href="{REPLAY}" target="_blank" rel="noopener">
-    <img src="/assets/replayer.jpg" width="1500" height="843"
+    <img src="{asset("/assets/replayer.jpg")}" width="1500" height="843"
          alt="The Felt Experience hand replayer showing a turn spot in a six-handed cash game" />
   </a>
   <div class="after">
