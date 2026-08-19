@@ -11,8 +11,8 @@ REPLAY= "https://replayer.feltexperiencepoker.com"
 STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"
 MAIL  = "feltexperiencepoker@gmail.com"
 
-NAV = [("index.html","Home"),("coaching.html","Coaching"),("staking.html","Staking"),
-       ("clubs.html","Clubs"),("tools.html","Tools"),(REPLAY,"Replayer")]
+NAV = [("coaching.html","Coaching"),("staking.html","Staking"),("clubs.html","Clubs"),
+       ("tools.html","Tools"),(REPLAY,"Replayer"),(YT,"YouTube")]
 
 def shell(page, title, desc, body):
     parts = []
@@ -51,7 +51,6 @@ def shell(page, title, desc, body):
     <div class="foot-line">Email: <a href="mailto:{MAIL}">{MAIL}</a></div>
   </div>
   <div class="foot-meta">
-    <a href="{YT}" target="_blank" rel="noopener">YouTube</a>
     <div class="c">&copy; {SITE}</div>
   </div>
 </footer></div>
