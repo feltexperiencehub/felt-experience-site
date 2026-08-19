@@ -106,7 +106,7 @@ home = f"""
   </div>
   <div class="door">
     <div class="k">Work with me</div><h3>Coaching</h3>
-    <p>One-on-one sessions built around the hands you're actually playing, or a monthly group at a lower commitment.</p>
+    <p>One-on-one sessions built around your game, or a monthly group at a lower commitment.</p>
     <a href="/coaching">Coaching &rarr;</a>
   </div>
   <div class="door">
