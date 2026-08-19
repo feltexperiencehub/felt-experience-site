@@ -108,7 +108,7 @@ home = f"""
 <div class="wrap doors">
   <div class="door">
     <div class="k">Learn</div><h3>Free strategy</h3>
-    <p>Weekly play-and-explains, solver reviews and hand breakdowns. Start here if you don't know me yet.</p>
+    <p>Weekly play-and-explains, solver reviews, and hand breakdowns. Start here if you don't know me yet.</p>
     <a href="{YT}" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
   </div>
   <div class="door">
@@ -320,7 +320,7 @@ tools = f"""
 <div class="wrap">
   {tool("Felt Experience Replayer", REPLAY, "My free poker hand replayer. No signup, works with hand histories from every major site.", "Free")}
   {tool("GTO Wizard", "https://gtowizard.com/p/feltexperience/", "Top-tier study tool with high-speed custom solving.", "10% off through this link")}
-  {tool("Hand2Note", "https://hand2note.com?rid=71022", "Tracking, database, analysis and HUD software.", "Code FELT for 10% off")}
+  {tool("Hand2Note", "https://hand2note.com?rid=71022", "Tracking, database, analysis, and HUD software.", "Code FELT for 10% off")}
   {tool("Jurojin", "https://jurojinpoker.com/?ref=659", "Multi-tabling software with custom hotkeys, layouts, overlays, and timing tell data.", "31-day free full-access trial")}
 </div>
 """
