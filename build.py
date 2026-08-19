@@ -54,8 +54,8 @@ def shell(page, title, desc, body):
 <div class="wrap"><footer>
   <div class="foot-contact">
     <div class="colhead">Get in touch</div>
-    <div class="foot-line">Discord: feltexperience</div>
     <div class="foot-line">Telegram: <a href="{TG}" target="_blank" rel="noopener">@feltexperience</a></div>
+    <div class="foot-line">Discord: feltexperience</div>
     <div class="foot-line">Email: <a href="mailto:{MAIL}">{MAIL}</a></div>
   </div>
   <div class="foot-meta">
