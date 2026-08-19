@@ -14,12 +14,19 @@ MAIL  = "feltexperiencepoker@gmail.com"
 NAV = [(YT,"YouTube"),("coaching.html","Coaching"),("staking.html","Staking"),
        ("clubs.html","Clubs"),("tools.html","Tools"),(REPLAY,"Replayer")]
 
+def url_for(page):
+    """coaching.html -> /coaching ; index.html -> / ; 404 keeps its filename."""
+    if page.startswith('http'): return page
+    if page == 'index.html': return '/'
+    if page == '404.html':   return '/404.html'
+    return '/' + page[:-len('.html')]
+
 def shell(page, title, desc, body):
     parts = []
     for h, t in NAV:
         cls = ' class="on"' if h == page else ''
         ext = ' target="_blank" rel="noopener"' if h.startswith('http') else ''
-        parts.append('<a href="' + h + '"' + cls + ext + '>' + t + '</a>')
+        parts.append('<a href="' + url_for(h) + '"' + cls + ext + '>' + t + '</a>')
     links = "".join(parts)
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -28,19 +35,19 @@ def shell(page, title, desc, body):
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>
 <meta name="description" content="{desc}" />
-{'<meta name="robots" content="noindex" />' if page == '404.html' else '<link rel="canonical" href="https://feltexperiencepoker.com/' + ('' if page == 'index.html' else page) + '" />'}
+{'<meta name="robots" content="noindex" />' if page == '404.html' else '<link rel="canonical" href="https://feltexperiencepoker.com' + url_for(page) + '" />'}
 <meta property="og:title" content="{title}" />
 <meta property="og:description" content="{desc}" />
 <meta property="og:type" content="website" />
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
 <nav><div class="wrap nav-in">
-  <a class="mark" href="index.html"><b>FELT</b> EXPERIENCE</a>
+  <a class="mark" href="/"><b>FELT</b> EXPERIENCE</a>
   <div class="nav-links">{links}</div>
 </div></nav>
 {body}
@@ -68,7 +75,7 @@ home = f"""
      to 10/20 NL. Every week I break down real hands on YouTube, including the ones I got wrong.</p>
   <div class="cta">
     <a class="btn p" href="{YT}" target="_blank" rel="noopener">Watch on YouTube</a>
-    <a class="btn s" href="coaching.html">Work with me</a>
+    <a class="btn s" href="/coaching">Work with me</a>
   </div>
 </div>
 
@@ -79,7 +86,7 @@ home = f"""
   <p class="sub">My hand replayer is free and needs no signup. Paste a hand history from PokerStars,
      GGPoker, ACR, Ignition, or ClubGG, or manually create your own, and walk through it street by street.</p>
   <a class="shot" href="{REPLAY}" target="_blank" rel="noopener">
-    <img src="assets/replayer.jpg" width="1500" height="843"
+    <img src="/assets/replayer.jpg" width="1500" height="843"
          alt="The Felt Experience hand replayer showing a six-handed cash game" />
   </a>
   <div class="after">
@@ -97,17 +104,17 @@ home = f"""
   <div class="door">
     <div class="k">Work with me</div><h3>Coaching</h3>
     <p>One-on-one sessions built around your database, or a monthly group at a lower commitment.</p>
-    <a href="coaching.html">Coaching &rarr;</a>
+    <a href="/coaching">Coaching &rarr;</a>
   </div>
   <div class="door">
     <div class="k">Get staked</div><h3>Staking &amp; CFP</h3>
     <p>Play on my bankroll, or apply for coaching-for-profits and keep playing on your own roll.</p>
-    <a href="staking.html">Staking &rarr;</a>
+    <a href="/staking">Staking &rarr;</a>
   </div>
   <div class="door">
     <div class="k">Play</div><h3>Club access</h3>
     <p>Selected ClubGG and PokerBros clubs for players and agents, with rakeback arrangements.</p>
-    <a href="clubs.html">Club info &rarr;</a>
+    <a href="/clubs">Club info &rarr;</a>
   </div>
 </div>
 
@@ -281,7 +288,7 @@ clubs = f"""
      information and rakeback arrangements.</p>
   <div class="cta">
     <a class="btn p" href="{TG}" target="_blank" rel="noopener">Request club info</a>
-    <a class="btn s" href="staking.html">Looking for a stake instead?</a>
+    <a class="btn s" href="/staking">Looking for a stake instead?</a>
   </div>
 </div>
 """
@@ -317,7 +324,7 @@ notfound = f"""
   <p class="lede">The link may be out of date, or I may have moved something. Everything on the site
      is one click away in the menu above.</p>
   <div class="cta">
-    <a class="btn p" href="index.html">Back to the homepage</a>
+    <a class="btn p" href="/">Back to the homepage</a>
     <a class="btn s" href="{REPLAY}" target="_blank" rel="noopener">Open the replayer</a>
   </div>
 </div>
