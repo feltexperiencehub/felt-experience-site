@@ -329,7 +329,7 @@ tools = f"""
   {tool("Felt Experience Replayer", REPLAY, "My free poker hand replayer. No signup, works with hand histories from every major site.", "Free")}
   {tool("GTO Wizard", "https://gtowizard.com/p/feltexperience/", "Top-tier study tool with high-speed custom solving.", "10% off through this link")}
   {tool("Hand2Note", "https://hand2note.com?rid=71022", "Tracking, database, analysis, and HUD software.", "Code FELT for 10% off")}
-  {tool("Jurojin", "https://jurojinpoker.com/?ref=659", "Multi-tabling software with custom hotkeys, layouts, overlays, and timing tell data.", "31-day free full-access trial")}
+  {tool("Jurojin", "https://jurojinpoker.com/?ref=659", "Multi-tabling software with custom hotkeys, layouts, overlays, RNG, and timing tell data.", "31-day free full-access trial")}
 </div>
 """
 
