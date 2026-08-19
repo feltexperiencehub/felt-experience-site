@@ -247,19 +247,21 @@ staking = f"""
   <div class="eyebrow">Apply</div>
   <h1 style="margin-top:14px">Staking and coaching for profits</h1>
   <p class="lede">One application covers both programs: staking, where you play on my roll, or coaching
-     for profits, where I coach you as well and take a share of what you win while you keep playing on
+     for profits, where I coach you in exchange for a share of what you win while you keep playing on
      your own roll.</p>
-  <div class="cta"><a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply now</a></div>
+  <p class="sub">Terms depend on stakes and volume, and we agree them before you play a hand.</p>
 </div>
 
 <div class="wrap">
   {RULE}
   <div class="colhead">What I look for</div>
   <ul class="ticks">
-    <li>A baseline understanding of the game and decent preflop frequencies</li>
-    <li>Consistent volume</li>
-    <li>Growth mindset. Poker is a complex game and reaching the top levels requires a commitment
-        to consistently improve.</li>
+    <li><b>A solid baseline</b> &ndash; you understand the game and your preflop frequencies are in
+        reasonable shape.</li>
+    <li><b>Consistent volume</b> &ndash; I'd rather back someone who plays every week than someone who
+        binges once a month.</li>
+    <li><b>A growth mindset</b> &ndash; poker is complex, and reaching the top levels takes a commitment
+        to keep improving.</li>
   </ul>
   <div class="mid" style="justify-content:flex-start;margin-top:30px">
     <a class="btn p" href="{APPLY}" target="_blank" rel="noopener">Apply for staking or CFP &rarr;</a>
@@ -299,20 +301,20 @@ tools = f"""
   {tool("Felt Experience Replayer", REPLAY, "My free poker hand replayer. No signup, works with hand histories from every major site.", "Free")}
   {tool("GTO Wizard", "https://gtowizard.com/p/feltexperience/", "Top-tier study tool with high-speed custom solving.", "10% off through this link")}
   {tool("Hand2Note", "https://hand2note.com?rid=71022", "Tracking, database, analysis and HUD software.", "Code FELT for 10% off")}
-  {tool("Jurojin", "https://affiliate.jurojinpoker.com/feltexperience/signup", "Multi-tabling software with custom hotkeys, layouts, overlays and timing tell data.", "31-day free full-access trial")}
+  {tool("Jurojin", "https://jurojinpoker.com/?ref=659", "Multi-tabling software with custom hotkeys, layouts, overlays and timing tell data.", "31-day free full-access trial")}
 </div>
 """
 
 PAGES = [
-  ("index.html",   f"{SITE} — No-Limit Hold'em Cash Game Strategy",
+  ("index.html",   f"{SITE} – No-Limit Hold'em Cash Game Strategy",
    "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking and club access.", home),
-  ("coaching.html", f"Poker Coaching — {SITE}",
+  ("coaching.html", f"Poker Coaching – {SITE}",
    "One-on-one NLHE cash coaching for 50NL-1kNL players, and a $149/month coaching group.", coaching),
-  ("staking.html", f"Staking & Coaching for Profits — {SITE}",
+  ("staking.html", f"Staking & Coaching for Profits – {SITE}",
    "Apply for staking or coaching for profits with Felt Experience Poker.", staking),
-  ("clubs.html",   f"Club Access — {SITE}",
+  ("clubs.html",   f"Club Access – {SITE}",
    "Access to selected ClubGG and PokerBros clubs for players and agents, with rakeback.", clubs),
-  ("tools.html",   f"Poker Tools I Use — {SITE}",
+  ("tools.html",   f"Poker Tools I Use – {SITE}",
    "The study, tracking and multi-tabling tools I use, including my free hand replayer.", tools),
 ]
 
