@@ -3,7 +3,7 @@
   --bg:#121212; --panel:#191919; --panel2:#1E1E1E; --line:rgba(255,255,255,.08);
   --accent:#a7dca5; --accent-dim:rgba(167,220,165,.35);
   --gold:#d6c08f; --silver:#C4C4C4;
-  --ink:#EEEEEE; --muted:#9C9C9C; --faint:#6f7a72;
+  --ink:#EEEEEE; --muted:#9C9C9C; --faint:#747474;
   --head:'League Spartan',sans-serif; --body:'Montserrat',system-ui,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
