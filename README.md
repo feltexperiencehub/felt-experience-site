@@ -15,6 +15,9 @@ Netlify publishes the committed files directly, with no build step.
 
 `styles.css` is hand-edited and shared by every page.
 
+`robots.txt` and `sitemap.xml` are hand-maintained — add new pages to both.
+`404.html` is generated like the others but carries `noindex` instead of a canonical.
+
 ## Deploying
 
 Push to `main`. Netlify builds from the repo and publishes the root.

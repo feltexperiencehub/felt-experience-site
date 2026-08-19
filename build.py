@@ -28,7 +28,7 @@ def shell(page, title, desc, body):
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>
 <meta name="description" content="{desc}" />
-<link rel="canonical" href="https://feltexperiencepoker.com/{'' if page=='index.html' else page}" />
+{'<meta name="robots" content="noindex" />' if page == '404.html' else '<link rel="canonical" href="https://feltexperiencepoker.com/' + ('' if page == 'index.html' else page) + '" />'}
 <meta property="og:title" content="{title}" />
 <meta property="og:description" content="{desc}" />
 <meta property="og:type" content="website" />
@@ -308,6 +308,21 @@ tools = f"""
 </div>
 """
 
+
+# ---------------------------------------------------------------- 404
+notfound = f"""
+<div class="wrap hero" style="padding-bottom:40px">
+  <div class="eyebrow">404</div>
+  <h1 style="margin-top:14px">That page doesn't exist</h1>
+  <p class="lede">The link may be out of date, or I may have moved something. Everything on the site
+     is one click away in the menu above.</p>
+  <div class="cta">
+    <a class="btn p" href="index.html">Back to the homepage</a>
+    <a class="btn s" href="{REPLAY}" target="_blank" rel="noopener">Open the replayer</a>
+  </div>
+</div>
+"""
+
 PAGES = [
   ("index.html",   f"{SITE} – No-Limit Hold'em Cash Game Strategy",
    "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking and club access.", home),
@@ -319,6 +334,8 @@ PAGES = [
    "Access to selected ClubGG and PokerBros clubs for players and agents, with rakeback.", clubs),
   ("tools.html",   f"Poker Tools I Use – {SITE}",
    "The study, tracking and multi-tabling tools I use, including my free hand replayer.", tools),
+  ("404.html",     f"Page not found – {SITE}",
+   "That page doesn't exist.", notfound),
 ]
 
 for page, title, desc, body in PAGES:
