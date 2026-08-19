@@ -15,7 +15,10 @@ TG    = "https://t.me/feltexperience"
 YT    = "https://youtube.com/@feltexperiencepoker"
 APPLY = "https://apply.feltexperiencepoker.com"
 REPLAY= "https://replayer.feltexperiencepoker.com"
-STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"
+STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"      # $149/mo coaching group
+BUY2   = "https://buy.stripe.com/4gMbJ282n8xCfLu2P65kk03"     # 2 sessions, $625
+BUY5   = "https://buy.stripe.com/7sY9AU5UfbJO0QA89q5kk04"     # Silver, $1,500
+BUY10  = "https://buy.stripe.com/aFa9AU4Qb3diarablC5kk05"     # Gold, $2,750
 MAIL  = "feltexperiencepoker@gmail.com"
 
 NAV = [(YT,"YouTube"),("coaching.html","Coaching"),("staking.html","Staking"),
@@ -68,8 +71,8 @@ def shell(page, title, desc, body):
     <div class="foot-line">Email: <a href="mailto:{MAIL}">{MAIL}</a></div>
   </div>
   <div class="foot-meta">
-    <div class="c">&copy; {SITE}</div>
     <div class="c"><a href="/refunds">Refunds &amp; scheduling</a></div>
+    <div class="c">&copy; {SITE}</div>
   </div>
 </footer></div>
 </body>
@@ -215,19 +218,23 @@ coaching = f"""
     <div class="card">
       <div class="tier">2 Sessions</div><div class="count">Minimum booking</div>
       <div class="money"><div class="price2">$625</div><div class="per">$312.50 per session</div></div>
+      <a class="btn s" href="{BUY2}" target="_blank" rel="noopener">Book 2 Sessions</a>
     </div>
     <div class="card s">
       <div class="tier">Silver Package</div><div class="count">5 sessions</div>
       <div class="money"><div class="price2">$1,500</div><div class="per">$300 per session</div></div>
+      <a class="btn s" href="{BUY5}" target="_blank" rel="noopener">Book Silver Package</a>
     </div>
     <div class="card g">
       <div class="tier">Gold Package</div><div class="count">10 sessions</div>
       <div class="money"><div class="price2">$2,750</div><div class="per">$275 per session</div>
         <div class="extra">Includes 6 months in my private Discord group with monthly live calls and
           ongoing hand discussions</div></div>
+      <a class="btn s" href="{BUY10}" target="_blank" rel="noopener">Book Gold Package</a>
     </div>
   </div>
-  <div class="mid"><a class="btn p" href="{TG}" target="_blank" rel="noopener">Ask about 1-on-1 coaching &rarr;</a></div>
+  <div class="mid-note">Not sure which fits? Message me first and we'll work it out.</div>
+  <div class="mid"><a class="btn s" href="{TG}" target="_blank" rel="noopener">Ask about 1-on-1 coaching &rarr;</a></div>
 
   {RULE}
   <h2>The Coaching Group</h2>
