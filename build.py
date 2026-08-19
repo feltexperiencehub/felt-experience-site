@@ -93,9 +93,14 @@ home = f"""
     <a href="{YT}" target="_blank" rel="noopener">Watch on YouTube &rarr;</a>
   </div>
   <div class="door">
-    <div class="k">Work with me</div><h3>Coaching &amp; staking</h3>
-    <p>One-on-one sessions, a monthly group, or staking if you'd rather play on my roll.</p>
-    <div class="door-links"><a href="coaching.html">Coaching &rarr;</a><a href="staking.html">Staking &rarr;</a></div>
+    <div class="k">Work with me</div><h3>Coaching</h3>
+    <p>One-on-one sessions built around your database, or a monthly group at a lower commitment.</p>
+    <a href="coaching.html">Coaching &rarr;</a>
+  </div>
+  <div class="door">
+    <div class="k">Get staked</div><h3>Staking &amp; CFP</h3>
+    <p>Play on my bankroll, or coaching for profits if you want the coaching alongside it.</p>
+    <a href="staking.html">Staking &rarr;</a>
   </div>
   <div class="door">
     <div class="k">Play</div><h3>Club access</h3>
