@@ -90,7 +90,7 @@ home = f"""
      GGPoker, ACR, Ignition, or ClubGG, or manually create your own, and walk through it street by street.</p>
   <a class="shot" href="{REPLAY}" target="_blank" rel="noopener">
     <img src="/assets/replayer.jpg" width="1500" height="843"
-         alt="The Felt Experience hand replayer showing a six-handed cash game" />
+         alt="The Felt Experience hand replayer showing a turn spot in a six-handed cash game" />
   </a>
   <div class="after">
     <span>Shared links unfurl into a picture of the hand, so you can post spots anywhere.</span>
