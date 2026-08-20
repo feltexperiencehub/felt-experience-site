@@ -101,7 +101,10 @@ home = f"""
   <p class="sub">My hand replayer is free and needs no signup. Paste a hand history from PokerStars,
      GGPoker, ACR, Ignition, or ClubGG, or manually create your own, and walk through it street by street.</p>
   <a class="shot" href="{REPLAY}" target="_blank" rel="noopener">
-    <img src="{asset("/assets/replayer.jpg")}" width="1500" height="843"
+    <img src="{asset("/assets/replayer-1200.jpg")}"
+         srcset="{asset("/assets/replayer-1200.jpg")} 1200w, {asset("/assets/replayer-2400.jpg")} 2400w"
+         sizes="(max-width: 900px) 92vw, 1120px"
+         width="1200" height="674"
          alt="The Felt Experience hand replayer showing a turn bet labeled b73, or 73% of the pot" />
   </a>
   <div class="after">
