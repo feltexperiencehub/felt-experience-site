@@ -15,6 +15,9 @@ TG    = "https://t.me/feltexperience"
 YT    = "https://youtube.com/@feltexperiencepoker"
 APPLY = "https://apply.feltexperiencepoker.com"
 REPLAY= "https://replayer.feltexperiencepoker.com"
+# The hand in the homepage screenshot. Clicking the image opens it, rather
+# than dropping a first-time visitor on an empty paste box.
+HERO_HAND = REPLAY + "/?h=PZCxagQxDET_RfVgJNna2y3ThaQ6CGmMi5AN7MGRwN3_Q5AsFoEs3iB7PF3BYAi4mHcsEPQuoNefxx9BmEEv-_tOkIGuoM_b_f51-1WCiBYD0UCvJ6-EbSlqoOvxcbjWTq0RpNWyzh07ueU7TpeTLoR1Lc3xCEvsJsOEQIIxKnigM1qelqcTLReLFkRSUS9XZCoCja_5_dUrmeasqWvoG7ZkmnNNvXqMY4Cuz8uh3297fVJYnPHN8GYmbl2ha9ksVqSwjX8"
 STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"      # $149/mo coaching group
 BUY2   = "https://buy.stripe.com/4gMbJ282n8xCfLu2P65kk03"     # 2 sessions, $625
 BUY5   = "https://buy.stripe.com/7sY9AU5UfbJO0QA89q5kk04"     # Silver, $1,500
@@ -100,7 +103,7 @@ home = f"""
   <h2>Step through a hand right now</h2>
   <p class="sub">My hand replayer is free and needs no signup. Paste a hand history from PokerStars,
      GGPoker, ACR, Ignition, or ClubGG, or manually create your own, and walk through it street by street.</p>
-  <a class="shot" href="{REPLAY}" target="_blank" rel="noopener">
+  <a class="shot" href="{HERO_HAND}" target="_blank" rel="noopener">
     <img src="{asset("/assets/replayer-1200.jpg")}"
          srcset="{asset("/assets/replayer-1200.jpg")} 1200w, {asset("/assets/replayer-2400.jpg")} 2400w"
          sizes="(max-width: 900px) 92vw, 1120px"
