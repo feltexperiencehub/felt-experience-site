@@ -105,7 +105,7 @@ home = f"""
          srcset="{asset("/assets/replayer-1200.jpg")} 1200w, {asset("/assets/replayer-2400.jpg")} 2400w"
          sizes="(max-width: 900px) 92vw, 1120px"
          width="1200" height="674"
-         alt="The Felt Experience hand replayer showing a turn bet labeled b73, or 73% of the pot" />
+         alt="The Felt Experience hand replayer showing a turn bet labeled b75, or 75% of the pot" />
   </a>
   <div class="after">
     <span>Shared links unfurl into a picture of the hand, so you can post spots anywhere.</span>
