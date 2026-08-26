@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Small Blind Frontiers – Felt Experience Poker</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+  /* Light is the base set. Neutrals carry a slight green bias so they sit
+     with the sage rather than beside it. */
+  :root {
+    --bg: #eef2ec;
+    --panel: #ffffff;
+    --sunk: #e3e9e0;
+    --line: #d5ddd2;
+    --ink: #171c18;
+    --muted: #626c64;
+    --faint: #8e988f;
+
+    --raise: #bd5330;
+    --raise-ink: #ffffff;
+    --call: #46814a;
+    --call-ink: #ffffff;
+    --price: #b7dfb4;
+    --price-ink: #1d3520;
+    --fringe: #9a7f33;
+    --fold: #dfe5dc;
+    --fold-ink: #9aa49b;
+
+    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
+    --focus: #2f6d8f;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e110e;
+      --panel: #171b17;
+      --sunk: #121612;
+      --line: #262d26;
+      --ink: #eaefe8;
+      --muted: #98a29a;
+      --faint: #6d766f;
+
+      --raise: #cd6236;
+      --raise-ink: #fdf4ef;
+      --call: #55924f;
+      --call-ink: #f2f8f0;
+      --price: #38683d;
+      --price-ink: #dcefda;
+      --fringe: #b59a4d;
+      --fold: #212721;
+      --fold-ink: #5d665e;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+      --focus: #7fb6d4;
+    }
+  }
+
+  /* Explicit dark choice wins over a light OS. */
+  :root[data-theme="dark"] {
+    --bg: #0e110e;
+    --panel: #171b17;
+    --sunk: #121612;
+    --line: #262d26;
+    --ink: #eaefe8;
+    --muted: #98a29a;
+    --faint: #6d766f;
+
+    --raise: #cd6236;
+    --raise-ink: #fdf4ef;
+    --call: #55924f;
+    --call-ink: #f2f8f0;
+    --price: #38683d;
+    --price-ink: #dcefda;
+    --fringe: #b59a4d;
+    --fold: #212721;
+    --fold-ink: #5d665e;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+    --focus: #7fb6d4;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 30px 22px 64px;
+  }
+
+  /* ---------- masthead ---------- */
+  header { margin-bottom: 26px; }
+
+  h1 {
+    font-family: 'League Spartan', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(30px, 4.4vw, 44px);
+    line-height: 1.02;
+    letter-spacing: -.018em;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  h1 em {
+    font-style: normal;
+    color: var(--call);
+  }
+  .standfirst {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  .stakes {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+
+  /* ---------- controls ---------- */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px 34px;
+    align-items: flex-end;
+    padding: 18px 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+
+  .field > .lbl {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .seg {
+    display: inline-flex;
+    background: var(--sunk);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+  }
+  .seg button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 15px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .14s ease, color .14s ease;
+  }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] {
+    background: var(--panel);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,.14);
+  }
+  .seg button:focus-visible,
+  .toggle input:focus-visible + .track,
+  .cell:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    user-select: none;
+  }
+  .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .toggle .track {
+    width: 36px; height: 20px;
+    background: var(--sunk);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    position: relative;
+    transition: background .16s ease;
+    flex: none;
+  }
+  .toggle .track::after {
+    content: "";
+    position: absolute;
+    inset: 2px auto 2px 2px;
+    width: 14px;
+    background: var(--faint);
+    border-radius: 999px;
+    transition: transform .16s ease, background .16s ease;
+  }
+  .toggle input:checked + .track { background: color-mix(in srgb, var(--call) 26%, var(--sunk)); }
+  .toggle input:checked + .track::after { transform: translateX(16px); background: var(--call); }
+
+  /* ---------- main split ---------- */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 322px;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+
+  .card > h2 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 12px;
+  }
+
+  /* ---------- the grid ---------- */
+  .gridwrap { overflow-x: auto; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(13, minmax(38px, 1fr));
+    gap: 3px;
+    min-width: 546px;
+  }
+
+  .cell {
+    appearance: none;
+    border: 0;
+    aspect-ratio: 1;
+    border-radius: 5px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: clamp(9.5px, 1.05vw, 12px);
+    font-weight: 500;
+    letter-spacing: -.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    background: var(--fold);
+    color: var(--fold-ink);
+    transition: opacity .18s ease, transform .12s ease;
+  }
+  .cell:hover { transform: translateY(-1px); z-index: 2; }
+
+  .cell[data-cat="core"]   { background: var(--raise); color: var(--raise-ink); font-weight: 600; }
+  .cell[data-cat="stable"] { background: var(--call);  color: var(--call-ink); }
+  .cell[data-cat="mix"] {
+    /* A literal split: this hand is doing both things. */
+    background: linear-gradient(133deg, var(--raise) 0 49.5%, var(--call) 50.5% 100%);
+    color: var(--raise-ink);
+  }
+  .cell[data-cat="price"]  { background: var(--price); color: var(--price-ink); }
+  .cell[data-cat="fringe"] {
+    background: transparent;
+    color: var(--fringe);
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--fringe) 62%, transparent);
+  }
+
+  /* Diff mode: everything that survives the step goes quiet. */
+  .grid.diffing .cell { opacity: .17; }
+  .grid.diffing .cell[data-moved="1"] { opacity: 1; }
+  .grid.diffing .cell[data-moved="1"]::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 7px;
+    box-shadow: 0 0 0 2px var(--ink);
+    animation: pop .34s ease-out;
+  }
+  @keyframes pop {
+    from { transform: scale(.82); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .grid.diffing .cell[data-moved="1"]::after { animation: none; }
+    .cell:hover { transform: none; }
+  }
+
+  .axis {
+    display: grid;
+    grid-template-columns: repeat(13, minmax(38px, 1fr));
+    gap: 3px;
+    min-width: 546px;
+    margin-bottom: 5px;
+  }
+  .axis span {
+    text-align: center;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    color: var(--faint);
+  }
+
+  .gridnote {
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* ---------- rail ---------- */
+  .rail { display: flex; flex-direction: column; gap: 18px; }
+
+  .sizing {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .sizing .n {
+    font-family: 'League Spartan', ui-sans-serif, sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: var(--raise);
+    font-variant-numeric: tabular-nums;
+  }
+  .sizing .u { font-size: 15px; color: var(--muted); }
+  .sizing-sub {
+    margin: 8px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .legend { display: flex; flex-direction: column; gap: 9px; }
+  .legend div { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+  .legend .sw {
+    width: 22px; height: 22px; border-radius: 5px; flex: none;
+    background: var(--fold);
+  }
+  .legend .sw.core   { background: var(--raise); }
+  .legend .sw.stable { background: var(--call); }
+  .legend .sw.mix    { background: linear-gradient(133deg, var(--raise) 0 49.5%, var(--call) 50.5% 100%); }
+  .legend .sw.price  { background: var(--price); }
+  .legend .sw.fringe { background: transparent; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--fringe) 62%, transparent); }
+  .legend b { font-weight: 600; }
+  .legend i { font-style: normal; color: var(--faint); }
+
+  .step-head {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .step-count { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+  .movers { display: flex; flex-direction: column; gap: 10px; }
+  .movers h3 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 5px;
+    font-weight: 600;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 11.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--sunk);
+    border: 1px solid var(--line);
+  }
+  .chip.out { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--raise) 70%, transparent); }
+  .chip.in  { color: var(--price-ink); background: var(--price); border-color: transparent; }
+  .none { font-size: 12.5px; color: var(--faint); margin: 0; }
+
+  .detail .hand {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.1;
+  }
+  .detail .verdict {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 4px 0 6px;
+  }
+  .detail .why { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+  /* ---------- notes ---------- */
+  .notes {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+    gap: 18px;
+  }
+  .notes p { margin: 0 0 10px; font-size: 13px; color: var(--muted); }
+  .notes p:last-child { margin-bottom: 0; }
+  .notes strong { color: var(--ink); font-weight: 600; }
+  .notes code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px;
+    background: var(--sunk);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .flag { border-left: 3px solid var(--fringe); padding-left: 14px; }
+
+  @media (max-width: 940px) {
+    .split { grid-template-columns: minmax(0, 1fr); }
+    .rail { order: 2; }
+  }
+</style>
+
+<div class="shell">
+  <header>
+    <h1>The middle changes frequencies.<br><em>The bottom changes hands.</em></h1>
+    <p class="standfirst">
+      Small blind defence against a 2x to 3.5x open, big-ante game. Move the open size and watch
+      which hands actually leave the range. That is the adjustment worth carrying to the table.
+    </p>
+    <span class="stakes">SB defence · 0.5bb ante · 100bb</span>
+  </header>
+
+  <div class="controls">
+    <div class="field">
+      <span class="lbl" id="lbl-pos">Opener</span>
+      <div class="seg" role="group" aria-labelledby="lbl-pos" id="pos-seg"></div>
+    </div>
+    <div class="field">
+      <span class="lbl" id="lbl-size">Open size</span>
+      <div class="seg" role="group" aria-labelledby="lbl-size" id="size-seg"></div>
+    </div>
+    <div class="field">
+      <span class="lbl">View</span>
+      <label class="toggle">
+        <input type="checkbox" id="diff-toggle">
+        <span class="track"></span>
+        <span>Isolate what moved</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="card">
+      <h2 id="grid-title">Range</h2>
+      <div class="gridwrap">
+        <div class="axis" id="axis" aria-hidden="true"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+      <p class="gridnote">
+        <span>Suited above the diagonal · offsuit below · pairs on it</span>
+        <span id="counts"></span>
+      </p>
+    </div>
+
+    <div class="rail">
+      <div class="card">
+        <h2>Your 3-bet</h2>
+        <div class="sizing"><span class="n" id="threeb">—</span><span class="u">bb</span></div>
+        <p class="sizing-sub" id="threeb-sub"></p>
+      </div>
+
+      <div class="card">
+        <h2>Reading the grid</h2>
+        <div class="legend">
+          <div><span class="sw core"></span><span><b>Always 3-bet</b> <i>— the core</i></span></div>
+          <div><span class="sw mix"></span><span><b>Mix</b> <i>— call or 3-bet</i></span></div>
+          <div><span class="sw stable"></span><span><b>Always call</b> <i>— stable</i></span></div>
+          <div><span class="sw price"></span><span><b>Price-driven call</b> <i>— the bottom</i></span></div>
+          <div><span class="sw fringe"></span><span><b>Fringe</b> <i>— simplify to fold</i></span></div>
+          <div><span class="sw"></span><span><b>Fold</b></span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>The step</h2>
+        <p class="step-head" id="step-head">—</p>
+        <p class="step-count" id="step-count"></p>
+        <div class="movers" id="movers"></div>
+      </div>
+
+      <div class="card detail">
+        <h2>Hand</h2>
+        <p class="hand" id="d-hand">—</p>
+        <p class="verdict" id="d-verdict">Hover any cell</p>
+        <p class="why" id="d-why">The grid explains which rule put each hand where it is.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="card">
+      <h2>How to study this</h2>
+      <p><strong>Know the core cold.</strong> It never moves with sizing, so it costs nothing to memorise once.</p>
+      <p><strong>Learn the middle as buckets, not frequencies.</strong> Pairs, suited Ax, offsuit Ax, broadways, the 9s and 8s ladders. Smaller open, call more. Larger open, 3-bet more. Suited broadways swing hardest.</p>
+      <p><strong>Spend the time on the bottom.</strong> Switch between the four open sizes with <em>Isolate what moved</em> on: the handful of cells that light up are the entire practical adjustment.</p>
+    </div>
+    <div class="card flag">
+      <h2>Four things to re-check</h2>
+      <p>Transcribed straight from your notes, so these are shown as given, but they run against the usual shape and may be typos in the source:</p>
+      <p><strong>1.</strong> Versus a 2x button you defend 2-gappers <code>85s+</code>, tighter than the <code>74s+</code> you use against CO and EP. The widest opener normally earns the widest defence.</p>
+      <p><strong>2.</strong> CO and EP both hold 1-gappers at <code>53s+</code> for 2x <em>and</em> 2.5x, while the button tightens to <code>75s+</code> at 2.5x.</p>
+      <p><strong>3.</strong> Against CO the suited connector floor sits at <code>54s+</code> for every size from 2.5x up, so that row never moves.</p>
+      <p><strong>4.</strong> The 9s ladder against BU and CO reads <code>K9s / Q9s / J9s</code> with no <code>T9s</code>, while the 8s ladder below it does include <code>T8s</code>. That puts T9s beneath T8s on the grid. Against EP your notes do list T9s, so this looks like a dropped hand rather than a real read.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+  var VAL = { A:14, K:13, Q:12, J:11, T:10, '9':9, '8':8, '7':7, '6':6, '5':5, '4':4, '3':3, '2':2 };
+  var SIZES = [2, 2.5, 3, 3.5];
+
+  // --- hand model -----------------------------------------------------------
+  // Grid convention: row index is the higher card above the diagonal.
+  function handAt(i, j) {
+    var a = VAL[RANKS[i]], b = VAL[RANKS[j]];
+    if (i === j) return { code: RANKS[i] + RANKS[i], kind: 'pair', v: a, hi: a, lo: a, gap: 0 };
+    var hi = Math.max(a, b), lo = Math.min(a, b);
+    var name = RANKS[Math.min(i, j)] + RANKS[Math.max(i, j)];
+    return {
+      code: name + (i < j ? 's' : 'o'),
+      kind: i < j ? 's' : 'o',
+      v: 0, hi: hi, lo: lo, gap: hi - lo - 1
+    };
+  }
+
+  var suitedBroadway = function (h) { return h.kind === 's' && h.hi <= 13 && h.lo >= 10; };
+  var offsuitBroadway = function (h) { return h.kind === 'o' && h.hi <= 13 && h.lo >= 10; };
+  var suitedAx = function (h, maxLo) { return h.kind === 's' && h.hi === 14 && h.lo <= maxLo; };
+  var offsuitAx = function (h, loMin, loMax) {
+    return h.kind === 'o' && h.hi === 14 && h.lo >= loMin && h.lo <= loMax;
+  };
+  var ladder = function (h, low, hiMin) { return h.kind === 's' && h.lo === low && h.hi >= hiMin; };
+  var oneOf = function (list) { return function (h) { return list.indexOf(h.code) >= 0; }; };
+
+  // --- the three spots ------------------------------------------------------
+  var SPOTS = {
+    EP: {
+      label: 'EP',
+      full: 'UTG / HJ',
+      threeB: { 2: 14, 2.5: 14, 3: 16, 3.5: 16 },
+      core: function (h) {
+        return (h.kind === 'pair' && h.v >= 10) || h.code === 'AKs' || h.code === 'AKo' || h.code === 'AQs';
+      },
+      coreText: 'TT+ / AK / AQs',
+      stable: function (h) { return (h.kind === 'pair' && h.v <= 7) || h.code === 'AJs'; },
+      stableText: '22–77 / AJs',
+      middle: function (h) {
+        return (h.kind === 'pair' && (h.v === 8 || h.v === 9))
+          || suitedAx(h, 10)
+          || offsuitAx(h, 10, 12)
+          || h.code === 'KQo' || h.code === 'KJo'
+          || suitedBroadway(h)
+          || ladder(h, 9, 10);
+      },
+      bottom: {
+        2:   { K:2, Q:2, J:7, T:7, sc:3, g1:3, g2:4 },
+        2.5: { K:2, Q:7, J:8, T:7, sc:4, g1:3, g2:6 },
+        3:   { K:5, Q:8, J:8, T:8, sc:4, g1:6, g2:8 },
+        3.5: { K:7, Q:9, J:9, T:8, sc:4, g1:7, g2:9 }
+      },
+      fringe: {
+        2:   ['A9o','KTo','QJo','QTo','JTo'],
+        2.5: ['A9o','KTo','QJo','QTo','JTo'],
+        3:   ['KTo','QJo'],
+        3.5: ['KTo','QJo']
+      }
+    },
+
+    CO: {
+      label: 'CO',
+      full: 'Cutoff',
+      threeB: { 2: 13.5, 2.5: 14, 3: 14.5, 3.5: 16 },
+      core: function (h) {
+        return (h.kind === 'pair' && h.v >= 9)
+          || h.code === 'AQs' || h.code === 'AKs' || h.code === 'AQo' || h.code === 'AKo';
+      },
+      coreText: '99+ / AQs+ / AQo+',
+      stable: function (h) { return h.kind === 'pair' && h.v <= 5; },
+      stableText: '22–55',
+      middle: function (h) {
+        return (h.kind === 'pair' && h.v >= 6 && h.v <= 8)
+          || suitedAx(h, 11)
+          || offsuitAx(h, 9, 11)
+          || suitedBroadway(h)
+          || offsuitBroadway(h)
+          || ladder(h, 9, 11)
+          || ladder(h, 8, 10);
+      },
+      bottom: {
+        2:   { K:2, Q:2, J:5, T:6, sc:3, g1:3, g2:4 },
+        2.5: { K:2, Q:4, J:7, T:7, sc:4, g1:3, g2:6 },
+        3:   { K:4, Q:7, J:8, T:7, sc:4, g1:5, g2:7 },
+        3.5: { K:5, Q:8, J:8, T:8, sc:4, g1:7, g2:8 }
+      },
+      fringe: {
+        2:   ['A8o','A7o','A5o','K9o','Q9o','J9o','T9o'],
+        2.5: ['A8o','A7o','A5o'],
+        3:   [],
+        3.5: []
+      }
+    },
+
+    BU: {
+      label: 'BU',
+      full: 'Button',
+      threeB: { 2: 11.5, 2.5: 12.5, 3: 12.5, 3.5: 14 },
+      core: function (h) {
+        return (h.kind === 'pair' && h.v >= 8)
+          || (h.kind === 's' && h.hi === 14 && h.lo >= 11)
+          || (h.kind === 'o' && h.hi === 14 && h.lo >= 12)
+          || h.code === 'KQs';
+      },
+      coreText: '88+ / AJs+ / AQo+ / KQs',
+      stable: null,
+      stableText: null,
+      middle: function (h) {
+        return (h.kind === 'pair' && h.v <= 7)
+          || suitedAx(h, 10)
+          || offsuitAx(h, 8, 11)
+          || suitedBroadway(h)
+          || offsuitBroadway(h)
+          || ladder(h, 9, 11)
+          || ladder(h, 8, 10);
+      },
+      bottom: {
+        2:   { K:2, Q:2, J:4, T:6, sc:3, g1:3, g2:5 },
+        2.5: { K:2, Q:4, J:7, T:7, sc:4, g1:5, g2:6 },
+        3:   { K:4, Q:7, J:8, T:7, sc:4, g1:7, g2:7 },
+        3.5: { K:5, Q:8, J:8, T:8, sc:5, g1:7, g2:8 }
+      },
+      fringe: {
+        2:   ['A7o','A6o','A5o','K9o','Q9o','J9o','T9o'],
+        2.5: ['A7o','A6o','A5o'],
+        3:   [],
+        3.5: []
+      }
+    }
+  };
+
+  var FLOOR_KEY = { 13: 'K', 12: 'Q', 11: 'J', 10: 'T' };
+  var CHAR = {};
+  RANKS.forEach(function (r) { CHAR[VAL[r]] = r; });
+
+  // Which bottom rule, if any, keeps this hand in. Returned so the detail
+  // panel can say *why*, not just *what*.
+  function bottomRule(h, f) {
+    if (h.kind !== 's') return null;
+    var key = FLOOR_KEY[h.hi];
+    if (key && h.lo >= f[key]) return key + '-high suited, floor ' + key + CHAR[f[key]] + 's';
+    if (h.gap === 0 && h.lo >= f.sc) return 'suited connector';
+    if (h.gap === 1 && h.lo >= f.g1) return 'suited 1-gapper';
+    if (h.gap === 2 && h.lo >= f.g2) return 'suited 2-gapper';
+    return null;
+  }
+
+  function classify(spotKey, size, h) {
+    var s = SPOTS[spotKey];
+    if (s.core(h)) return { cat: 'core', why: 'Core 3-bet: ' + s.coreText + '. This never moves with the open size.' };
+    if (s.stable && s.stable(h)) return { cat: 'stable', why: 'Stable call: ' + s.stableText + '. Same call at every open size.' };
+    if (s.middle(h)) return { cat: 'mix', why: 'Middle bucket. Mixes call and 3-bet; a bigger open pushes it toward 3-bet. Learn the bucket, not the frequency.' };
+    var rule = bottomRule(h, s.bottom[size]);
+    if (rule) return { cat: 'price', why: 'Bottom of the range, held on price as a ' + rule + '. This is the part that moves.' };
+    if (s.fringe[size].indexOf(h.code) >= 0) return { cat: 'fringe', why: 'Fringe. Described qualitatively in the source rather than as a hard frontier, so treat it as optional and simplify toward fold.' };
+    return { cat: 'fold', why: 'Out of the range at this open size.' };
+  }
+
+  var CAT_NAME = {
+    core: 'Always 3-bet', stable: 'Always call', mix: 'Mix call / 3-bet',
+    price: 'Price-driven call', fringe: 'Fringe', fold: 'Fold'
+  };
+  var CONTINUING = { core: 1, stable: 1, mix: 1, price: 1 };
+
+  // --- state ---------------------------------------------------------------
+  var state = { pos: 'BU', size: 2.5, diff: false };
+
+  var elGrid = document.getElementById('grid');
+  var elAxis = document.getElementById('axis');
+  var cells = [];
+
+  RANKS.forEach(function (r) {
+    var s = document.createElement('span');
+    s.textContent = r;
+    elAxis.appendChild(s);
+  });
+
+  for (var i = 0; i < 13; i++) {
+    for (var j = 0; j < 13; j++) {
+      var h = handAt(i, j);
+      var b = document.createElement('button');
+      b.className = 'cell';
+      b.type = 'button';
+      b.textContent = h.code;
+      b.dataset.code = h.code;
+      b._hand = h;
+      elGrid.appendChild(b);
+      cells.push(b);
+    }
+  }
+
+  function buildSeg(id, items, get, set) {
+    var box = document.getElementById(id);
+    items.forEach(function (it) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = it.label;
+      b.title = it.title || '';
+      b.addEventListener('click', function () { set(it.value); });
+      b._value = it.value;
+      box.appendChild(b);
+    });
+    return function () {
+      Array.prototype.forEach.call(box.children, function (b) {
+        b.setAttribute('aria-pressed', String(b._value === get()));
+      });
+    };
+  }
+
+  var syncPos = buildSeg('pos-seg',
+    ['EP', 'CO', 'BU'].map(function (k) {
+      return { label: SPOTS[k].label, value: k, title: SPOTS[k].full };
+    }),
+    function () { return state.pos; },
+    function (v) { state.pos = v; render(); });
+
+  var syncSize = buildSeg('size-seg',
+    SIZES.map(function (s) { return { label: s + 'x', value: s }; }),
+    function () { return state.size; },
+    function (v) { state.size = v; render(); });
+
+  document.getElementById('diff-toggle').addEventListener('change', function (e) {
+    state.diff = e.target.checked;
+    render();
+  });
+
+  function showHand(h, res) {
+    document.getElementById('d-hand').textContent = h.code;
+    var v = document.getElementById('d-verdict');
+    v.textContent = CAT_NAME[res.cat];
+    v.style.color = ({
+      core: 'var(--raise)', stable: 'var(--call)', mix: 'var(--ink)',
+      price: 'var(--call)', fringe: 'var(--fringe)', fold: 'var(--muted)'
+    })[res.cat];
+    document.getElementById('d-why').textContent = res.why;
+  }
+
+  function chips(list, cls) {
+    if (!list.length) return '<p class="none">Nothing.</p>';
+    return '<div class="chips">' + list.map(function (c) {
+      return '<span class="chip ' + cls + '">' + c + '</span>';
+    }).join('') + '</div>';
+  }
+
+  function render() {
+    var spot = SPOTS[state.pos];
+    var idx = SIZES.indexOf(state.size);
+    // The panel always describes one step between adjacent sizes. At the
+    // smallest open there is no step below it, so describe the step upward.
+    var from = idx === 0 ? SIZES[0] : SIZES[idx - 1];
+    var to = idx === 0 ? SIZES[1] : SIZES[idx];
+
+    var counts = { core: 0, stable: 0, mix: 0, price: 0, fringe: 0, fold: 0 };
+    var left = [], entered = [];
+
+    cells.forEach(function (b) {
+      var h = b._hand;
+      var res = classify(state.pos, state.size, h);
+      var a = classify(state.pos, from, h).cat;
+      var z = classify(state.pos, to, h).cat;
+      b.dataset.cat = res.cat;
+      b.dataset.moved = a === z ? '0' : '1';
+      b.setAttribute('aria-label', h.code + ': ' + CAT_NAME[res.cat]);
+      counts[res.cat]++;
+      if (a !== z) {
+        if (CONTINUING[a] && !CONTINUING[z]) left.push(h.code);
+        else if (!CONTINUING[a] && CONTINUING[z]) entered.push(h.code);
+      }
+      b.onmouseenter = function () { showHand(h, res); };
+      b.onfocus = function () { showHand(h, res); };
+    });
+
+    elGrid.classList.toggle('diffing', state.diff);
+
+    document.getElementById('grid-title').textContent =
+      'SB vs ' + spot.full + ' — ' + state.size + 'x open';
+
+    var cont = counts.core + counts.stable + counts.mix + counts.price;
+    document.getElementById('counts').textContent =
+      cont + ' of 169 hands continue' + (counts.fringe ? ' · ' + counts.fringe + ' fringe' : '');
+
+    document.getElementById('threeb').textContent = spot.threeB[state.size];
+    var sub = document.getElementById('threeb-sub');
+    var prev = idx > 0 ? spot.threeB[SIZES[idx - 1]] : null;
+    sub.textContent = prev === null
+      ? 'Against a ' + state.size + 'x open from ' + spot.full + '.'
+      : (prev === spot.threeB[state.size]
+          ? 'Unchanged from the ' + SIZES[idx - 1] + 'x open, so the larger open alone pushes you to 3-bet more.'
+          : 'Up from ' + prev + 'bb at ' + SIZES[idx - 1] + 'x, which pulls some suited hands back toward calling.');
+
+    document.getElementById('step-head').textContent = from + 'x → ' + to + 'x';
+    var n = left.length + entered.length;
+    document.getElementById('step-count').textContent =
+      n === 0 ? 'The frontier does not move across this step.'
+              : n + ' hand' + (n === 1 ? '' : 's') + ' change side.';
+
+    var html = '';
+    if (left.length) html += '<div><h3>Falls out</h3>' + chips(left, 'out') + '</div>';
+    if (entered.length) html += '<div><h3>Comes in</h3>' + chips(entered, 'in') + '</div>';
+    if (!html) html = '<p class="none">No hands enter or leave. Only frequencies shift.</p>';
+    document.getElementById('movers').innerHTML = html;
+
+    syncPos();
+    syncSize();
+  }
+
+  render();
+})();
+</script>
+
+<div class="shell" style="padding-top:0">
+  <p style="font-size:12.5px;color:var(--faint);margin:0">
+    <a href="https://feltexperiencepoker.com" style="color:var(--muted)">Felt Experience Poker</a>
+    &nbsp;·&nbsp; Private study page.
+  </p>
+</div>
+</body>
+</html>

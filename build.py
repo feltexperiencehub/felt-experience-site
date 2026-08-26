@@ -410,6 +410,8 @@ PAGES = [
    "That page doesn't exist.", notfound),
 ]
 
+# study/ is hand-maintained, not generated here: those pages are standalone
+# apps with their own styling, sitting behind the netlify.toml password gate.
 for page, title, desc, body in PAGES:
     (ROOT / page).write_text(shell(page, title, desc, body))
     print("wrote", page)

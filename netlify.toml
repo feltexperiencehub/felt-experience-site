@@ -6,3 +6,11 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Password gate for the private study pages. The function runs before the
+# file is served, so the page never reaches a visitor who has not entered the
+# password. The password itself lives in the STUDY_PASSWORD environment
+# variable in the Netlify UI, never in this repo.
+[[edge_functions]]
+  path = "/study/*"
+  function = "study-gate"
