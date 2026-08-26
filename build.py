@@ -89,7 +89,7 @@ home = f"""
 <div class="wrap hero">
   <h1>Solvers tell you what's correct.<br/><span class="g">Understanding why is how you make money.</span></h1>
   <p class="lede">I'm Dustin, the guy behind Felt Experience Poker. I've played online poker
-     professionally since 2007, and currently play up to 10/20 NL. Every week I break down real hands
+     professionally since 2007, and currently play up to NL2k. Every week I break down real hands
      on YouTube, including the ones I got wrong.</p>
   <div class="cta">
     <a class="btn p" href="{YT}" target="_blank" rel="noopener">Watch on YouTube</a>
@@ -267,7 +267,7 @@ coaching = f"""
 
   <div class="about">
     <div><div class="colhead">About me</div></div>
-    <div><p>I've played online poker professionally since 2007 and currently play up to 10/20 no-limit.
+    <div><p>I've played online poker professionally since 2007 and currently play up to NL2k.
       I was a video coach for PokerStrategy and Red Chip Poker, and I run the Felt Experience Poker
       YouTube channel, where I break down real hands every week.</p></div>
   </div>
