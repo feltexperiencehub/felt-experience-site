@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Big Ante Range Explorer – Felt Experience Poker</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+  :root {
+    --bg: #eef2ec; --panel: #ffffff; --sunk: #e3e9e0; --line: #d5ddd2;
+    --ink: #171c18; --muted: #626c64; --faint: #8e988f;
+    --raise: #bd5330; --call: #7bb877; --callDeep: #46814a;
+    --fold: #dfe5dc; --foldInk: #9aa49b; --hatch: rgba(23,28,24,.20);
+    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
+    --focus: #2f6d8f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+      --ink: #eaefe8; --muted: #98a29a; --faint: #6d766f;
+      --raise: #cd6236; --call: #4c8a4a; --callDeep: #6fa86a;
+      --fold: #1e231e; --foldInk: #5d665e; --hatch: rgba(0,0,0,.42);
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+      --focus: #7fb6d4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+    --ink: #eaefe8; --muted: #98a29a; --faint: #6d766f;
+    --raise: #cd6236; --call: #4c8a4a; --callDeep: #6fa86a;
+    --fold: #1e231e; --foldInk: #5d665e; --hatch: rgba(0,0,0,.42);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+    --focus: #7fb6d4;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-size: 14.5px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 1440px; margin: 0 auto; padding: 22px 20px 56px; }
+
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  h1 {
+    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
+    font-size: clamp(23px, 2.6vw, 31px); letter-spacing: -.015em; margin: 0;
+  }
+  h1 em { font-style: normal; color: var(--callDeep); }
+  .sub { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+  .cols { display: grid; grid-template-columns: 216px minmax(0,1fr) 300px; gap: 18px; align-items: start; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 13px; box-shadow: var(--shadow); padding: 16px;
+  }
+  .card > h2 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px;
+    font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 11px;
+  }
+
+  /* ---- spot list ---- */
+  .grp { margin-bottom: 14px; }
+  .grp:last-child { margin-bottom: 0; }
+  .grp > .gh {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px;
+    letter-spacing: .12em; color: var(--faint); margin: 0 0 5px; font-weight: 600;
+  }
+  .spotbtn {
+    display: block; width: 100%; text-align: left; appearance: none; border: 0;
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12.5px;
+    padding: 5px 9px; border-radius: 7px; margin-bottom: 1px;
+  }
+  .spotbtn:hover { background: var(--sunk); color: var(--ink); }
+  .spotbtn[aria-pressed="true"] { background: var(--callDeep); color: #fff; font-weight: 600; }
+
+  /* ---- sizes ---- */
+  .sizerow { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 14px; }
+  .seg { display: inline-flex; background: var(--sunk); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12.5px;
+    padding: 6px 13px; border-radius: 7px; cursor: pointer; white-space: nowrap;
+  }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+  .lbl {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--faint);
+    display: block; margin-bottom: 6px;
+  }
+  .seg button:focus-visible, .spotbtn:focus-visible, .cell:focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 2px;
+  }
+
+  /* ---- grid ---- */
+  .gridwrap { overflow-x: auto; }
+  .axis, .grid {
+    display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr));
+    gap: 3px; min-width: 520px;
+  }
+  .axis { margin-bottom: 4px; }
+  .axis span { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10px; color: var(--faint); }
+  .cell {
+    appearance: none; border: 0; aspect-ratio: 1; border-radius: 5px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: clamp(9px, .95vw, 11.5px); font-weight: 500; letter-spacing: -.02em;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; overflow: hidden;
+    background: var(--fold); color: var(--foldInk);
+    transition: transform .12s ease;
+  }
+  .cell:hover { transform: translateY(-1px); z-index: 3; }
+  .cell.live { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45); }
+  /* Fold pressure reads as a hatch over the strategy, so you can still see
+     what the hand does while it is folding. */
+  .cell .hatch { position: absolute; inset: 0; pointer-events: none; }
+  .cell[data-fold="1"] .hatch {
+    background: repeating-linear-gradient(135deg, transparent 0 4px, var(--hatch) 4px 7px);
+  }
+  .cell[data-fold="2"] .hatch {
+    background: repeating-linear-gradient(135deg, transparent 0 2px, var(--hatch) 2px 6px);
+  }
+  .cell span.t { position: relative; z-index: 2; }
+
+  .gridnote { margin: 12px 0 0; font-size: 12px; color: var(--faint); display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+
+  /* ---- rail ---- */
+  .rail { display: flex; flex-direction: column; gap: 16px; }
+  .big { display: flex; align-items: baseline; gap: 8px; }
+  .big .n {
+    font-family: 'League Spartan', system-ui, sans-serif; font-size: 42px;
+    font-weight: 700; line-height: 1; letter-spacing: -.03em; color: var(--raise);
+    font-variant-numeric: tabular-nums;
+  }
+  .big .u { font-size: 14px; color: var(--muted); }
+  .bigsub { margin: 7px 0 0; font-size: 12.5px; color: var(--muted); }
+
+  .legend { display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; }
+  .legend div { display: flex; align-items: center; gap: 9px; }
+  .legend .sw { width: 24px; height: 20px; border-radius: 4px; flex: none; position: relative; overflow: hidden; }
+  .legend i { font-style: normal; color: var(--faint); }
+
+  .detail .hand { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 25px; font-weight: 600; margin: 0; line-height: 1.1; }
+  .detail .verdict { font-size: 13px; font-weight: 600; margin: 3px 0 6px; }
+  .detail .why { margin: 0; font-size: 12.5px; color: var(--muted); }
+  .memory { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+  @media (max-width: 1100px) {
+    .cols { grid-template-columns: minmax(0,1fr); }
+    .rail { order: 3; }
+  }
+</style>
+
+<div class="shell">
+  <header>
+    <h1>Big Ante <em>Range Explorer</em></h1>
+    <p class="sub">0.5bb ante from each player · solved ranges, read as grids</p>
+  </header>
+
+  <div class="cols">
+    <div class="card" id="spotlist"></div>
+
+    <div class="card">
+      <div class="sizerow">
+        <div>
+          <span class="lbl" id="lbl-size">Open size</span>
+          <div class="seg" role="group" aria-labelledby="lbl-size" id="size-seg"></div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="text-align:right">
+          <span class="lbl">Spot</span>
+          <strong id="spot-title" style="font-family:'IBM Plex Mono',monospace;font-size:14px"></strong>
+        </div>
+      </div>
+      <div class="gridwrap">
+        <div class="axis" id="axis" aria-hidden="true"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+      <p class="gridnote">
+        <span>Suited above the diagonal · offsuit below · pairs on it</span>
+        <span id="counts"></span>
+      </p>
+    </div>
+
+    <div class="rail">
+      <div class="card">
+        <h2 id="threeb-label">Our 3-bet</h2>
+        <div class="big"><span class="n" id="threeb">—</span><span class="u">bb</span></div>
+        <p class="bigsub" id="threeb-sub"></p>
+      </div>
+
+      <div class="card">
+        <h2>How much we 3-bet</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="card detail">
+        <h2>Hand</h2>
+        <p class="hand" id="d-hand">—</p>
+        <p class="verdict" id="d-verdict">Hover any cell</p>
+        <p class="why" id="d-why">Each cell says how often the hand 3-bets and how much fold pressure it is under.</p>
+      </div>
+
+      <div class="card">
+        <h2>Memory rule</h2>
+        <p class="memory" id="memory"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ===========================================================================
+   Big Ante range explorer — hand-set engine.
+
+   Every spot is stored as a short stack of layers rather than 169 cells.
+   A layer names a set of hands and the strategy they take; later layers
+   overwrite earlier ones, so a spot reads top-down the way the source
+   cheat sheets do: core first, buckets next, then the size-specific bottom.
+   =========================================================================== */
+
+const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+const VAL = { A: 14, K: 13, Q: 12, J: 11, T: 10, 9: 9, 8: 8, 7: 7, 6: 6, 5: 5, 4: 4, 3: 3, 2: 2 };
+const CHAR = {};
+RANKS.forEach((r) => { CHAR[VAL[r]] = r; });
+
+/** All 169 hands, in grid order: row i, column j. */
+const HANDS = [];
+for (let i = 0; i < 13; i++) {
+  for (let j = 0; j < 13; j++) {
+    const a = VAL[RANKS[i]], b = VAL[RANKS[j]];
+    if (i === j) {
+      HANDS.push({ code: RANKS[i] + RANKS[i], kind: 'pair', hi: a, lo: a, gap: 0 });
+    } else {
+      const hi = Math.max(a, b), lo = Math.min(a, b);
+      HANDS.push({
+        code: CHAR[hi] + CHAR[lo] + (i < j ? 's' : 'o'),
+        kind: i < j ? 's' : 'o',
+        hi, lo, gap: hi - lo - 1,
+      });
+    }
+  }
+}
+const BY_CODE = {};
+HANDS.forEach((h) => { BY_CODE[h.code] = h; });
+
+const isBroadway = (h) => h.hi >= 10 && h.lo >= 10 && h.kind !== 'pair';
+
+/**
+ * Expand one selector token into hand codes.
+ *
+ * Supported, mirroring the notation the cheat sheets already use:
+ *   AA  AKs  AKo          single combos
+ *   88+  22-77            pair ranges
+ *   AJs+  ATs-A2s  K2s+   same-high-card suited runs
+ *   AQo+  AJo-A8o  Q6o+   the offsuit equivalents
+ *   Axs Kxs Qxs           blocker families (kicker 2 through 9)
+ *   SB OB                 suited / offsuit broadways
+ *   SC43+ 1G53+ 2G85+     connectivity by gap, floored on the low card
+ *   SCo43+ 1Go53+         the offsuit versions
+ *   9sL 8sL 9oL           the ladders
+ *   ALLs ALLo ANY2        whole families
+ */
+function expandToken(tok) {
+  tok = tok.trim();
+  if (!tok) return [];
+  const out = [];
+  const push = (p) => HANDS.forEach((h) => { if (p(h)) out.push(h.code); });
+
+  if (tok === 'ANY2') return HANDS.map((h) => h.code);
+  if (tok === 'ALLs') { push((h) => h.kind === 's'); return out; }
+  if (tok === 'ALLo') { push((h) => h.kind === 'o'); return out; }
+  if (tok === 'PAIRS') { push((h) => h.kind === 'pair'); return out; }
+  if (tok === 'SB') { push((h) => h.kind === 's' && isBroadway(h)); return out; }
+  if (tok === 'OB') { push((h) => h.kind === 'o' && isBroadway(h)); return out; }
+  if (tok === '9sL') return ['K9s', 'Q9s', 'J9s', 'T9s'];
+  if (tok === '8sL') return ['K8s', 'Q8s', 'J8s', 'T8s'];
+  if (tok === '9oL') return ['K9o', 'Q9o', 'J9o', 'T9o'];
+
+  // Blocker families: A/K/Q suited or offsuit with a non-broadway kicker.
+  let m = tok.match(/^([AKQ])x([so])$/);
+  if (m) {
+    const hi = VAL[m[1]], k = m[2];
+    push((h) => h.kind === k && h.hi === hi && h.lo <= 9);
+    return out;
+  }
+
+  // Connectivity: gap family with a floor on the low card.
+  m = tok.match(/^(SC|1G|2G)(o?)(\d{2})?\+?$/);
+  if (m) {
+    const gap = m[1] === 'SC' ? 0 : m[1] === '1G' ? 1 : 2;
+    const kind = m[2] === 'o' ? 'o' : 's';
+    const floor = m[3] ? VAL[m[3][1]] : 2;
+    push((h) => h.kind === kind && h.gap === gap && h.lo >= floor && h.hi <= 14);
+    return out;
+  }
+  m = tok.match(/^(SC|1G|2G)(o?)([AKQJT2-9])([AKQJT2-9])\+$/);
+  if (m) {
+    const gap = m[1] === 'SC' ? 0 : m[1] === '1G' ? 1 : 2;
+    const kind = m[2] === 'o' ? 'o' : 's';
+    const floor = VAL[m[4]];
+    push((h) => h.kind === kind && h.gap === gap && h.lo >= floor);
+    return out;
+  }
+
+  // Pair range or pair floor: 88+ / 22-77
+  m = tok.match(/^([AKQJT2-9])\1\+$/);
+  if (m) { const v = VAL[m[1]]; push((h) => h.kind === 'pair' && h.hi >= v); return out; }
+  m = tok.match(/^([AKQJT2-9])\1-([AKQJT2-9])\2$/);
+  if (m) {
+    const a = VAL[m[1]], b = VAL[m[2]], lo = Math.min(a, b), hi = Math.max(a, b);
+    push((h) => h.kind === 'pair' && h.hi >= lo && h.hi <= hi);
+    return out;
+  }
+
+  // Same-high-card run with a floor: AJs+ / K2s+ / Q6o+
+  m = tok.match(/^([AKQJT2-9])([AKQJT2-9])([so])\+$/);
+  if (m) {
+    const hi = VAL[m[1]], floor = VAL[m[2]], k = m[3];
+    push((h) => h.kind === k && h.hi === hi && h.lo >= floor && h.lo < hi);
+    return out;
+  }
+
+  // Explicit run: ATs-A2s / AJo-A8o
+  m = tok.match(/^([AKQJT2-9])([AKQJT2-9])([so])-([AKQJT2-9])([AKQJT2-9])\3$/);
+  if (m && m[1] === m[4]) {
+    const hi = VAL[m[1]], a = VAL[m[2]], b = VAL[m[5]], k = m[3];
+    const lo = Math.min(a, b), top = Math.max(a, b);
+    push((h) => h.kind === k && h.hi === hi && h.lo >= lo && h.lo <= top);
+    return out;
+  }
+
+  // Single combo.
+  if (BY_CODE[tok]) return [tok];
+
+  console.warn('unrecognised selector token:', tok);
+  return [];
+}
+
+function expand(sel) {
+  const out = new Set();
+  String(sel).split(',').forEach((t) => expandToken(t).forEach((c) => out.add(c)));
+  return out;
+}
+
+/* ---------------------------------------------------------------------------
+   Strategy model.
+
+   `three` is the 3-bet (or jam) weight on Dustin's five-step scale:
+     'pure' pure aggression
+     1  plenty of 3bets but not always
+     2  more than 50% but not always
+     3  less than 50% but sometimes
+     4  a small amount
+     5  a tiny amount
+     0  none
+
+   `fold` is separate, because the sources treat fold pressure as its own
+   axis: a hand can be Fold/3B (calls gone, aggression left) or Fold/Call
+   (aggression gone, calls left).
+     0 none · 1 fold is meaningfully present · 2 mostly folding
+   --------------------------------------------------------------------------- */
+
+const FILL = { pure: 1, 1: 0.78, 2: 0.58, 3: 0.38, 4: 0.18, 5: 0.07, 0: 0 };
+
+/** Composite a spot's layers into a classification for all 169 hands. */
+function solve(spot, sizeIndex) {
+  const size = spot.sizes[sizeIndex];
+  const state = {};
+  HANDS.forEach((h) => { state[h.code] = { three: 0, fold: 3, why: 'Outside the practical continuing range.' }; });
+
+  const apply = (layers) => {
+    (layers || []).forEach((L) => {
+      expand(L.sel).forEach((code) => {
+        state[code] = {
+          three: L.three === undefined ? 0 : L.three,
+          fold: L.fold === undefined ? 0 : L.fold,
+          why: L.why || '',
+          label: L.label || '',
+        };
+      });
+    });
+  };
+
+  // The buckets are the framework, so they go down first. The size-specific
+  // frontier then trims them: `cut` names the families that frontier governs,
+  // and anything inside those families the frontier does not keep is folded.
+  // Without that step a broad family like Qxs would silently re-add hands the
+  // sheet folds at this size.
+  apply(spot.base);
+
+  if (size.cut) {
+    const keep = new Set();
+    (size.bottom || []).forEach((L) => expand(L.sel).forEach((c) => keep.add(c)));
+    (size.over || []).forEach((L) => expand(L.sel).forEach((c) => keep.add(c)));
+    expand(size.cut).forEach((c) => {
+      if (!keep.has(c)) state[c] = { three: 0, fold: 3, why: 'Below this size\u2019s continue floor.' };
+    });
+  }
+
+  apply(size.bottom);
+  apply(size.over);
+  return state;
+}
+
+/* ===========================================================================
+   Big Ante — RFI defence spots, transcribed from the Standardized cheat
+   sheets. Layer order inside each spot runs weakest to strongest, because
+   `solve` lets later layers win: the size-specific bottom is swept first,
+   the stable buckets overwrite it, and `over` holds the exceptions a
+   particular size makes to those buckets.
+   =========================================================================== */
+
+const MIX = 'Stable continuing bucket. Mixes Call/3B; a larger open pushes it toward 3-bet.';
+const CORE = 'Core 3B. Non-negotiable, and it does not move with the open size.';
+const CALLC = 'Call Core. A pure call across the whole sizing tree.';
+const BOT = 'Price-driven bottom. This is the part that actually changes with the open size.';
+const BLOCK = 'Suited blocker. Calls disappear before the 3-bets do, so it can stay aggressive near the cutoff.';
+const CONN = 'Suited connectivity. The 3-bet frequency fades before the calls do.';
+
+const SPOTS_RFI = [
+  /* ------------------------------------------------------------------ SB */
+  {
+    id: 'sb-bu', hero: 'SB', vs: 'BU', family: 'rfi',
+    title: 'SB vs BU', opener: 'BU',
+    memory: 'Core 3B stays. Middle hands mix. Open size mainly moves the bottom.',
+    base: [
+      { sel: '22-77,ATs-A2s,AJo-A8o,SB,OB,K9s,Q9s,J9s,8sL', three: 2, why: MIX },
+      { sel: '88+,AJs+,AQo+,KQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      { open: '2x', threeB: 11.5, bottom: [{ sel: 'K2s+,Q2s+,J4s+,T6s+,SC43+,1G53+,2G85+', three: 4, why: BOT }] },
+      { open: '2.5x', threeB: 12.5, bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC54+,1G75+,2G96+', three: 4, why: BOT }] },
+      { open: '3x', threeB: 12.5, bottom: [{ sel: 'K4s+,Q7s+,J8s+,T7s+,SC54+,1G97+,2GT7+', three: 4, why: BOT }] },
+      { open: '3.5x', threeB: 13.5, bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC65+,1G97+,2GJ8+', three: 4, why: BOT }] },
+    ],
+  },
+  {
+    id: 'sb-co', hero: 'SB', vs: 'CO', family: 'rfi',
+    title: 'SB vs CO', opener: 'CO',
+    memory: 'Core 3B stays. 22–55 call. Middle hands mix. Study the price-driven bottom.',
+    base: [
+      { sel: '66-88,AJs-A2s,AJo-A9o,SB,OB,K9s,Q9s,J9s,8sL', three: 2, why: MIX },
+      { sel: '22-55', three: 0, why: CALLC },
+      { sel: '99+,AQs+,AQo+', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      { open: '2x', threeB: 13.5, bottom: [{ sel: 'K2s+,Q2s+,J5s+,T6s+,SC43+,1G53+,2G74+', three: 4, why: BOT }] },
+      { open: '2.5x', threeB: 14, bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC54+,1G53+,2G96+', three: 4, why: BOT }] },
+      {
+        open: '3x', threeB: 14.5,
+        bottom: [{ sel: 'K4s+,Q7s+,J8s+,T7s+,SC54+,1G75+,2GT7+', three: 4, why: BOT }],
+        over: [{ sel: 'JTo,QTo', three: 2, fold: 1, why: 'First offsuit Broadway fold transitions as the price worsens.' }],
+      },
+      {
+        open: '3.5x', threeB: 16,
+        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC54+,1G97+,2GJ8+', three: 4, why: BOT }],
+        over: [{ sel: 'JTo,QTo', three: 2, fold: 2, why: 'Offsuit Broadway bottom is folding out.' }],
+      },
+    ],
+  },
+  {
+    id: 'sb-ep', hero: 'SB', vs: 'EP', family: 'rfi',
+    title: 'SB vs EP', opener: 'EP (UTG / HJ)',
+    memory: 'Tighter EP range means a stronger core and a faster bottom contraction. Remove the weak offsuit region early.',
+    base: [
+      { sel: '88-99,ATs-A2s,AQo-ATo,KQo,KJo,SB,9sL', three: 2, why: MIX },
+      { sel: '22-77,AJs', three: 0, why: CALLC },
+      { sel: 'TT+,AKs,AKo,AQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 14,
+        bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC43+,1G53+,2G85+', three: 4, why: BOT }],
+        over: [{ sel: 'QJo,KTo,QTo,JTo', three: 2, why: 'Price-sensitive offsuit Broadways, comfortable at this price.' }],
+      },
+      {
+        open: '2.5x', threeB: 14,
+        bottom: [{ sel: 'K4s+,Q8s+,J8s+,T7s+,SC54+,1G53+', three: 4, why: BOT }],
+        over: [{ sel: 'QJo,KTo,QTo,JTo', three: 2, fold: 1, why: 'Offsuit Broadways contract bottom-up: JTo, then QTo, then KTo and QJo.' }],
+      },
+      {
+        open: '3x', threeB: 16,
+        bottom: [{ sel: 'K6s+,Q8s+,J9s+,T8s+,SC54+,1G86+', three: 4, why: BOT }],
+        over: [
+          { sel: 'QJo,KTo,QTo', three: 2, fold: 1, why: 'Offsuit Broadways contracting bottom-up.' },
+          { sel: 'JTo', three: 0, fold: 2, why: 'Weakest offsuit Broadway, mostly gone by now.' },
+        ],
+      },
+      {
+        open: '3.5x', threeB: 16,
+        bottom: [{ sel: 'K7s+,Q9s+,J9s+,T8s+,SC54+,1G97+', three: 4, why: BOT }],
+        over: [
+          { sel: 'QJo,KTo', three: 2, fold: 2, why: 'Down to the last offsuit Broadways.' },
+          { sel: 'QTo,JTo', three: 0, fold: 3, why: 'Folded out.' },
+        ],
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ BB */
+  {
+    id: 'bb-bu', hero: 'BB', vs: 'BU', family: 'rfi',
+    title: 'BB vs BU', opener: 'BU',
+    memory: 'All suited hands continue. Our 3B size controls grid width, the open size controls where the 3B weight sits, and the offsuit bottom does the pruning.',
+    base: [
+      { sel: 'ALLs', three: 4, why: 'All suited hands continue. Mostly Call Core with low-frequency 3B construction.' },
+      { sel: 'SB', three: 0, why: 'Suited Broadways are mostly Call Core here.' },
+      { sel: 'ATs,KJs', three: 3, why: 'The two main Call/3B pivots in the suited Broadway bucket.' },
+      { sel: '22-44', three: 0, why: CALLC },
+      { sel: '55-77', three: 4, why: 'Mostly Call with a low-frequency 3B.' },
+      { sel: '88+,AJo+,AJs+,KQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      { open: '2x', threeB: 15, bottom: [{ sel: 'ANY2', three: 4, why: 'Defend any two. No meaningful fold threshold at this price.' }] },
+      { open: '2.5x', threeB: 16, bottom: [{ sel: 'ANY2', three: 4, why: 'Almost any two. Only the worst disconnected 9-high and lower trash prunes.' }] },
+      { open: '3x', threeB: 16, bottom: [{ sel: 'Axo,Kxo,Q4o+,J7o+,T6o+,SCo43+,1Go53+', three: 4, why: BOT }] },
+      { open: '3.5x', threeB: 18, bottom: [{ sel: 'Axo,K4o+,Q6o+,J7o+,T7o+,SCo54+', three: 4, why: BOT }] },
+    ],
+  },
+  {
+    id: 'bb-co', hero: 'BB', vs: 'CO', family: 'rfi',
+    title: 'BB vs CO', opener: 'CO',
+    memory: 'Our 3B size controls width. Open size controls where the 3B weight sits. All suited stays very sticky, and the offsuit bottom does the folding.',
+    base: [
+      { sel: 'ALLs', three: 0, why: 'All suited continue. If a suited hand is not in a meaningful mix, default to Call.' },
+      { sel: 'SC54+,1G64+,2G85+', three: 4, why: CONN },
+      { sel: 'AJs,KQs', three: 3, why: 'The only suited high-card hands worth preserving as meaningful Call/3B mixes.' },
+      { sel: 'KJs,ATs', three: 0, why: 'Keep the rest of the suited Broadways clean: just call.' },
+      { sel: '22-55', three: 0, why: CALLC },
+      { sel: '66-99', three: 3, why: 'Call/3B mix, with the aggression increasing toward the top of the bucket.' },
+      { sel: '66', three: 4, why: 'Bottom of the mixing pairs: low frequency only.' },
+      { sel: 'TT+,AKs,AKo,AQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      { open: '2x', threeB: 15, bottom: [{ sel: 'ANY2', three: 3, why: 'Defend any two.' }] },
+      { open: '2.5x', threeB: 18, bottom: [{ sel: 'ANY2', three: 3, why: 'Almost any two.' }] },
+      { open: '3x', threeB: 18, bottom: [{ sel: 'Axo,K4o+,Q6o+,J8o+,T7o+,SCo43+', three: 3, why: BOT }] },
+      { open: '3.5x', threeB: 18, bottom: [{ sel: 'Axo,K7o+,Q8o+,J8o+,T8o+', three: 3, why: BOT }] },
+    ],
+  },
+  {
+    id: 'bb-ep', hero: 'BB', vs: 'EP', family: 'rfi',
+    title: 'BB vs EP', opener: 'EP (HJ / UTG)',
+    memory: 'Our size controls width, range strength controls where the weight sits. Against tighter ranges shift 3B weight up into blockers rather than expanding the low-connectivity grid.',
+    base: [
+      { sel: 'ALLs', three: 0, why: 'Suited hands continue very wide; the strong ones simply call.' },
+      { sel: 'SC54+,1G64+,2G85+,95s,T6s', three: 4, why: 'Baseline suited connectivity grid.' },
+      { sel: 'A7s,A6s,K6s-K3s,Q9s-Q3s,J9s-J7s,T9s', three: 4, why: 'Against a narrower range the 3B weight migrates up here, out of the low connectivity.' },
+      { sel: 'SB', three: 0, why: 'Strong suited hands mostly just call. Ignore the small theoretical slivers.' },
+      { sel: '22-55', three: 0, why: CALLC },
+      { sel: '66-99', three: 3, why: 'Call/3B mix; larger opens move the pairs toward 3-bet from the top down.' },
+      { sel: 'ATo+,KQo,KJo,KTo,QJo,QTo,JTo', three: 3, why: 'Stable continuing offsuit Broadways that mix Call/3B.' },
+      { sel: 'TT+,AKs,AKo', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 15,
+        bottom: [{ sel: 'Axo,Kxo,Qxo,J2o+,T2o+,SCo43+,1Go53+', three: 3, why: 'A, K and Q any, plus very wide Jx/Tx and low offsuit connectivity.' }],
+        over: [{ sel: 'AQs', three: 0, why: 'AQs exception: a pure call versus 2x, then a 3-bet from 2.5x up.' }],
+      },
+      {
+        open: '2.5x', threeB: 18,
+        bottom: [{ sel: 'A2o+,K4o+,Q6o+,J8o+,T7o+,SCo43+', three: 3, why: BOT }],
+        over: [{ sel: 'AQs', three: 'pure', why: 'AQs exception: it flips to 3-bet from 2.5x up. Very fast transition.' }],
+      },
+      {
+        open: '3x', threeB: 18,
+        bottom: [
+          { sel: 'Axo', three: 5, fold: 2, why: 'Weaker offsuit Ax survives mainly as a blocker 3-bet.' },
+          { sel: 'A9o+,K9o+,Q9o+,J9o+,T9o', three: 3, why: 'The 9o ladder becomes the main offsuit continue region.' },
+        ],
+        over: [{ sel: 'AQs', three: 'pure', why: 'AQs 3-bets from 2.5x up.' }],
+      },
+      {
+        open: '3.5x', threeB: 18,
+        bottom: [
+          { sel: 'A5o', three: 5, fold: 2, why: 'Weak Ax survives through blocker 3-bets only.' },
+          { sel: 'A9o+,KTo+,QTo+,JTo', three: 3, why: BOT },
+        ],
+        over: [
+          { sel: 'AQs', three: 'pure', why: 'AQs 3-bets from 2.5x up.' },
+          { sel: '92s,82s,72s,93s,83s,73s', three: 0, fold: 2, why: 'The weakest disconnected suited trash finally matters at this price.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'bb-sb', hero: 'BB', vs: 'SB', family: 'rfi',
+    title: 'BB vs SB', opener: 'SB',
+    memory: 'Larger 3B means redistribute, not just tighten. Playable middle calls, the absolute bottom folds, and the remaining polar blocker region carries the 3B frequency.',
+    base: [
+      { sel: 'ALLs', three: 0, why: 'Suited hands continue.' },
+      { sel: 'SB', three: 3, why: 'Suited Broadways: mix at small 3B sizes, call as our 3B grows.' },
+      { sel: 'SC54+', three: 3, why: 'Suited connectors follow the same movement as the Broadways.' },
+      { sel: '94s,93s,92s', three: 3, why: 'Polar bottom suited. It inherits 3B weight as the playable hands move toward calling.' },
+      { sel: 'OB', three: 3, why: 'Offsuit Broadways mix freely at small sizes and increasingly call as our 3B grows.' },
+      { sel: '22-77', three: 0, why: CALLC },
+      { sel: '88+,AJo+,AJs+,KQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '3x', threeB: 13,
+        bottom: [{ sel: 'ANY2', three: 3, why: 'Fold 72o. Defend everything else through some combination of Call/3B.' }],
+        over: [{ sel: '72o', three: 0, fold: 3, why: 'The one fold at this price.' }],
+      },
+      {
+        open: '3.5x', threeB: 15,
+        bottom: [{ sel: 'ANY2', three: 3, why: 'Everything else continues with its usual Call/3B mix.' }],
+        over: [
+          { sel: 'SB,SC54+,OB', three: 4, why: 'Our 3B is larger now, so the playable middle moves toward calling.' },
+          { sel: '92o,93o,94o,82o,83o,72o,73o,62o', three: 0, fold: 3, why: 'The named folds at this price.' },
+        ],
+      },
+      {
+        open: '4x', threeB: 16,
+        bottom: [{ sel: 'Axo,Kxo,Qxo,J6o+,T6o+,96o,86o,76o,SCo43+,1Go53+', three: 3, why: BOT }],
+        over: [
+          { sel: 'SB,SC54+,OB', three: 5, why: 'Playable middle is now call-dominant; the lost 3B weight moves to the polar region.' },
+          { sel: '94s,93s,92s', three: 2, why: 'The bottom suited polar region absorbs the redistributed 3B frequency.' },
+        ],
+      },
+      {
+        open: '4.5x', threeB: 17,
+        bottom: [{ sel: 'Axo,Kxo,Q4o+,J6o+,T6o+,SCo54+,1Go75+', three: 3, why: BOT }],
+        over: [
+          { sel: 'SB,SC54+,OB', three: 0, why: 'At our largest 3B the playable middle is simply calling.' },
+          { sel: '94s,93s,92s', three: 2, why: 'Polar bottom carries the remaining 3B frequency.' },
+        ],
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ HJ */
+  {
+    id: 'hj-utg', hero: 'HJ', vs: 'UTG', family: 'rfi',
+    title: 'HJ vs UTG', opener: 'UTG',
+    memory: 'The tighter the range, the higher our blocker 3-bets move. Blockers preserve aggression, connectivity preserves calling.',
+    base: [
+      { sel: 'SC54+', three: 4, why: CONN },
+      { sel: 'J9s,T8s', three: 4, why: 'Only the top of the 1-gapper family matters against UTG.' },
+      { sel: 'Axs,Kxs,Qxs', three: 3, why: BLOCK },
+      { sel: 'SB', three: 3, why: 'Suited Broadways always continue; the movement is between call and 3-bet.' },
+      { sel: '22-44', three: 0, why: CALLC },
+      { sel: '55-99', three: 4, why: 'Mostly call with a low-frequency 3-bet.' },
+      { sel: 'TT', three: 2, why: 'The strong pair pivot.' },
+      { sel: 'AQo,AJo,KQo', three: 3, why: 'Stable offsuit Broadway mixes.' },
+      { sel: 'JJ+,AKs,AKo', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,87s,76s,65s,54s,J9s,T8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'K7s,K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'K5s', three: 3, fold: 2, why: 'Fold/3B: the call is gone but the blocker 3-bet survives.' },
+          { sel: 'Q8s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: '98s,87s,76s,65s,54s', three: 4, fold: 1, why: 'Lower connectors are already Fold/Call with a low-frequency 3-bet.' },
+          { sel: 'T8s', three: 4, fold: 1, why: 'Transition.' },
+          { sel: '22-33', three: 0, fold: 1, why: 'The pair bottom begins its Fold/Call transition.' },
+          { sel: 'ATo,KJo', three: 3, fold: 1, why: 'Fold/Call/3B.' },
+          { sel: 'QJo', three: 4, fold: 2, why: 'Mostly fold with a residual Call/3B.' },
+        ],
+      },
+      {
+        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,87s,76s,65s,54s,J9s,T8s', three: 3, why: BOT + ' Shares the 10bb 3B with 2x, so the frontier barely moves.' }],
+        over: [
+          { sel: 'K7s,K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'K5s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'Q8s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: '98s,87s,76s,65s,54s', three: 4, fold: 1, why: 'Fold/Call with a low-frequency 3-bet.' },
+          { sel: 'T8s', three: 4, fold: 1, why: 'Transition.' },
+          { sel: '22-33', three: 0, fold: 1, why: 'Pair bottom in Fold/Call transition.' },
+          { sel: 'ATo,KJo', three: 3, fold: 1, why: 'Fold/Call/3B.' },
+          { sel: 'QJo', three: 4, fold: 2, why: 'Mostly fold with a residual mix.' },
+        ],
+      },
+      {
+        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K9s,Q9s,T9s,98s,87s,76s,65s,54s,J9s', three: 3, why: BOT }],
+        over: [
+          { sel: 'K8s,K7s', three: 3, fold: 1, why: 'Fold/Call/3B transition; K7s is the fold-heavier member.' },
+          { sel: 'K6s,K5s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'Q9s', three: 1, fold: 1, why: '3B-heavy Fold/Call/3B.' },
+          { sel: 'Q8s', three: 5, fold: 2, why: 'Fold with a low-frequency 3-bet.' },
+          { sel: 'T9s', three: 4, fold: 1, why: 'Fold/Call with a low-frequency 3-bet.' },
+          { sel: '98s,87s,76s,65s,54s', three: 0, fold: 1, why: 'The low-frequency 3-bet has gone; mostly Fold/Call.' },
+          { sel: 'J9s', three: 5, fold: 1, why: 'Mostly Fold/Call plus a tiny 3-bet.' },
+          { sel: '55', three: 0, fold: 1, why: 'The pair bottom begins folding here.' },
+          { sel: '22-44', three: 0, fold: 2, why: 'Fold/Call, increasingly fold-heavy downward.' },
+          { sel: 'ATo,KJo', three: 3, fold: 1, why: 'Fold/Call/3B.' },
+          { sel: 'QJo', three: 3, fold: 2, why: 'Mostly Fold/3B.' },
+        ],
+      },
+      {
+        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K9s,Q9s,T9s,98s,87s,76s,65s,54s', three: 3, why: BOT }],
+        over: [
+          { sel: 'K9s', three: 1, why: '3B-heavy Call/3B.' },
+          { sel: 'K8s', three: 4, fold: 1, why: 'Mostly Fold/Call with a low-frequency 3-bet.' },
+          { sel: 'K7s', three: 4, fold: 2, why: 'Mostly fold with a residual Call/3B.' },
+          { sel: 'K6s', three: 5, fold: 2, why: 'Fold with a low-frequency 3-bet.' },
+          { sel: 'K5s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'Q9s', three: 4, fold: 2, why: 'Mostly Fold/Call with a low-frequency 3-bet.' },
+          { sel: 'T9s', three: 4, fold: 1, why: 'Fold/Call with a low-frequency 3-bet.' },
+          { sel: '98s,87s,76s,65s,54s', three: 0, fold: 2, why: 'Mostly fold with a residual call.' },
+          { sel: '55-99', three: 4, why: 'Still continuing, with a low-frequency 3-bet available.' },
+          { sel: '22-44', three: 0, fold: 2, why: 'Mostly fold with a residual call.' },
+          { sel: 'ATo,KJo', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'QJo', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+        ],
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ CO */
+  {
+    id: 'co-hj', hero: 'CO', vs: 'HJ', family: 'rfi',
+    title: 'CO vs HJ', opener: 'HJ',
+    memory: 'Blockers preserve aggression, connectivity preserves calling. Learn the buckets, then learn where each size starts removing hands.',
+    base: [
+      { sel: 'SC54+', three: 4, why: CONN },
+      { sel: '1G53+', three: 4, why: 'The 1-gapper family, most stable at the top.' },
+      { sel: 'J8s', three: 4, why: 'The one high 2-gapper exception worth remembering.' },
+      { sel: 'Axs,Kxs,Qxs', three: 3, why: BLOCK },
+      { sel: 'SB', three: 0, why: 'Suited Broadways just call. Any low-frequency 3-bet is optional.' },
+      { sel: '22-77', three: 0, why: CALLC },
+      { sel: '88-99', three: 4, why: 'Mostly call with a low-frequency 3-bet.' },
+      { sel: 'TT', three: 2, why: 'The strong pair pivot.' },
+      { sel: 'AQo,AJo,ATo,KQo', three: 3, why: 'Stable upper offsuit Broadway region.' },
+      { sel: 'KJo,QJo', three: 3, fold: 1, why: 'Middle transition; QJo contracts before KJo.' },
+      { sel: 'JJ+,AKs,AKo,AQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        over: [
+          { sel: 'K4s,K3s', three: 3, fold: 2, why: 'Fold/3B transition.' },
+          { sel: 'Q7s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'Q6s,Q5s,Q4s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: '86s', three: 4, fold: 1, why: 'Transition.' },
+          { sel: '75s,64s,53s', three: 0, fold: 2, why: 'Mostly fold with some call.' },
+          { sel: 'A9o', three: 1, why: 'Very 3B-heavy: this hand carries the offsuit blocker aggression.' },
+          { sel: 'KTo,QTo', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'JTo', three: 4, fold: 2, why: 'Mostly fold, residual Call/3B only.' },
+        ],
+      },
+      {
+        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s+,Q8s+,SC54+,J9s,T8s,J8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'K4s', three: 3, fold: 2, why: 'Mostly Fold/3B.' },
+          { sel: 'Q7s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'J9s,T8s,J8s', three: 4, why: 'Stable call with a low-frequency 3-bet.' },
+          { sel: '97s', three: 4, fold: 1, why: 'Transition.' },
+          { sel: '86s,75s,64s,53s', three: 0, fold: 2, why: 'Mostly fold with a residual call.' },
+          { sel: 'A9o', three: 1, why: 'Very 3B-heavy.' },
+          { sel: 'KTo,QTo', three: 4, fold: 2, why: 'Mostly fold with a residual Call/3B.' },
+          { sel: 'JTo', three: 0, fold: 3, why: 'Folded out.' },
+        ],
+      },
+      {
+        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s+,Q9s+,SC54+,J9s,T8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'K5s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'K4s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'Q8s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'J9s', three: 4, why: 'Call with a low-frequency 3-bet.' },
+          { sel: 'T8s', three: 4, fold: 1, why: 'Fold/Call with a low-frequency 3-bet.' },
+          { sel: '97s', three: 0, fold: 2, why: 'Mostly fold.' },
+          { sel: 'J8s', three: 0, fold: 3, why: 'The high 2-gapper exception is gone by this size.' },
+          { sel: '87s,76s,65s,54s', three: 0, fold: 1, why: 'Lower connectors are increasingly Fold/Call.' },
+          { sel: 'A9o', three: 3, fold: 2, why: 'Fold/3B: the call has gone, the blocker 3-bet remains.' },
+          { sel: 'KTo,QTo', three: 5, fold: 2, why: 'Mostly fold with a residual low-frequency 3-bet.' },
+          { sel: 'JTo', three: 0, fold: 3, why: 'Folded out.' },
+        ],
+      },
+      {
+        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,J9s,T8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'K7s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'K6s', three: 3, fold: 2, why: 'Mostly Fold/3B with a small call remaining.' },
+          { sel: 'K5s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'Q9s', three: 1, why: 'Continues, and very 3B-heavy.' },
+          { sel: 'Q8s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'T9s,98s', three: 3, why: 'The upper connectors still mix Call/3B.' },
+          { sel: '87s,76s,65s,54s', three: 0, fold: 2, why: 'Mostly fold with a residual call; the aggression has gone.' },
+          { sel: 'J9s', three: 2, why: 'The clear upper connectivity mix at this size.' },
+          { sel: 'T8s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'A9o', three: 5, fold: 2, why: 'Fold with a low-frequency 3-bet.' },
+          { sel: 'KTo,QTo', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'JTo', three: 0, fold: 3, why: 'Folded out.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'co-utg', hero: 'CO', vs: 'UTG', family: 'rfi',
+    title: 'CO vs UTG', opener: 'UTG',
+    memory: 'The narrower the range we face, the higher the blocker aggression shifts. AQs is the promotion hand.',
+    base: [
+      { sel: 'SC54+', three: 4, why: CONN },
+      { sel: 'J9s,T8s,97s', three: 4, why: 'The 1-gapper strategy concentrates at the top.' },
+      { sel: 'Axs,Kxs,Qxs', three: 3, why: BLOCK },
+      { sel: 'SB', three: 0, why: 'Suited Broadways just call; scattered low-frequency 3-bets are optional.' },
+      { sel: '22-77', three: 0, why: CALLC },
+      { sel: '88-99', three: 4, why: 'Mostly call with a low-frequency 3-bet.' },
+      { sel: 'TT', three: 2, why: 'The strong pair pivot.' },
+      { sel: 'AQo,AJo,ATo,KQo', three: 3, why: 'Stable upper offsuit Broadway region.' },
+      { sel: 'KJo,QJo', three: 3, fold: 1, why: 'Transition region; KJo is more resilient than QJo.' },
+      { sel: 'JJ+,AKs,AKo', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s+,Q8s+,J8s+,T8s+,SC54+,J9s,T8s,97s,J8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 2, why: 'AQs pivot: a Call/3B mix at the small sizes, pivoting toward pure 3-bet as UTG sizes up.' },
+          { sel: 'K5s,K4s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'Q7s', three: 4, fold: 2, why: 'Mostly fold with a small residual Call/3B.' },
+          { sel: 'J8s', three: 4, why: 'The high 2-gapper exception: call with a low-frequency 3-bet.' },
+          { sel: '86s,75s,64s,53s', three: 0, fold: 1, why: 'Fold/Call transition.' },
+          { sel: 'A9o', three: 5, fold: 2, why: 'Baseline fold, with an optional low-frequency blocker 3-bet.' },
+          { sel: 'KTo,QTo', three: 5, fold: 2, why: 'Mostly fold, with a residual call and a low-frequency 3-bet.' },
+          { sel: 'JTo', three: 0, fold: 2, why: 'Mostly fold with a residual call.' },
+        ],
+      },
+      {
+        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s+,Q9s+,SC54+,J9s,T8s,97s,J8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 2, why: 'AQs pivot, still a Call/3B mix at this size.' },
+          { sel: 'K5s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'Q8s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'J8s', three: 4, why: 'High 2-gapper exception.' },
+          { sel: '86s', three: 0, fold: 2, why: 'Mostly fold with a residual call.' },
+          { sel: '75s,64s,53s', three: 0, fold: 3, why: 'Lower 1-gappers are out.' },
+          { sel: 'A9o,KTo,QTo', three: 5, fold: 2, why: 'Baseline fold with a tiny residual 3-bet, at player discretion.' },
+          { sel: 'JTo', three: 0, fold: 3, why: 'Folded out.' },
+        ],
+      },
+      {
+        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K7s+,Q9s+,SC54+,J9s,T8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 1, why: 'AQs is increasingly 3B-heavy as UTG sizes up.' },
+          { sel: 'K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'K5s', three: 5, fold: 2, why: 'Fold with a low-frequency 3-bet.' },
+          { sel: 'Q8s', three: 5, fold: 2, why: 'Fold with a low-frequency 3-bet.' },
+          { sel: 'J9s', three: 4, why: 'Stable call with a low-frequency 3-bet.' },
+          { sel: 'T8s', three: 0, fold: 1, why: 'Fold/Call transition.' },
+          { sel: '97s', three: 0, fold: 2, why: 'Mostly fold with a residual call.' },
+          { sel: 'J8s', three: 0, fold: 3, why: 'The high 2-gapper exception is gone.' },
+          { sel: '87s,76s,65s,54s', three: 0, fold: 1, why: 'Lower connectors increasingly Fold/Call.' },
+          { sel: 'A9o,KTo,QTo', three: 5, fold: 2, why: 'Baseline fold with an optional tiny 3-bet.' },
+          { sel: 'KJo', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'QJo', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+        ],
+      },
+      {
+        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,J9s,T8s', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 'pure', why: 'AQs is almost entirely 3-bet by this size.' },
+          { sel: 'K7s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'K6s,K5s', three: 5, fold: 2, why: 'Baseline fold with a tiny residual 3-bet.' },
+          { sel: 'Q9s', three: 2, why: 'Call/3B.' },
+          { sel: 'Q8s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'T9s', three: 2, why: 'Stable Call/3B, the top of the connectivity strategy.' },
+          { sel: '98s', three: 4, fold: 1, why: 'Fold/Call with a low-frequency 3-bet.' },
+          { sel: '87s,76s,65s,54s', three: 4, fold: 2, why: 'Mostly Fold/Call with a low-frequency 3-bet.' },
+          { sel: 'J9s', three: 3, fold: 1, why: 'A genuine Fold/Call/3B mix.' },
+          { sel: 'T8s', three: 4, fold: 1, why: 'Fold/Call with a low-frequency 3-bet.' },
+          { sel: 'ATo', three: 3, fold: 1, why: 'Enters the Fold/Call/3B transition.' },
+          { sel: 'KJo', three: 3, fold: 1, why: 'Fold/Call/3B.' },
+          { sel: 'QJo', three: 4, fold: 2, why: 'Mostly fold with a residual Call/3B.' },
+          { sel: 'A9o,KTo,QTo', three: 5, fold: 2, why: 'Baseline fold with an optional tiny 3-bet.' },
+        ],
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ BU */
+  {
+    id: 'bu-co', hero: 'BU', vs: 'CO', family: 'rfi',
+    title: 'BU vs CO', opener: 'CO',
+    memory: 'The middle changes frequencies. The bottom changes hands. Aggression disappears first, SCs remain calls, and folds begin through the 2-gappers.',
+    base: [
+      { sel: 'SC54+,1G53+', three: 4, why: CONN },
+      { sel: '96s,T7s', three: 4, why: 'The two practical 2-gappers, and the most price-sensitive connectivity hands.' },
+      { sel: 'Axs,Kxs,Qxs', three: 3, why: BLOCK },
+      { sel: 'SB', three: 3, why: 'Treat the whole suited Broadway bucket as Call/3B. Smaller 3B means more mixing.' },
+      { sel: '22-44', three: 0, why: CALLC },
+      { sel: '55-99', three: 3, why: 'Call/3B mix. 99 mixes the most, tapering naturally toward 55.' },
+      { sel: 'AQo,AJo,KQo,KJo,KTo,QJo,QTo,JTo', three: 3, why: 'A stable offsuit Broadway mix.' },
+      { sel: 'A9o,A8o,A7o', three: 3, why: 'The natural offsuit Ax ladder.' },
+      { sel: 'A5o', three: 3, why: 'The polar blocker exception; it holds aggression longer than its neighbours.' },
+      { sel: 'TT+,AKs,AKo,AQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 8, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
+        over: [
+          { sel: 'Q3s,Q2s,J6s,T6s', three: 3, fold: 1, why: 'Transition.' },
+          { sel: 'K9o,T9o', three: 4, fold: 2, why: '9o-ladder fringe.' },
+        ],
+      },
+      {
+        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s+,Q6s+,SC54+,1G86+', three: 3, why: BOT }],
+        over: [
+          { sel: 'Q5s,Q4s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'J7s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: '75s,64s,53s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: '96s', three: 0, fold: 2, why: 'Mostly fold.' },
+          { sel: 'A7o,A5o', three: 3, fold: 2, why: '3B/fold transition.' },
+          { sel: '9oL', three: 5, fold: 2, why: 'Mostly fold, small 3-bet fringe remains.' },
+        ],
+      },
+      {
+        open: '3x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K3s+,Q7s+,J8s+,T8s+,SC54+,1G86+', three: 3, why: BOT }],
+        over: [
+          { sel: 'Q6s,J7s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: '75s,64s,53s', three: 0, fold: 1, why: 'Fold/Call.' },
+          { sel: '96s', three: 0, fold: 2, why: 'Mostly fold.' },
+          { sel: 'A7o,A5o', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: '9oL', three: 0, fold: 3, why: 'The 9o ladder is gone.' },
+        ],
+      },
+      {
+        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        over: [
+          { sel: 'K4s,Q7s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'J7s', three: 5, fold: 2, why: 'Mostly fold, low-frequency 3-bet remains.' },
+          { sel: 'T7s', three: 4, fold: 2, why: 'Mostly fold, small Call/3B remains.' },
+          { sel: '86s,75s', three: 0, fold: 1, why: 'Fold/Call.' },
+          { sel: '64s,53s', three: 0, fold: 2, why: 'Mostly fold.' },
+          { sel: '96s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: 'A8o', three: 3, fold: 2, why: '3B/fold transition.' },
+          { sel: 'A7o,A5o', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: 'QTo,JTo', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'bu-hj', hero: 'BU', vs: 'HJ', family: 'rfi',
+    title: 'BU vs HJ', opener: 'HJ',
+    memory: 'Blockers preserve aggression, connectivity preserves calling. Suited Broadways just call.',
+    base: [
+      { sel: 'SC54+,1G53+', three: 4, why: CONN },
+      { sel: '96s,T7s', three: 4, why: 'The most fragile connectivity family.' },
+      { sel: 'Axs,Kxs,Qxs', three: 3, why: BLOCK },
+      { sel: 'SB', three: 0, why: 'Suited Broadways call. This bucket is extremely stable across all sizes.' },
+      { sel: '22-66', three: 0, why: CALLC },
+      { sel: '77-99', three: 3, why: 'Call/3B mix; 99 carries the most 3-bet frequency, then 88, then 77.' },
+      { sel: 'OB', three: 3, why: 'A stable offsuit Broadway bucket, pruned from the bottom as sizing grows.' },
+      { sel: 'A9o', three: 3, why: 'The main offsuit blocker mix.' },
+      { sel: 'A8o', three: 3, fold: 1, why: 'The fringe blocker hand.' },
+      { sel: 'TT+,AKs,AKo,AQs', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s+,Q5s+,J7s+,T7s+,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
+        over: [
+          { sel: 'Q4s,Q3s,Q2s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'J6s', three: 4, fold: 2, why: 'Mostly fold, small Call/3B remains.' },
+          { sel: 'T6s', three: 5, fold: 2, why: 'Mostly fold, tiny continuation remains.' },
+          { sel: '85s', three: 3, fold: 1, why: 'Transition into fold.' },
+        ],
+      },
+      {
+        open: '2.5x', threeB: 11, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s+,Q6s+,SC54+,1G53+', three: 3, why: BOT }],
+        over: [
+          { sel: 'Q5s,J7s,T7s,43s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'J6s,T6s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: '96s', three: 0, fold: 2, why: 'Mostly fold with a small call.' },
+          { sel: 'A8o', three: 3, fold: 2, why: 'Mostly Fold/3B.' },
+        ],
+      },
+      {
+        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K4s+,Q8s+,J8s+,T8s+,SC54+,1G86+', three: 3, why: BOT }],
+        over: [
+          { sel: 'K3s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'Q7s,Q6s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'Q5s,Q4s,J7s', three: 5, fold: 2, why: 'Fold with a low-frequency 3-bet.' },
+          { sel: '43s,96s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: '75s,64s,53s', three: 0, fold: 1, why: 'Fold/Call.' },
+          { sel: 'A8o', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'QTo,JTo', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+        ],
+      },
+      {
+        open: '3.5x', threeB: 13, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s+,Q8s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        over: [
+          { sel: 'K5s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'K4s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'Q7s,Q6s,Q5s,Q4s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'J8s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'J7s,T7s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: '43s', three: 0, fold: 2, why: 'Mostly fold.' },
+          { sel: '86s', three: 0, fold: 1, why: 'Fold/Call.' },
+          { sel: '75s,64s,53s', three: 0, fold: 2, why: 'Mostly fold.' },
+          { sel: '96s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: 'A9o', three: 1, fold: 1, why: '3B-heavy Fold/Call/3B.' },
+          { sel: 'A8o', three: 5, fold: 2, why: 'Fold with a low-frequency 3-bet.' },
+          { sel: 'KTo,QTo,JTo', three: 3, fold: 1, why: 'Fold/Call/3B; fold frequency increases from KTo down to JTo.' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'bu-utg', hero: 'BU', vs: 'UTG', family: 'rfi',
+    title: 'BU vs UTG', opener: 'UTG',
+    memory: 'The middle changes frequencies. The bottom changes hands. Blockers preserve aggression, connectivity preserves calling, and AQs is the exception.',
+    base: [
+      { sel: 'SC54+,1G53+', three: 4, why: CONN },
+      { sel: '96s,T7s', three: 4, why: 'The most fragile connectivity family.' },
+      { sel: 'Axs,Kxs,Qxs', three: 3, why: BLOCK },
+      { sel: 'SB', three: 0, why: 'Suited Broadways call. AQs is the exception.' },
+      { sel: '22-77', three: 0, why: CALLC },
+      { sel: '88-99', three: 4, why: 'Mostly call with a low-frequency 3-bet.' },
+      { sel: 'TT', three: 2, why: 'The strong pair pivot.' },
+      { sel: 'AQo,AJo,ATo,KQo,KJo,QJo', three: 3, why: 'Stable offsuit Broadway mixes.' },
+      { sel: 'KTo,QTo,JTo', three: 3, fold: 1, why: 'The price-sensitive Broadway bottom. Folds enter bottom-up: JTo, then QTo, then KTo.' },
+      { sel: 'JJ+,AKs,AKo', three: 'pure', why: CORE },
+    ],
+    sizes: [
+      {
+        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s+,Q6s+,J7s+,T7s+,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 4, why: 'AQs starts call-heavy versus 2x, then pivots hard toward the 3-bet core as sizing rises.' },
+          { sel: 'Q5s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'Q4s,Q3s,Q2s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'J6s,T6s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: '85s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'A9o', three: 2, why: 'Strong Call/3B, the main offsuit blocker mix.' },
+          { sel: 'A8o', three: 3, fold: 1, why: 'Fold/Call/3B fringe.' },
+          { sel: 'A5o', three: 5, fold: 2, why: 'Polar blocker exception: mostly fold, with low-frequency 3-bets from the wheel blockers.' },
+        ],
+      },
+      {
+        open: '2.5x', threeB: 11, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s+,Q8s+,J8s+,T8s+,SC54+,1G53+', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 2, why: 'AQs pivoting toward 3-bet.' },
+          { sel: 'Q7s,43s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
+          { sel: 'Q6s,Q5s,Q4s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'J7s', three: 4, fold: 2, why: 'Mostly fold, small Call/3B.' },
+          { sel: '96s', three: 0, fold: 2, why: 'Mostly fold with a small call.' },
+          { sel: '85s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: 'A9o', three: 1, why: '3B-heavy Call/3B.' },
+          { sel: 'A8o,A5o', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'KTo,QTo,JTo', three: 3, fold: 1, why: 'Fold/Call/3B transition, folds increasing bottom-up.' },
+        ],
+      },
+      {
+        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC43+,1G53+', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 1, why: 'AQs is mostly 3-bet by now.' },
+          { sel: 'K4s', three: 3, fold: 1, why: 'Transition into Fold/3B.' },
+          { sel: 'Q7s,Q6s,Q5s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'J7s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: 'T7s', three: 0, fold: 2, why: 'Mostly fold with a small call.' },
+          { sel: '96s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: 'A9o', three: 1, why: 'Very 3B-heavy Call/3B.' },
+          { sel: 'A8o,A5o', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'KTo,QTo,JTo', three: 3, fold: 2, why: 'Increasingly fold-heavy Fold/Call/3B mixes.' },
+        ],
+      },
+      {
+        open: '3.5x', threeB: 13, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K7s+,Q9s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        over: [
+          { sel: 'AQs', three: 'pure', why: 'AQs has completed its promotion into the 3-bet core.' },
+          { sel: 'K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'K5s', three: 3, fold: 2, why: 'Fold/3B.' },
+          { sel: 'Q8s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
+          { sel: 'J8s', three: 4, fold: 2, why: 'Mostly fold with some call.' },
+          { sel: '43s', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: '86s,75s,64s,53s', three: 0, fold: 2, why: 'Mostly fold with a residual call.' },
+          { sel: '96s,T7s', three: 0, fold: 3, why: 'The 2-gappers are gone.' },
+          { sel: 'A9o', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
+          { sel: 'A8o,A5o', three: 0, fold: 3, why: 'Folded out.' },
+          { sel: 'KTo', three: 4, fold: 2, why: 'Mostly fold, low-frequency Call/3B remains.' },
+          { sel: 'QTo', three: 5, fold: 2, why: 'Mostly fold, tiny Call/3B remains.' },
+          { sel: 'JTo', three: 0, fold: 3, why: 'Folded out.' },
+        ],
+      },
+    ],
+  },
+];
+
+/* ===========================================================================
+   Big Ante range explorer — rendering.
+   =========================================================================== */
+
+const SPOTS = SPOTS_RFI;
+const HERO_ORDER = ['SB', 'BB', 'BU', 'CO', 'HJ'];
+
+const TIER_NAME = {
+  pure: 'Pure 3-bet',
+  1: '3-bet heavy',
+  2: 'More than half 3-bet',
+  3: 'Under half, but real',
+  4: 'Small 3-bet frequency',
+  5: 'Tiny 3-bet frequency',
+  0: 'Call, no 3-bet',
+};
+const FOLD_NAME = { 0: '', 1: ' · fold present', 2: ' · mostly folding', 3: 'Fold' };
+
+/** A cell is a bar: call green below, 3-bet red above, in proportion. */
+function cellBackground(three, fold) {
+  if (fold === 3) return 'var(--fold)';
+  const f = FILL[three] || 0;
+  if (f <= 0) return 'var(--call)';
+  if (f >= 1) return 'var(--raise)';
+  const pct = (100 - f * 100).toFixed(1);
+  return `linear-gradient(to top, var(--call) 0 ${pct}%, var(--raise) ${pct}% 100%)`;
+}
+
+const state = { spot: SPOTS[0], size: 0 };
+
+const elGrid = document.getElementById('grid');
+const elAxis = document.getElementById('axis');
+const cells = [];
+
+RANKS.forEach((r) => {
+  const s = document.createElement('span');
+  s.textContent = r;
+  elAxis.appendChild(s);
+});
+
+HANDS.forEach((h) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'cell';
+  b.innerHTML = '<span class="hatch"></span><span class="t"></span>';
+  b.querySelector('.t').textContent = h.code;
+  b._hand = h;
+  elGrid.appendChild(b);
+  cells.push(b);
+});
+
+/* ---- spot list ---- */
+(function buildSpotList() {
+  const box = document.getElementById('spotlist');
+  box.innerHTML = '<h2>Spot</h2>';
+  HERO_ORDER.forEach((hero) => {
+    const mine = SPOTS.filter((s) => s.hero === hero);
+    if (!mine.length) return;
+    const g = document.createElement('div');
+    g.className = 'grp';
+    g.innerHTML = `<p class="gh">${hero} defending</p>`;
+    mine.forEach((sp) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'spotbtn';
+      b.textContent = sp.title;
+      b._id = sp.id;
+      b.addEventListener('click', () => {
+        state.spot = sp;
+        state.size = 0;
+        render();
+      });
+      g.appendChild(b);
+    });
+    box.appendChild(g);
+  });
+})();
+
+/* ---- legend ---- */
+(function buildLegend() {
+  const box = document.getElementById('legend');
+  const rows = [
+    ['pure', 0, 'Pure 3-bet', 'the core'],
+    [1, 0, 'Plenty, not always', 'tier 1'],
+    [2, 0, 'More than half', 'tier 2'],
+    [3, 0, 'Less than half', 'tier 3'],
+    [4, 0, 'A small amount', 'tier 4'],
+    [5, 0, 'A tiny amount', 'tier 5'],
+    [0, 0, 'Call only', ''],
+    [0, 1, 'Fold present', 'hatched'],
+    [0, 3, 'Fold', ''],
+  ];
+  rows.forEach(([t, f, name, note]) => {
+    const d = document.createElement('div');
+    const sw = document.createElement('span');
+    sw.className = 'sw';
+    sw.style.background = cellBackground(t, f);
+    if (f === 1) {
+      sw.innerHTML = '<span style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 4px,var(--hatch) 4px 7px)"></span>';
+    }
+    d.appendChild(sw);
+    const s = document.createElement('span');
+    s.innerHTML = `<b>${name}</b>${note ? ` <i>— ${note}</i>` : ''}`;
+    d.appendChild(s);
+    box.appendChild(d);
+  });
+})();
+
+function showHand(h, r) {
+  document.getElementById('d-hand').textContent = h.code;
+  const v = document.getElementById('d-verdict');
+  v.textContent = r.fold === 3 ? 'Fold' : TIER_NAME[r.three] + FOLD_NAME[r.fold];
+  v.style.color = r.fold === 3 ? 'var(--muted)'
+    : (r.three === 'pure' || r.three === 1 || r.three === 2) ? 'var(--raise)' : 'var(--callDeep)';
+  document.getElementById('d-why').textContent = r.why || '';
+}
+
+function render() {
+  const spot = state.spot;
+  const size = spot.sizes[state.size];
+  const solved = solve(spot, state.size);
+
+  // spot list highlight
+  document.querySelectorAll('.spotbtn').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b._id === spot.id));
+  });
+
+  // size selector
+  const seg = document.getElementById('size-seg');
+  seg.innerHTML = '';
+  spot.sizes.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = s.open;
+    b.setAttribute('aria-pressed', String(i === state.size));
+    b.addEventListener('click', () => { state.size = i; render(); });
+    seg.appendChild(b);
+  });
+
+  let cont = 0, press = 0, agg = 0;
+  cells.forEach((b) => {
+    const r = solved[b._hand.code];
+    b.style.background = cellBackground(r.three, r.fold);
+    b.dataset.fold = r.fold === 3 ? '0' : String(r.fold);
+    b.classList.toggle('live', r.fold !== 3);
+    b.setAttribute('aria-label', b._hand.code + ': ' + (r.fold === 3 ? 'Fold' : TIER_NAME[r.three] + FOLD_NAME[r.fold]));
+    if (r.fold === 0) cont++;
+    else if (r.fold < 3) press++;
+    if (r.fold !== 3 && r.three !== 0) agg++;
+    b.onmouseenter = () => showHand(b._hand, r);
+    b.onfocus = () => showHand(b._hand, r);
+  });
+
+  document.getElementById('spot-title').textContent = spot.title + ' · ' + size.open;
+  document.getElementById('threeb').textContent = size.threeB;
+  document.getElementById('threeb-label').textContent = `Our 3-bet vs ${size.open} ${spot.opener}`;
+  document.getElementById('counts').textContent =
+    `${cont} continue cleanly · ${press} under fold pressure · ${agg} carry some 3-bet`;
+  document.getElementById('memory').textContent = spot.memory;
+
+  const prev = state.size > 0 ? spot.sizes[state.size - 1] : null;
+  const sub = document.getElementById('threeb-sub');
+  sub.textContent = !prev
+    ? `Against the smallest ${spot.opener} open in the tree.`
+    : prev.threeB === size.threeB
+      ? `Unchanged from ${prev.open}, so the larger open alone pushes you to 3-bet more.`
+      : `Up from ${prev.threeB}bb at ${prev.open}, which pulls hands back toward calling.`;
+}
+
+render();
+
+})();
+</script>
+
+<div class="shell" style="padding-top:0">
+  <p style="font-size:12.5px;color:var(--faint);margin:0">
+    <a href="/study/small-blind-frontiers" style="color:var(--muted)">Small Blind Frontiers</a>
+    &nbsp;·&nbsp;
+    <a href="https://feltexperiencepoker.com" style="color:var(--muted)">Felt Experience Poker</a>
+    &nbsp;·&nbsp; Private study page.
+  </p>
+</div>
+</body>
+</html>
