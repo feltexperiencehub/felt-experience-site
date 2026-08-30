@@ -15,7 +15,7 @@
   :root {
     --bg: #eef2ec; --panel: #ffffff; --sunk: #e3e9e0; --line: #d5ddd2;
     --ink: #171c18; --muted: #626c64; --faint: #8e988f;
-    --raise: #bd5330; --call: #7bb877; --callDeep: #46814a;
+    --raise: #b23a2c; --call: #7bb877; --callDeep: #46814a;
     --fold: #dfe5dc; --foldInk: #9aa49b; --hatch: rgba(23,28,24,.20);
     --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
     --focus: #2f6d8f;
@@ -24,7 +24,7 @@
     :root:not([data-theme="light"]) {
       --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
       --ink: #eaefe8; --muted: #98a29a; --faint: #6d766f;
-      --raise: #cd6236; --call: #4c8a4a; --callDeep: #6fa86a;
+      --raise: #d2503c; --call: #4c8a4a; --callDeep: #6fa86a;
       --fold: #1e231e; --foldInk: #5d665e; --hatch: rgba(0,0,0,.42);
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
       --focus: #7fb6d4;
@@ -33,7 +33,7 @@
   :root[data-theme="dark"] {
     --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
     --ink: #eaefe8; --muted: #98a29a; --faint: #6d766f;
-    --raise: #cd6236; --call: #4c8a4a; --callDeep: #6fa86a;
+    --raise: #d2503c; --call: #4c8a4a; --callDeep: #6fa86a;
     --fold: #1e231e; --foldInk: #5d665e; --hatch: rgba(0,0,0,.42);
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
     --focus: #7fb6d4;
@@ -55,7 +55,15 @@
   h1 em { font-style: normal; color: var(--callDeep); }
   .sub { margin: 0; color: var(--muted); font-size: 13.5px; }
 
-  .cols { display: grid; grid-template-columns: 216px minmax(0,1fr) 300px; gap: 18px; align-items: start; }
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; align-items: start; }
+
+  /* ---- selection cascade ---- */
+  .picker { margin-bottom: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .prow { display: grid; grid-template-columns: 108px minmax(0,1fr); gap: 14px; align-items: center; }
+  .prow > .lbl { margin: 0; }
+  .seg.wrap { flex-wrap: wrap; }
+  .seg button[disabled] { opacity: .38; cursor: not-allowed; }
+  .seg button[disabled]:hover { color: var(--muted); }
   .card {
     background: var(--panel); border: 1px solid var(--line);
     border-radius: 13px; box-shadow: var(--shadow); padding: 16px;
@@ -154,7 +162,7 @@
   .detail .why { margin: 0; font-size: 12.5px; color: var(--muted); }
   .memory { font-size: 12.5px; color: var(--muted); margin: 0; }
 
-  @media (max-width: 1100px) {
+  @media (max-width: 880px) {
     .cols { grid-template-columns: minmax(0,1fr); }
     .rail { order: 3; }
   }
@@ -166,20 +174,29 @@
     <p class="sub">0.5bb ante from each player · solved ranges, read as grids</p>
   </header>
 
-  <div class="cols">
-    <div class="card" id="spotlist"></div>
+  <div class="card picker">
+    <div class="prow">
+      <span class="lbl" id="lbl-hero">Our position</span>
+      <div class="seg wrap" role="group" aria-labelledby="lbl-hero" id="hero-seg"></div>
+    </div>
+    <div class="prow">
+      <span class="lbl" id="lbl-fam">Facing</span>
+      <div class="seg wrap" role="group" aria-labelledby="lbl-fam" id="fam-seg"></div>
+    </div>
+    <div class="prow">
+      <span class="lbl" id="lbl-vs">Raiser</span>
+      <div class="seg wrap" role="group" aria-labelledby="lbl-vs" id="vs-seg"></div>
+    </div>
+    <div class="prow">
+      <span class="lbl" id="lbl-size">Size</span>
+      <div class="seg wrap" role="group" aria-labelledby="lbl-size" id="size-seg"></div>
+    </div>
+  </div>
 
+  <div class="cols">
     <div class="card">
-      <div class="sizerow">
-        <div>
-          <span class="lbl" id="lbl-size">Open size</span>
-          <div class="seg" role="group" aria-labelledby="lbl-size" id="size-seg"></div>
-        </div>
-        <div style="flex:1"></div>
-        <div style="text-align:right">
-          <span class="lbl">Spot</span>
-          <strong id="spot-title" style="font-family:'IBM Plex Mono',monospace;font-size:14px"></strong>
-        </div>
+      <div class="sizerow" style="margin-bottom:10px">
+        <strong id="spot-title" style="font-family:'IBM Plex Mono',monospace;font-size:14px"></strong>
       </div>
       <div class="gridwrap">
         <div class="axis" id="axis" aria-hidden="true"></div>
@@ -302,7 +319,7 @@ function expandToken(tok) {
     const gap = m[1] === 'SC' ? 0 : m[1] === '1G' ? 1 : 2;
     const kind = m[2] === 'o' ? 'o' : 's';
     const floor = m[3] ? VAL[m[3][1]] : 2;
-    push((h) => h.kind === kind && h.gap === gap && h.lo >= floor && h.hi <= 14);
+    push((h) => h.kind === kind && h.gap === gap && h.lo >= floor && h.hi <= 11 && h.lo <= 9);
     return out;
   }
   m = tok.match(/^(SC|1G|2G)(o?)([AKQJT2-9])([AKQJT2-9])\+$/);
@@ -310,7 +327,7 @@ function expandToken(tok) {
     const gap = m[1] === 'SC' ? 0 : m[1] === '1G' ? 1 : 2;
     const kind = m[2] === 'o' ? 'o' : 's';
     const floor = VAL[m[4]];
-    push((h) => h.kind === kind && h.gap === gap && h.lo >= floor);
+    push((h) => h.kind === kind && h.gap === gap && h.lo >= floor && h.hi <= 11 && h.lo <= 9);
     return out;
   }
 
@@ -380,25 +397,39 @@ function solve(spot, sizeIndex) {
   const state = {};
   HANDS.forEach((h) => { state[h.code] = { three: 0, fold: 3, why: 'Outside the practical continuing range.' }; });
 
-  const apply = (layers) => {
+  // `agg` is the size's pressure on the stable buckets, read off the sheets:
+  // a bigger open against an unchanged 3-bet pushes toward 3-betting, and a
+  // jump in our own 3-bet size pulls back toward calling. Positive means more
+  // aggression. Only the numeric mix tiers move; the pure core and the stable
+  // Call Core do not.
+  const shift = (three, agg) => {
+    if (!agg || typeof three !== 'number' || three === 0) return three;
+    return Math.min(5, Math.max(1, three - agg));
+  };
+
+  const apply = (layers, agg) => {
     (layers || []).forEach((L) => {
+      const three = agg ? shift(L.three, agg) : L.three;
       expand(L.sel).forEach((code) => {
         state[code] = {
-          three: L.three === undefined ? 0 : L.three,
+          three: three === undefined ? 0 : three,
           fold: L.fold === undefined ? 0 : L.fold,
           why: L.why || '',
-          label: L.label || '',
+          moved: agg && three !== L.three ? agg : 0,
         };
       });
     });
   };
 
-  // The buckets are the framework, so they go down first. The size-specific
-  // frontier then trims them: `cut` names the families that frontier governs,
-  // and anything inside those families the frontier does not keep is folded.
-  // Without that step a broad family like Qxs would silently re-add hands the
-  // sheet folds at this size.
-  apply(spot.base);
+  // Order:
+  //   1. the size's price-driven bottom sweeps in the wide, weak region
+  //   2. the named buckets overwrite it, because a hand the sheet puts in the
+  //      9s ladder is a ladder hand even though the Qx floor also covers it
+  //   3. `cut` folds anything inside the families the frontier governs that
+  //      the frontier does not keep
+  //   4. `over` holds this size's exceptions and wins over everything
+  apply(size.bottom);
+  apply(spot.base, size.agg || 0);
 
   if (size.cut) {
     const keep = new Set();
@@ -409,7 +440,6 @@ function solve(spot, sizeIndex) {
     });
   }
 
-  apply(size.bottom);
   apply(size.over);
   return state;
 }
@@ -440,10 +470,10 @@ const SPOTS_RFI = [
       { sel: '88+,AJs+,AQo+,KQs', three: 'pure', why: CORE },
     ],
     sizes: [
-      { open: '2x', threeB: 11.5, bottom: [{ sel: 'K2s+,Q2s+,J4s+,T6s+,SC43+,1G53+,2G85+', three: 4, why: BOT }] },
-      { open: '2.5x', threeB: 12.5, bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC54+,1G75+,2G96+', three: 4, why: BOT }] },
-      { open: '3x', threeB: 12.5, bottom: [{ sel: 'K4s+,Q7s+,J8s+,T7s+,SC54+,1G97+,2GT7+', three: 4, why: BOT }] },
-      { open: '3.5x', threeB: 13.5, bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC65+,1G97+,2GJ8+', three: 4, why: BOT }] },
+      { open: '2x', threeB: 11.5, agg: -1, bottom: [{ sel: 'K2s-K9s,Q2s-Q9s,J4s-J9s,T6s-T9s,SC43+,1G53+,2G85+', three: 4, why: BOT }] },
+      { open: '2.5x', threeB: 12.5, agg: 0, bottom: [{ sel: 'K2s-K9s,Q4s-Q9s,J7s-J9s,T7s-T9s,SC54+,1G75+,2G96+', three: 4, why: BOT }] },
+      { open: '3x', threeB: 12.5, agg: 1, bottom: [{ sel: 'K4s-K9s,Q7s-Q9s,J8s-J9s,T7s-T9s,SC54+,1G97+,2GT7+', three: 4, why: BOT }] },
+      { open: '3.5x', threeB: 13.5, agg: 1, bottom: [{ sel: 'K5s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC65+,1G97+,2GJ8+', three: 4, why: BOT }] },
     ],
   },
   {
@@ -456,16 +486,16 @@ const SPOTS_RFI = [
       { sel: '99+,AQs+,AQo+', three: 'pure', why: CORE },
     ],
     sizes: [
-      { open: '2x', threeB: 13.5, bottom: [{ sel: 'K2s+,Q2s+,J5s+,T6s+,SC43+,1G53+,2G74+', three: 4, why: BOT }] },
-      { open: '2.5x', threeB: 14, bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC54+,1G53+,2G96+', three: 4, why: BOT }] },
+      { open: '2x', threeB: 13.5, agg: -1, bottom: [{ sel: 'K2s-K9s,Q2s-Q9s,J5s-J9s,T6s-T9s,SC43+,1G53+,2G74+', three: 4, why: BOT }] },
+      { open: '2.5x', threeB: 14, agg: 0, bottom: [{ sel: 'K2s-K9s,Q4s-Q9s,J7s-J9s,T7s-T9s,SC54+,1G53+,2G96+', three: 4, why: BOT }] },
       {
-        open: '3x', threeB: 14.5,
-        bottom: [{ sel: 'K4s+,Q7s+,J8s+,T7s+,SC54+,1G75+,2GT7+', three: 4, why: BOT }],
+        open: '3x', threeB: 14.5, agg: 0,
+        bottom: [{ sel: 'K4s-K9s,Q7s-Q9s,J8s-J9s,T7s-T9s,SC54+,1G75+,2GT7+', three: 4, why: BOT }],
         over: [{ sel: 'JTo,QTo', three: 2, fold: 1, why: 'First offsuit Broadway fold transitions as the price worsens.' }],
       },
       {
-        open: '3.5x', threeB: 16,
-        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC54+,1G97+,2GJ8+', three: 4, why: BOT }],
+        open: '3.5x', threeB: 16, agg: 1,
+        bottom: [{ sel: 'K5s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC54+,1G97+,2GJ8+', three: 4, why: BOT }],
         over: [{ sel: 'JTo,QTo', three: 2, fold: 2, why: 'Offsuit Broadway bottom is folding out.' }],
       },
     ],
@@ -481,26 +511,26 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 14,
-        bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC43+,1G53+,2G85+', three: 4, why: BOT }],
+        open: '2x', threeB: 14, agg: 0,
+        bottom: [{ sel: 'K2s-K9s,Q4s-Q9s,J7s-J9s,T7s-T9s,SC43+,1G53+,2G85+', three: 4, why: BOT }],
         over: [{ sel: 'QJo,KTo,QTo,JTo', three: 2, why: 'Price-sensitive offsuit Broadways, comfortable at this price.' }],
       },
       {
-        open: '2.5x', threeB: 14,
-        bottom: [{ sel: 'K4s+,Q8s+,J8s+,T7s+,SC54+,1G53+', three: 4, why: BOT }],
+        open: '2.5x', threeB: 14, agg: 1,
+        bottom: [{ sel: 'K4s-K9s,Q8s-Q9s,J8s-J9s,T7s-T9s,SC54+,1G53+', three: 4, why: BOT }],
         over: [{ sel: 'QJo,KTo,QTo,JTo', three: 2, fold: 1, why: 'Offsuit Broadways contract bottom-up: JTo, then QTo, then KTo and QJo.' }],
       },
       {
-        open: '3x', threeB: 16,
-        bottom: [{ sel: 'K6s+,Q8s+,J9s+,T8s+,SC54+,1G86+', three: 4, why: BOT }],
+        open: '3x', threeB: 16, agg: 0,
+        bottom: [{ sel: 'K6s-K9s,Q8s-Q9s,J9s-J9s,T8s-T9s,SC54+,1G86+', three: 4, why: BOT }],
         over: [
           { sel: 'QJo,KTo,QTo', three: 2, fold: 1, why: 'Offsuit Broadways contracting bottom-up.' },
           { sel: 'JTo', three: 0, fold: 2, why: 'Weakest offsuit Broadway, mostly gone by now.' },
         ],
       },
       {
-        open: '3.5x', threeB: 16,
-        bottom: [{ sel: 'K7s+,Q9s+,J9s+,T8s+,SC54+,1G97+', three: 4, why: BOT }],
+        open: '3.5x', threeB: 16, agg: 1,
+        bottom: [{ sel: 'K7s-K9s,Q9s-Q9s,J9s-J9s,T8s-T9s,SC54+,1G97+', three: 4, why: BOT }],
         over: [
           { sel: 'QJo,KTo', three: 2, fold: 2, why: 'Down to the last offsuit Broadways.' },
           { sel: 'QTo,JTo', three: 0, fold: 3, why: 'Folded out.' },
@@ -523,10 +553,10 @@ const SPOTS_RFI = [
       { sel: '88+,AJo+,AJs+,KQs', three: 'pure', why: CORE },
     ],
     sizes: [
-      { open: '2x', threeB: 15, bottom: [{ sel: 'ANY2', three: 4, why: 'Defend any two. No meaningful fold threshold at this price.' }] },
-      { open: '2.5x', threeB: 16, bottom: [{ sel: 'ANY2', three: 4, why: 'Almost any two. Only the worst disconnected 9-high and lower trash prunes.' }] },
-      { open: '3x', threeB: 16, bottom: [{ sel: 'Axo,Kxo,Q4o+,J7o+,T6o+,SCo43+,1Go53+', three: 4, why: BOT }] },
-      { open: '3.5x', threeB: 18, bottom: [{ sel: 'Axo,K4o+,Q6o+,J7o+,T7o+,SCo54+', three: 4, why: BOT }] },
+      { open: '2x', threeB: 15, agg: 0, bottom: [{ sel: 'ANY2', three: 4, why: 'Defend any two. No meaningful fold threshold at this price.' }] },
+      { open: '2.5x', threeB: 16, agg: 0, bottom: [{ sel: 'ANY2', three: 4, why: 'Almost any two. Only the worst disconnected 9-high and lower trash prunes.' }] },
+      { open: '3x', threeB: 16, agg: 1, bottom: [{ sel: 'Axo,Kxo,Q4o+,J7o+,T6o+,SCo43+,1Go53+', three: 4, why: BOT }] },
+      { open: '3.5x', threeB: 18, agg: 0, bottom: [{ sel: 'Axo,K4o+,Q6o+,J7o+,T7o+,SCo54+', three: 4, why: BOT }] },
     ],
   },
   {
@@ -544,10 +574,10 @@ const SPOTS_RFI = [
       { sel: 'TT+,AKs,AKo,AQs', three: 'pure', why: CORE },
     ],
     sizes: [
-      { open: '2x', threeB: 15, bottom: [{ sel: 'ANY2', three: 3, why: 'Defend any two.' }] },
-      { open: '2.5x', threeB: 18, bottom: [{ sel: 'ANY2', three: 3, why: 'Almost any two.' }] },
-      { open: '3x', threeB: 18, bottom: [{ sel: 'Axo,K4o+,Q6o+,J8o+,T7o+,SCo43+', three: 3, why: BOT }] },
-      { open: '3.5x', threeB: 18, bottom: [{ sel: 'Axo,K7o+,Q8o+,J8o+,T8o+', three: 3, why: BOT }] },
+      { open: '2x', threeB: 15, agg: 1, bottom: [{ sel: 'ANY2', three: 3, why: 'Defend any two.' }] },
+      { open: '2.5x', threeB: 18, agg: -1, bottom: [{ sel: 'ANY2', three: 3, why: 'Almost any two.' }] },
+      { open: '3x', threeB: 18, agg: 0, bottom: [{ sel: 'Axo,K4o+,Q6o+,J8o+,T7o+,SCo43+', three: 3, why: BOT }] },
+      { open: '3.5x', threeB: 18, agg: 1, bottom: [{ sel: 'Axo,K7o+,Q8o+,J8o+,T8o+', three: 3, why: BOT }] },
     ],
   },
   {
@@ -566,17 +596,17 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 15,
+        open: '2x', threeB: 15, agg: 1,
         bottom: [{ sel: 'Axo,Kxo,Qxo,J2o+,T2o+,SCo43+,1Go53+', three: 3, why: 'A, K and Q any, plus very wide Jx/Tx and low offsuit connectivity.' }],
         over: [{ sel: 'AQs', three: 0, why: 'AQs exception: a pure call versus 2x, then a 3-bet from 2.5x up.' }],
       },
       {
-        open: '2.5x', threeB: 18,
+        open: '2.5x', threeB: 18, agg: -1,
         bottom: [{ sel: 'A2o+,K4o+,Q6o+,J8o+,T7o+,SCo43+', three: 3, why: BOT }],
         over: [{ sel: 'AQs', three: 'pure', why: 'AQs exception: it flips to 3-bet from 2.5x up. Very fast transition.' }],
       },
       {
-        open: '3x', threeB: 18,
+        open: '3x', threeB: 18, agg: 0,
         bottom: [
           { sel: 'Axo', three: 5, fold: 2, why: 'Weaker offsuit Ax survives mainly as a blocker 3-bet.' },
           { sel: 'A9o+,K9o+,Q9o+,J9o+,T9o', three: 3, why: 'The 9o ladder becomes the main offsuit continue region.' },
@@ -584,7 +614,7 @@ const SPOTS_RFI = [
         over: [{ sel: 'AQs', three: 'pure', why: 'AQs 3-bets from 2.5x up.' }],
       },
       {
-        open: '3.5x', threeB: 18,
+        open: '3.5x', threeB: 18, agg: 1,
         bottom: [
           { sel: 'A5o', three: 5, fold: 2, why: 'Weak Ax survives through blocker 3-bets only.' },
           { sel: 'A9o+,KTo+,QTo+,JTo', three: 3, why: BOT },
@@ -611,12 +641,12 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '3x', threeB: 13,
+        open: '3x', threeB: 13, agg: 0,
         bottom: [{ sel: 'ANY2', three: 3, why: 'Fold 72o. Defend everything else through some combination of Call/3B.' }],
         over: [{ sel: '72o', three: 0, fold: 3, why: 'The one fold at this price.' }],
       },
       {
-        open: '3.5x', threeB: 15,
+        open: '3.5x', threeB: 15, agg: 0,
         bottom: [{ sel: 'ANY2', three: 3, why: 'Everything else continues with its usual Call/3B mix.' }],
         over: [
           { sel: 'SB,SC54+,OB', three: 4, why: 'Our 3B is larger now, so the playable middle moves toward calling.' },
@@ -624,7 +654,7 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '4x', threeB: 16,
+        open: '4x', threeB: 16, agg: 0,
         bottom: [{ sel: 'Axo,Kxo,Qxo,J6o+,T6o+,96o,86o,76o,SCo43+,1Go53+', three: 3, why: BOT }],
         over: [
           { sel: 'SB,SC54+,OB', three: 5, why: 'Playable middle is now call-dominant; the lost 3B weight moves to the polar region.' },
@@ -632,7 +662,7 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '4.5x', threeB: 17,
+        open: '4.5x', threeB: 17, agg: 0,
         bottom: [{ sel: 'Axo,Kxo,Q4o+,J6o+,T6o+,SCo54+,1Go75+', three: 3, why: BOT }],
         over: [
           { sel: 'SB,SC54+,OB', three: 0, why: 'At our largest 3B the playable middle is simply calling.' },
@@ -660,8 +690,8 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,87s,76s,65s,54s,J9s,T8s', three: 3, why: BOT }],
+        open: '2x', threeB: 10, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s-K9s,Q9s,T9s,98s,87s,76s,65s,54s,J9s,T8s', three: 3, why: BOT }],
         over: [
           { sel: 'K7s,K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
           { sel: 'K5s', three: 3, fold: 2, why: 'Fold/3B: the call is gone but the blocker 3-bet survives.' },
@@ -674,8 +704,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,87s,76s,65s,54s,J9s,T8s', three: 3, why: BOT + ' Shares the 10bb 3B with 2x, so the frontier barely moves.' }],
+        open: '2.5x', threeB: 10, agg: 1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s-K9s,Q9s,T9s,98s,87s,76s,65s,54s,J9s,T8s', three: 3, why: BOT + ' Shares the 10bb 3B with 2x, so the frontier barely moves.' }],
         over: [
           { sel: 'K7s,K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
           { sel: 'K5s', three: 3, fold: 2, why: 'Fold/3B.' },
@@ -688,7 +718,7 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        open: '3x', threeB: 12, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
         bottom: [{ sel: 'K9s,Q9s,T9s,98s,87s,76s,65s,54s,J9s', three: 3, why: BOT }],
         over: [
           { sel: 'K8s,K7s', three: 3, fold: 1, why: 'Fold/Call/3B transition; K7s is the fold-heavier member.' },
@@ -705,7 +735,7 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
+        open: '3.5x', threeB: 12, agg: 1, cut: 'Kxs,Qxs,SC,1G,2G',
         bottom: [{ sel: 'K9s,Q9s,T9s,98s,87s,76s,65s,54s', three: 3, why: BOT }],
         over: [
           { sel: 'K9s', three: 1, why: '3B-heavy Call/3B.' },
@@ -745,8 +775,8 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        open: '2x', threeB: 10, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC54+,1G97+', three: 3, why: BOT }],
         over: [
           { sel: 'K4s,K3s', three: 3, fold: 2, why: 'Fold/3B transition.' },
           { sel: 'Q7s', three: 3, fold: 1, why: 'Transition into fold.' },
@@ -759,8 +789,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K5s+,Q8s+,SC54+,J9s,T8s,J8s', three: 3, why: BOT }],
+        open: '2.5x', threeB: 10, agg: 1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s-K9s,Q8s-Q9s,SC54+,J9s,T8s,J8s', three: 3, why: BOT }],
         over: [
           { sel: 'K4s', three: 3, fold: 2, why: 'Mostly Fold/3B.' },
           { sel: 'Q7s', three: 5, fold: 2, why: 'Mostly fold with a low-frequency 3-bet.' },
@@ -773,8 +803,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K6s+,Q9s+,SC54+,J9s,T8s', three: 3, why: BOT }],
+        open: '3x', threeB: 12, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s-K9s,Q9s-Q9s,SC54+,J9s,T8s', three: 3, why: BOT }],
         over: [
           { sel: 'K5s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
           { sel: 'K4s', three: 3, fold: 2, why: 'Fold/3B.' },
@@ -790,8 +820,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,J9s,T8s', three: 3, why: BOT }],
+        open: '3.5x', threeB: 12, agg: 1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s-K9s,Q9s,T9s,98s,J9s,T8s', three: 3, why: BOT }],
         over: [
           { sel: 'K7s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
           { sel: 'K6s', three: 3, fold: 2, why: 'Mostly Fold/3B with a small call remaining.' },
@@ -827,8 +857,8 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K6s+,Q8s+,J8s+,T8s+,SC54+,J9s,T8s,97s,J8s', three: 3, why: BOT }],
+        open: '2x', threeB: 10, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC54+,J9s,T8s,97s,J8s', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 2, why: 'AQs pivot: a Call/3B mix at the small sizes, pivoting toward pure 3-bet as UTG sizes up.' },
           { sel: 'K5s,K4s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
@@ -841,8 +871,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K6s+,Q9s+,SC54+,J9s,T8s,97s,J8s', three: 3, why: BOT }],
+        open: '2.5x', threeB: 10, agg: 1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s-K9s,Q9s-Q9s,SC54+,J9s,T8s,97s,J8s', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 2, why: 'AQs pivot, still a Call/3B mix at this size.' },
           { sel: 'K5s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
@@ -855,8 +885,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K7s+,Q9s+,SC54+,J9s,T8s', three: 3, why: BOT }],
+        open: '3x', threeB: 12, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K7s-K9s,Q9s-Q9s,SC54+,J9s,T8s', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 1, why: 'AQs is increasingly 3B-heavy as UTG sizes up.' },
           { sel: 'K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
@@ -873,8 +903,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K8s+,Q9s,T9s,98s,J9s,T8s', three: 3, why: BOT }],
+        open: '3.5x', threeB: 12, agg: 1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K8s-K9s,Q9s,T9s,98s,J9s,T8s', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 'pure', why: 'AQs is almost entirely 3-bet by this size.' },
           { sel: 'K7s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
@@ -914,16 +944,16 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 8, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K2s+,Q4s+,J7s+,T7s+,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
+        open: '2x', threeB: 8, agg: 1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s-K9s,Q4s-Q9s,J7s-J9s,T7s-T9s,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
         over: [
           { sel: 'Q3s,Q2s,J6s,T6s', three: 3, fold: 1, why: 'Transition.' },
           { sel: 'K9o,T9o', three: 4, fold: 2, why: '9o-ladder fringe.' },
         ],
       },
       {
-        open: '2.5x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K2s+,Q6s+,SC54+,1G86+', three: 3, why: BOT }],
+        open: '2.5x', threeB: 10, agg: -1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s-K9s,Q6s-Q9s,SC54+,1G86+', three: 3, why: BOT }],
         over: [
           { sel: 'Q5s,Q4s', three: 3, fold: 1, why: 'Transition into fold.' },
           { sel: 'J7s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
@@ -934,8 +964,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K3s+,Q7s+,J8s+,T8s+,SC54+,1G86+', three: 3, why: BOT }],
+        open: '3x', threeB: 10, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K3s-K9s,Q7s-Q9s,J8s-J9s,T8s-T9s,SC54+,1G86+', three: 3, why: BOT }],
         over: [
           { sel: 'Q6s,J7s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
           { sel: '75s,64s,53s', three: 0, fold: 1, why: 'Fold/Call.' },
@@ -945,8 +975,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3.5x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        open: '3.5x', threeB: 12, agg: -1, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC54+,1G97+', three: 3, why: BOT }],
         over: [
           { sel: 'K4s,Q7s', three: 3, fold: 1, why: 'Transition into fold.' },
           { sel: 'J7s', three: 5, fold: 2, why: 'Mostly fold, low-frequency 3-bet remains.' },
@@ -979,8 +1009,8 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K2s+,Q5s+,J7s+,T7s+,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
+        open: '2x', threeB: 10, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s-K9s,Q5s-Q9s,J7s-J9s,T7s-T9s,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
         over: [
           { sel: 'Q4s,Q3s,Q2s', three: 3, fold: 1, why: 'Transition into fold.' },
           { sel: 'J6s', three: 4, fold: 2, why: 'Mostly fold, small Call/3B remains.' },
@@ -989,8 +1019,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '2.5x', threeB: 11, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K2s+,Q6s+,SC54+,1G53+', three: 3, why: BOT }],
+        open: '2.5x', threeB: 11, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s-K9s,Q6s-Q9s,SC54+,1G53+', three: 3, why: BOT }],
         over: [
           { sel: 'Q5s,J7s,T7s,43s', three: 3, fold: 1, why: 'Transition into fold.' },
           { sel: 'J6s,T6s', three: 0, fold: 3, why: 'Folded out.' },
@@ -999,8 +1029,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K4s+,Q8s+,J8s+,T8s+,SC54+,1G86+', three: 3, why: BOT }],
+        open: '3x', threeB: 12, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K4s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC54+,1G86+', three: 3, why: BOT }],
         over: [
           { sel: 'K3s', three: 3, fold: 1, why: 'Transition into fold.' },
           { sel: 'Q7s,Q6s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
@@ -1012,8 +1042,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3.5x', threeB: 13, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K6s+,Q8s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        open: '3.5x', threeB: 13, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K6s-K9s,Q8s-Q9s,T8s-T9s,SC54+,1G97+', three: 3, why: BOT }],
         over: [
           { sel: 'K5s', three: 3, fold: 1, why: 'Transition into fold.' },
           { sel: 'K4s', three: 3, fold: 2, why: 'Fold/3B.' },
@@ -1049,8 +1079,8 @@ const SPOTS_RFI = [
     ],
     sizes: [
       {
-        open: '2x', threeB: 10, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K2s+,Q6s+,J7s+,T7s+,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
+        open: '2x', threeB: 10, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s-K9s,Q6s-Q9s,J7s-J9s,T7s-T9s,SC43+,1G53+,96s,T7s', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 4, why: 'AQs starts call-heavy versus 2x, then pivots hard toward the 3-bet core as sizing rises.' },
           { sel: 'Q5s', three: 3, fold: 1, why: 'Transition into fold.' },
@@ -1063,8 +1093,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '2.5x', threeB: 11, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K2s+,Q8s+,J8s+,T8s+,SC54+,1G53+', three: 3, why: BOT }],
+        open: '2.5x', threeB: 11, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K2s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC54+,1G53+', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 2, why: 'AQs pivoting toward 3-bet.' },
           { sel: 'Q7s,43s,T7s', three: 3, fold: 1, why: 'Transition into fold.' },
@@ -1078,8 +1108,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3x', threeB: 12, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K5s+,Q8s+,J8s+,T8s+,SC43+,1G53+', three: 3, why: BOT }],
+        open: '3x', threeB: 12, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K5s-K9s,Q8s-Q9s,J8s-J9s,T8s-T9s,SC43+,1G53+', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 1, why: 'AQs is mostly 3-bet by now.' },
           { sel: 'K4s', three: 3, fold: 1, why: 'Transition into Fold/3B.' },
@@ -1093,8 +1123,8 @@ const SPOTS_RFI = [
         ],
       },
       {
-        open: '3.5x', threeB: 13, cut: 'Kxs,Qxs,SC,1G,2G',
-        bottom: [{ sel: 'K7s+,Q9s+,T8s+,SC54+,1G97+', three: 3, why: BOT }],
+        open: '3.5x', threeB: 13, agg: 0, cut: 'Kxs,Qxs,SC,1G,2G',
+        bottom: [{ sel: 'K7s-K9s,Q9s-Q9s,T8s-T9s,SC54+,1G97+', three: 3, why: BOT }],
         over: [
           { sel: 'AQs', three: 'pure', why: 'AQs has completed its promotion into the 3-bet core.' },
           { sel: 'K6s', three: 3, fold: 1, why: 'Fold/Call/3B transition.' },
@@ -1133,26 +1163,36 @@ const TIER_NAME = {
 };
 const FOLD_NAME = { 0: '', 1: ' · fold present', 2: ' · mostly folding', 3: 'Fold' };
 
-/** A cell is a bar: call green below, 3-bet red above, in proportion. */
+/** A cell is a bar filled left to right, raise first, the way Wizard does it. */
 function cellBackground(three, fold) {
   if (fold === 3) return 'var(--fold)';
   const f = FILL[three] || 0;
   if (f <= 0) return 'var(--call)';
   if (f >= 1) return 'var(--raise)';
-  const pct = (100 - f * 100).toFixed(1);
-  return `linear-gradient(to top, var(--call) 0 ${pct}%, var(--raise) ${pct}% 100%)`;
+  const pct = (f * 100).toFixed(1);
+  return `linear-gradient(to right, var(--raise) 0 ${pct}%, var(--call) ${pct}% 100%)`;
 }
 
-const state = { spot: SPOTS[0], size: 0 };
+const FAMILIES = [
+  { id: 'rfi', label: 'vs RFI' },
+  { id: 'vs3b', label: 'vs 3-bet' },
+  { id: 'limp', label: 'Limp vs ISO' },
+];
+
+const state = { hero: 'SB', family: 'rfi', vs: null, size: 0 };
+
+/** The spots reachable from the current hero + family choice. */
+const branch = () => SPOTS.filter((s) => s.hero === state.hero && s.family === state.family);
+const current = () => branch().find((s) => s.vs === state.vs) || branch()[0] || null;
 
 const elGrid = document.getElementById('grid');
 const elAxis = document.getElementById('axis');
 const cells = [];
 
 RANKS.forEach((r) => {
-  const s = document.createElement('span');
-  s.textContent = r;
-  elAxis.appendChild(s);
+  const sp = document.createElement('span');
+  sp.textContent = r;
+  elAxis.appendChild(sp);
 });
 
 HANDS.forEach((h) => {
@@ -1166,32 +1206,24 @@ HANDS.forEach((h) => {
   cells.push(b);
 });
 
-/* ---- spot list ---- */
-(function buildSpotList() {
-  const box = document.getElementById('spotlist');
-  box.innerHTML = '<h2>Spot</h2>';
-  HERO_ORDER.forEach((hero) => {
-    const mine = SPOTS.filter((s) => s.hero === hero);
-    if (!mine.length) return;
-    const g = document.createElement('div');
-    g.className = 'grp';
-    g.innerHTML = `<p class="gh">${hero} defending</p>`;
-    mine.forEach((sp) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'spotbtn';
-      b.textContent = sp.title;
-      b._id = sp.id;
-      b.addEventListener('click', () => {
-        state.spot = sp;
-        state.size = 0;
-        render();
-      });
-      g.appendChild(b);
-    });
-    box.appendChild(g);
+/** Build one row of the cascade. */
+function fillSeg(id, items, isOn, onPick) {
+  const box = document.getElementById(id);
+  box.innerHTML = '';
+  items.forEach((it) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = it.label;
+    b.setAttribute('aria-pressed', String(isOn(it)));
+    if (it.disabled) {
+      b.disabled = true;
+      b.title = 'Not built yet';
+    } else {
+      b.addEventListener('click', () => onPick(it));
+    }
+    box.appendChild(b);
   });
-})();
+}
 
 /* ---- legend ---- */
 (function buildLegend() {
@@ -1233,26 +1265,40 @@ function showHand(h, r) {
 }
 
 function render() {
-  const spot = state.spot;
+  // Keep the cascade internally consistent after any pick.
+  const heroes = HERO_ORDER.filter((h) => SPOTS.some((s) => s.hero === h));
+  if (!heroes.includes(state.hero)) state.hero = heroes[0];
+
+  const famsHere = FAMILIES.filter((f) => SPOTS.some((s) => s.hero === state.hero && s.family === f.id));
+  if (!famsHere.some((f) => f.id === state.family)) state.family = famsHere[0].id;
+
+  const opts = branch();
+  if (!opts.some((s) => s.vs === state.vs)) state.vs = opts[0] ? opts[0].vs : null;
+
+  const spot = current();
+  if (!spot) return;
+  if (state.size >= spot.sizes.length) state.size = 0;
   const size = spot.sizes[state.size];
   const solved = solve(spot, state.size);
 
-  // spot list highlight
-  document.querySelectorAll('.spotbtn').forEach((b) => {
-    b.setAttribute('aria-pressed', String(b._id === spot.id));
-  });
+  fillSeg('hero-seg', heroes.map((h) => ({ label: h, value: h })),
+    (it) => it.value === state.hero,
+    (it) => { state.hero = it.value; state.size = 0; render(); });
 
-  // size selector
-  const seg = document.getElementById('size-seg');
-  seg.innerHTML = '';
-  spot.sizes.forEach((s, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = s.open;
-    b.setAttribute('aria-pressed', String(i === state.size));
-    b.addEventListener('click', () => { state.size = i; render(); });
-    seg.appendChild(b);
-  });
+  fillSeg('fam-seg', FAMILIES.map((f) => ({
+      label: f.label, value: f.id,
+      disabled: !SPOTS.some((s) => s.hero === state.hero && s.family === f.id),
+    })),
+    (it) => it.value === state.family,
+    (it) => { state.family = it.value; state.size = 0; render(); });
+
+  fillSeg('vs-seg', opts.map((o) => ({ label: o.vs, value: o.vs, title: o.opener })),
+    (it) => it.value === state.vs,
+    (it) => { state.vs = it.value; state.size = 0; render(); });
+
+  fillSeg('size-seg', spot.sizes.map((z, i) => ({ label: z.open, value: i })),
+    (it) => it.value === state.size,
+    (it) => { state.size = it.value; render(); });
 
   let cont = 0, press = 0, agg = 0;
   cells.forEach((b) => {
@@ -1268,7 +1314,8 @@ function render() {
     b.onfocus = () => showHand(b._hand, r);
   });
 
-  document.getElementById('spot-title').textContent = spot.title + ' · ' + size.open;
+  document.getElementById('spot-title').textContent =
+    `${spot.title} · ${size.open} open · we 3-bet to ${size.threeB}bb`;
   document.getElementById('threeb').textContent = size.threeB;
   document.getElementById('threeb-label').textContent = `Our 3-bet vs ${size.open} ${spot.opener}`;
   document.getElementById('counts').textContent =
@@ -1277,11 +1324,13 @@ function render() {
 
   const prev = state.size > 0 ? spot.sizes[state.size - 1] : null;
   const sub = document.getElementById('threeb-sub');
-  sub.textContent = !prev
+  const push = size.agg > 0 ? ' The mixes 3-bet more at this size.'
+    : size.agg < 0 ? ' The mixes call more at this size.' : '';
+  sub.textContent = (!prev
     ? `Against the smallest ${spot.opener} open in the tree.`
     : prev.threeB === size.threeB
       ? `Unchanged from ${prev.open}, so the larger open alone pushes you to 3-bet more.`
-      : `Up from ${prev.threeB}bb at ${prev.open}, which pulls hands back toward calling.`;
+      : `Up from ${prev.threeB}bb at ${prev.open}, which pulls hands back toward calling.`) + push;
 }
 
 render();
