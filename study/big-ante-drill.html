@@ -181,11 +181,11 @@
   .rng {
     position: absolute; right: 1.7cqw; bottom: 1.4cqw; z-index: 5;
     font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 1.42cqw;
-    letter-spacing: .12em; color: var(--gold); background: rgba(13,18,15,.8);
-    border: 1px solid rgba(214,192,143,.3); border-radius: 1cqw; padding: .7cqw 1.3cqw;
+    letter-spacing: .12em; color: var(--muted); background: rgba(13,18,15,.8);
+    border: 1px solid rgba(255,255,255,.2); border-radius: 1cqw; padding: .7cqw 1.3cqw;
     font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.35;
   }
-  .rng b { font-size: 1.8cqw; font-weight: 600; letter-spacing: 0; margin-left: .6cqw; }
+  .rng b { font-size: 1.8cqw; font-weight: 600; letter-spacing: 0; margin-left: .6cqw; color: #fff; }
 
   /* ---- answer ---- */
   .answer { margin-top: 14px; }
@@ -909,9 +909,7 @@ function nextHand() {
     b.addEventListener('click', () => answer(a.id));
     acts.appendChild(b);
   });
-  $('hint').textContent = useRng
-    ? 'Keys 1, 2, 3 left to right. Bands run fold, call, raise, so a high number is the aggressive play.'
-    : 'Keys 1, 2, 3 left to right.';
+  $('hint').textContent = 'Keys 1, 2, 3 left to right.';
 }
 
 /** Which action the roll lands in. Bands run fold, then call, then raise, so
