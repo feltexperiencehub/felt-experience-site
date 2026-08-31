@@ -61,9 +61,9 @@
   }
 
   /* ---- picker: two groups per row, wrapping ---- */
-  .picker { margin-bottom: 16px; padding: 14px 16px; display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
+  .picker { margin-bottom: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+  .prow { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
   .grp { display: flex; align-items: center; gap: 10px; }
-  .grp.wide { flex: 1 1 100%; }
   .lbl {
     font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
     letter-spacing: .12em; text-transform: uppercase; color: var(--faint); white-space: nowrap;
@@ -142,11 +142,14 @@
   <h1>Big Ante Range Explorer</h1>
 
   <div class="card picker">
-    <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
-    <div class="grp"><span class="lbl" id="l2">Facing</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
-    <div class="grp"><span class="lbl" id="l3">Raiser</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
-    <div class="grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
-    <div class="grp wide"><span class="lbl" id="l6">Isolate</span><div class="seg" role="group" aria-labelledby="l6" id="bucket-seg"></div></div>
+    <div class="prow">
+      <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
+      <div class="grp"><span class="lbl" id="l2">Facing</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
+      <div class="grp"><span class="lbl" id="l3">Raiser</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
+    </div>
+    <div class="prow">
+      <div class="grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
+    </div>
   </div>
 
   <div class="cols">
@@ -515,7 +518,7 @@ const FAM_ORDER = [
 const HERO_ORDER = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 const OURS_LABEL = { rfi: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet' };
 
-const state = { hero: 'SB', fam: 'rfi', vs: null, size: 0, bucket: null };
+const state = { hero: 'SB', fam: 'rfi', vs: null, size: 0 };
 
 const $ = (id) => document.getElementById(id);
 const branch = () => SPOT_DATA.filter((s) => s.hero === state.hero && s.fam === state.fam);
@@ -618,16 +621,11 @@ function render() {
   seg('size-seg', sp.sizes.map((z, i) => ({ label: z.label, v: i })),
     (it) => it.v === state.size, (it) => { state.size = it.v; render(); });
 
-  seg('bucket-seg', [{ label: 'All', v: null }].concat(BUCKETS.map((b) => ({ label: b.name, v: b.id }))),
-    (it) => it.v === state.bucket,
-    (it) => { state.bucket = (state.bucket === it.v) ? null : it.v; render(); });
-
   let n = 0, raiseW = 0, callW = 0, foldW = 0;
   cells.forEach((b, i) => {
     const c = now[i];
     b.style.background = paint(c);
     b.classList.toggle('oor', !!c.oor);
-    b.classList.toggle('dim', !!state.bucket && c.h.bucket !== state.bucket);
     b.setAttribute('aria-label', c.oor
       ? `${c.h.code}: not in our opening range`
       : `${c.h.code}: ${c.r + c.j}% raise, ${c.c}% call, ${c.f}% fold`);
