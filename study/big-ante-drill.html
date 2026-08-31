@@ -1,42 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Big Ante Drill – Felt Experience Poker</title>
-<meta name="robots" content="noindex, nofollow" />
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<title>Big Ante Drill</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-</head>
-<body>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
 <style>
+  /* Table styling follows the replayer's, so the two feel like one product. */
   :root {
-    --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
-    --ink: #171c18; --muted: #5c665e; --faint: #838d85;
-    --raise: #b23a2c; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7;
-    --good: #3f7a44; --bad: #b23a2c;
-    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
-    --focus: #2f6d8f;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-      --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
-      --raise: #d2503c; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
-      --good: #6fbb6a; --bad: #d2503c;
-      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
-      --focus: #7fb6d4;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-    --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
-    --raise: #d2503c; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
-    --good: #6fbb6a; --bad: #d2503c;
-    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
-    --focus: #7fb6d4;
+    --bg: #121212; --panel: #1a1e1a; --sunk: #141815; --line: #2a312b;
+    --ink: #eef1ec; --muted: #97a29a; --faint: #6d766f;
+    --accent: #a7dca5; --accent-dim: #4d7a4c; --gold: #d6c08f;
+    --felt-hi: #2c4237; --felt-lo: #16241d;
+    --raise: #d2503c; --jam: #9c4bab; --call: #43904a; --fold: #43494a;
+    --good: #7cc776; --bad: #e0644f;
+    --font-head: 'League Spartan', system-ui, sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -45,156 +21,216 @@
     font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
     font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
   }
-  .shell { max-width: 1180px; margin: 0 auto; padding: 22px 20px 52px; }
-  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .shell { max-width: 1240px; margin: 0 auto; padding: 20px 20px 48px; }
+
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
   h1 {
-    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
-    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em; margin: 0;
+    font-family: var(--font-head); font-weight: 600; font-size: 24px;
+    letter-spacing: .26em; margin: 0; color: var(--ink);
   }
-  .top a { font-size: 13px; color: var(--muted); }
+  h1 b { color: var(--accent); font-weight: 600; }
+  .top a { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .top a:hover { color: var(--accent); }
 
   .card {
     background: var(--panel); border: 1px solid var(--line);
-    border-radius: 12px; box-shadow: var(--shadow); padding: 16px;
+    border-radius: 12px; padding: 15px;
   }
   .card > h2 {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
-    font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
-    color: var(--faint); margin: 0 0 11px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px;
+    font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 10px;
   }
 
   /* ---- filters ---- */
-  .filters { margin-bottom: 16px; padding: 14px 16px; }
+  .filters { margin-bottom: 14px; padding: 13px 15px; }
   .filters > summary {
     cursor: pointer; list-style: none; width: fit-content;
-    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--faint);
   }
   .filters > summary::-webkit-details-marker { display: none; }
   .filters > summary::before { content: "\25B8"; display: inline-block; margin-right: 7px; transition: transform .15s ease; }
   .filters[open] > summary::before { transform: rotate(90deg); }
   .filters > summary:hover { color: var(--muted); }
-  .filters.on > summary { color: var(--call); }
-  .fbody { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .filters.on > summary { color: var(--accent); }
+  .fbody { display: flex; flex-direction: column; gap: 9px; margin-top: 11px; }
   .frow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .lbl {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
-    white-space: nowrap; min-width: 84px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--faint);
+    white-space: nowrap; min-width: 78px;
   }
   .seg { display: flex; flex-wrap: wrap; gap: 3px; background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
   .seg button {
     appearance: none; border: 0; background: transparent; color: var(--muted);
-    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px;
-    padding: 5px 11px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12.5px;
+    padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;
   }
   .seg button:hover { color: var(--ink); }
-  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.16); }
-  .seg button:focus-visible, .act:focus-visible, .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-  .pool { margin: 4px 0 0; font-size: 12.5px; color: var(--faint); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; }
+  .seg button:focus-visible, .act:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pool { margin: 3px 0 0; font-size: 12px; color: var(--faint); }
 
-  .cols { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; align-items: start; }
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 16px; align-items: start; }
 
-  /* ---- the question ---- */
-  .q { text-align: center; padding: 26px 18px 22px; }
-  .spotline { font-size: 14px; color: var(--muted); margin: 0 0 2px; }
-  .sizeline { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint); margin: 0 0 20px; }
-  .hand {
-    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
-    font-size: clamp(56px, 11vw, 92px); line-height: 1; letter-spacing: -.03em;
-    margin: 0 0 6px;
+  /* ---- the table ---- */
+  .tablewrap {
+    position: relative; width: 100%; aspect-ratio: 800 / 490; container-type: inline-size;
+    background: radial-gradient(ellipse 90% 70% at 50% 42%, #1a211c 0%, #111513 78%);
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
   }
-  .handkind { font-size: 13px; color: var(--faint); margin: 0 0 22px; }
+  .stage { position: absolute; inset: 0; }
+  .rail {
+    position: absolute; left: 50%; top: 47%; width: 84%; height: 74%;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: linear-gradient(160deg, #2c3235 0%, #191d1f 55%, #23282b 100%);
+    box-shadow: 0 26px 60px rgba(0,0,0,.6), inset 0 2px 2px rgba(255,255,255,.12), inset 0 -6px 18px rgba(0,0,0,.55);
+  }
+  .rail::after { content: ''; position: absolute; inset: 7px; border-radius: 50%; border: 1px solid rgba(214,192,143,.22); }
+  .felt {
+    position: absolute; left: 50%; top: 47%; width: 78%; height: 64%;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(ellipse 75% 65% at 50% 38%, var(--felt-hi) 0%, #21332a 52%, var(--felt-lo) 100%);
+    box-shadow: inset 0 8px 30px rgba(0,0,0,.45), inset 0 -10px 36px rgba(0,0,0,.55), inset 0 0 90px rgba(0,0,0,.25);
+  }
+  .felt::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%; opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .felt::after { content: ''; position: absolute; inset: 11px; border-radius: 50%; border: 2px solid rgba(167,220,165,.1); }
+  .line {
+    position: absolute; left: 50%; top: 43%; transform: translate(-50%,-50%);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 1.42cqw;
+    letter-spacing: .1em; text-transform: uppercase; color: rgba(238,241,236,.72);
+    white-space: nowrap; z-index: 3; text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  }
+  .wordmark {
+    position: absolute; left: 50%; top: 58%; transform: translate(-50%,-50%);
+    font-family: var(--font-head); font-weight: 700; font-size: 3.1cqw;
+    letter-spacing: .42em; color: rgba(167,220,165,.13); white-space: nowrap;
+    user-select: none; padding-left: .42em;
+  }
 
-  /* ---- the randomiser, the way you would use one at the table ---- */
-  .rng {
-    display: inline-flex; align-items: center; gap: 11px;
-    background: var(--sunk); border: 1px solid var(--line);
-    border-radius: 10px; padding: 8px 15px; margin: 0 0 22px;
+  .pot { position: absolute; left: 50%; top: 32%; transform: translate(-50%,-50%); text-align: center; z-index: 3; }
+  .pot .lb { font-family: var(--font-head); font-size: 1.3cqw; font-weight: 600; letter-spacing: .4em; color: var(--gold); padding-left: .4em; }
+  .pot .amt { font-size: 3.2cqw; font-weight: 700; color: #eef1ec; font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0,0,0,.7); line-height: 1.15; }
+
+  .seat { position: absolute; transform: translate(-50%,-50%); display: flex; flex-direction: column; align-items: center; z-index: 4; }
+  .seat .cards { display: flex; align-items: flex-end; margin-bottom: -1.4cqw; z-index: 1; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+  .seat .cards svg { width: 5.2cqw; height: 7.35cqw; display: block; }
+  .seat .cards .l { transform: rotate(-4deg) translateX(2px); }
+  .seat .cards .r { transform: rotate(4deg) translateX(-2px); }
+  .plate {
+    min-width: 12.3cqw; background: linear-gradient(180deg, rgba(32,39,34,.97), rgba(19,24,21,.97));
+    border: 1px solid rgba(255,255,255,.14); border-radius: 1.2cqw; padding: .7cqw 1.4cqw .8cqw;
+    text-align: center; box-shadow: 0 6px 16px rgba(0,0,0,.55); z-index: 2;
   }
-  .rlbl, .rhelp {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
+  .seat.hero { transform: translate(-50%, -58%); }
+  .seat.hero .plate { border-color: var(--accent-dim); box-shadow: 0 6px 16px rgba(0,0,0,.55), 0 0 0 1px rgba(167,220,165,.25); }
+  .seat.aggro .plate { border-color: var(--gold); box-shadow: 0 6px 16px rgba(0,0,0,.55), 0 0 16px rgba(214,192,143,.3); }
+  .seat.out { opacity: .3; }
+  .pos { color: var(--gold); font-size: 1.55cqw; font-weight: 700; letter-spacing: .12em; line-height: 1.35; }
+  .stack { font-size: 1.55cqw; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.35; }
+  .seat.out .stack { color: var(--muted); font-weight: 500; }
+
+  .chip {
+    position: absolute; transform: translate(-50%,-50%); z-index: 3;
+    display: flex; align-items: center; gap: .6cqw;
+    background: rgba(13,18,15,.82); border: 1px solid rgba(214,192,143,.35);
+    border-radius: 999px; padding: .35cqw 1.05cqw .35cqw .6cqw;
+    font-size: 1.42cqw; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums;
+    white-space: nowrap; line-height: 1.4;
   }
-  .rhelp { text-transform: none; letter-spacing: 0; font-family: Montserrat, sans-serif; font-size: 12px; }
-  .rnum {
-    font-family: 'League Spartan', sans-serif; font-weight: 700; font-size: 27px;
-    line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 44px; text-align: center;
-  }
-  .bar .mark { position: relative; }
-  .bar .tr { position: relative; }
-  .bar .pin {
-    position: absolute; top: -3px; bottom: -3px; width: 2px;
-    background: var(--ink); border-radius: 1px;
+  .chip i { width: 1.05cqw; height: 1.05cqw; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f2e7cd, #cdb87f 70%); display: block; }
+
+  .dealer {
+    position: absolute; transform: translate(-50%,-50%); z-index: 3;
+    width: 2.25cqw; height: 2.25cqw; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f2e7cd, #cdb87f 70%);
+    color: #2a2418; font-size: 1.2cqw; font-weight: 700; font-family: var(--font-head);
+    display: flex; align-items: center; justify-content: center;
   }
 
-  .acts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  /* ---- action bar ---- */
+  .bar { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
   .act {
     appearance: none; border: 1px solid var(--line); border-radius: 10px;
-    background: var(--panel); color: var(--ink); cursor: pointer;
-    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 600;
-    font-size: 17px; padding: 13px 30px; min-width: 132px;
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: linear-gradient(180deg, #232a24, #191e1a); color: var(--ink); cursor: pointer;
+    font-family: var(--font-head); font-weight: 600; font-size: 16px;
+    padding: 12px 26px; min-width: 124px; position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
   }
   .act:hover:not([disabled]) { border-color: var(--muted); }
-  .act small { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 400; color: var(--faint); letter-spacing: .08em; }
-  .act[disabled] { cursor: default; }
-  .act.raise { border-left: 4px solid var(--raise); }
-  .act.jam { border-left: 4px solid var(--jam); }
-  .act.call { border-left: 4px solid var(--call); }
-  .act.fold { border-left: 4px solid var(--fold); }
-  .act.picked { box-shadow: 0 0 0 2px var(--ink) inset; }
+  .act small { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 400; color: var(--faint); letter-spacing: .08em; }
+  .act::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; }
+  .act.raise::before { background: var(--raise); }
+  .act.jam::before { background: var(--jam); }
+  .act.call::before { background: var(--call); }
+  .act.fold::before { background: var(--fold); }
+  .act[disabled] { cursor: default; opacity: .75; }
+  .act.picked { border-color: var(--ink); opacity: 1; }
+  .rng {
+    position: absolute; right: 1.7cqw; bottom: 1.4cqw; z-index: 5;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 1.42cqw;
+    letter-spacing: .12em; color: var(--gold); background: rgba(13,18,15,.8);
+    border: 1px solid rgba(214,192,143,.3); border-radius: 1cqw; padding: .7cqw 1.3cqw;
+    font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.35;
+  }
+  .rng b { font-size: 1.8cqw; font-weight: 600; letter-spacing: 0; margin-left: .6cqw; }
 
   /* ---- answer ---- */
-  .answer { margin-top: 20px; }
-  .verdict { font-family: 'League Spartan', sans-serif; font-weight: 700; font-size: 21px; margin: 0 0 4px; }
+  .answer { margin-top: 14px; }
+  .verdict { font-family: var(--font-head); font-weight: 700; font-size: 19px; margin: 0 0 2px; text-align: center; }
   .verdict.good { color: var(--good); }
   .verdict.bad { color: var(--bad); }
-  .verdict small { display: block; font-family: Montserrat, sans-serif; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 3px; }
-  .bars { display: flex; flex-direction: column; gap: 5px; max-width: 380px; margin: 16px auto 0; }
-  .bar { display: grid; grid-template-columns: 62px 1fr 46px; align-items: center; gap: 9px; font-size: 13px; }
-  .bar .nm { text-align: right; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
-  .bar .tr { height: 12px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
-  .bar .fl { height: 100%; }
-  .bar .pc { text-align: left; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; }
-  .bar.raise .fl { background: var(--raise); }
-  .bar.jam .fl { background: var(--jam); }
-  .bar.call .fl { background: var(--call); }
-  .bar.fold .fl { background: var(--fold); }
-  .bar.chosen .nm { color: var(--ink); font-weight: 600; }
-
+  .verdict small { display: block; font-family: Montserrat, sans-serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .bars { display: flex; flex-direction: column; gap: 4px; max-width: 340px; margin: 12px auto 0; }
+  .b { display: grid; grid-template-columns: 52px 1fr 42px; align-items: center; gap: 8px; font-size: 12.5px; }
+  .b .nm { text-align: right; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; }
+  .b .tr { height: 11px; border-radius: 3px; background: var(--sunk); overflow: hidden; position: relative; }
+  .b .fl { height: 100%; }
+  .b .pin { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); border-radius: 1px; }
+  .b .pc { text-align: left; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .b.raise .fl { background: var(--raise); }
+  .b.jam .fl { background: var(--jam); }
+  .b.call .fl { background: var(--call); }
+  .b.fold .fl { background: var(--fold); }
+  .b.chosen .nm { color: var(--ink); font-weight: 600; }
   .btn {
     appearance: none; border: 0; border-radius: 9px; cursor: pointer;
-    background: var(--call); color: #fff;
-    font-family: 'League Spartan', sans-serif; font-weight: 600; font-size: 15px;
-    padding: 11px 26px; margin-top: 18px;
+    background: var(--accent-dim); color: #eef1ec;
+    font-family: var(--font-head); font-weight: 600; font-size: 15px;
+    padding: 10px 24px; margin: 14px auto 0; display: block;
   }
-  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-size: 13px; padding: 7px 14px; margin: 0; }
-  .hint { margin: 14px 0 0; font-size: 12px; color: var(--faint); }
+  .btn:hover { filter: brightness(1.12); }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-size: 12.5px; padding: 6px 13px; margin: 10px 0 0; }
+  .hint { margin: 10px 0 0; font-size: 11.5px; color: var(--faint); text-align: center; }
 
   /* ---- stats ---- */
-  .rail { display: flex; flex-direction: column; gap: 16px; }
-  .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13.5px; padding: 3px 0; }
-  .stat b { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .rail2 { display: flex; flex-direction: column; gap: 14px; }
+  .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; padding: 2px 0; }
+  .stat b { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-variant-numeric: tabular-nums; }
   .stat span { color: var(--muted); }
-  .big2 { font-family: 'League Spartan', sans-serif; font-size: 34px; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-  .worst { display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+  .big2 { font-family: var(--font-head); font-size: 31px; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .worst { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
   .worst div { display: flex; justify-content: space-between; gap: 8px; }
   .worst code { font-family: 'IBM Plex Mono', monospace; color: var(--ink); }
   .worst span { color: var(--muted); font-variant-numeric: tabular-nums; }
-  .none { color: var(--faint); font-size: 13px; margin: 0; }
-  .foot { margin: 22px 0 0; font-size: 13px; color: var(--faint); }
+  .none { color: var(--faint); font-size: 12.5px; margin: 0; }
+  .foot { margin: 20px 0 0; font-size: 12.5px; color: var(--faint); }
   .foot a { color: var(--muted); }
 
-  @media (max-width: 900px) {
+  @media (max-width: 940px) {
     .cols { grid-template-columns: minmax(0,1fr); }
     .lbl { min-width: 0; }
+    .tablewrap { aspect-ratio: 800 / 520; }
   }
 </style>
 
 <div class="shell">
   <div class="top">
-    <h1>Big Ante Drill</h1>
+    <h1><b>FELT</b> EXPERIENCE DRILL</h1>
     <a href="/study/big-ante-explorer">Back to the explorer</a>
   </div>
 
@@ -213,17 +249,21 @@
   </details>
 
   <div class="cols">
-    <div class="card q">
-      <p class="spotline" id="spotline"></p>
-      <p class="sizeline" id="sizeline"></p>
-      <p class="hand" id="hand">—</p>
-      <p class="handkind" id="handkind"></p>
-      <div class="rng" id="rng" hidden>
-        <span class="rlbl">Your roll</span>
-        <span class="rnum" id="rnum">—</span>
-        <span class="rhelp">play the action this number lands in</span>
+    <div>
+      <div class="tablewrap">
+        <div class="stage" id="stage">
+          <div class="rail"></div>
+          <div class="felt"></div>
+          <div class="wordmark">FELT EXPERIENCE</div>
+          <div class="pot"><div class="lb">POT</div><div class="amt" id="pot">—</div></div>
+        </div>
+        <div class="rng" id="rng" hidden>RNG<b id="rnum">—</b></div>
       </div>
-      <div class="acts" id="acts"></div>
+
+      <div class="bar" id="bar">
+        <div class="acts" id="acts" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"></div>
+      </div>
+
       <div class="answer" id="answer" hidden>
         <p class="verdict" id="verdict"></p>
         <div class="bars" id="bars"></div>
@@ -232,25 +272,25 @@
       <p class="hint" id="hint"></p>
     </div>
 
-    <div class="rail">
+    <div class="rail2">
       <div class="card">
         <h2>This session</h2>
         <div class="big2" id="s-acc">—</div>
-        <p class="pool" style="margin:4px 0 12px" id="s-accnote">average match</p>
+        <p class="pool" style="margin:3px 0 11px">average match</p>
         <div class="stat"><span>Hands</span><b id="s-n">0</b></div>
-        <div class="stat"><span>Solid picks</span><b id="s-good">0</b></div>
+        <div class="stat"><span>Correct</span><b id="s-good">0</b></div>
         <div class="stat"><span>Streak</span><b id="s-streak">0</b></div>
         <div class="stat"><span>Best streak</span><b id="s-best">0</b></div>
-        <button class="btn ghost" id="reset-session" style="margin-top:12px">Reset session</button>
+        <button class="btn ghost" id="reset-session">Reset session</button>
       </div>
 
       <div class="card">
         <h2>Lifetime</h2>
         <div class="stat"><span>Hands</span><b id="l-n">0</b></div>
         <div class="stat"><span>Average match</span><b id="l-acc">—</b></div>
-        <div class="stat"><span>Solid picks</span><b id="l-good">—</b></div>
+        <div class="stat"><span>Correct</span><b id="l-good">—</b></div>
         <div class="stat"><span>Best streak</span><b id="l-best">0</b></div>
-        <button class="btn ghost" id="reset-life" style="margin-top:12px">Clear lifetime</button>
+        <button class="btn ghost" id="reset-life">Clear lifetime</button>
       </div>
 
       <div class="card">
@@ -264,8 +304,6 @@
 </div>
 
 <script>
-(function(){
-"use strict";
 /* Big Ante — strategies read off the solver screenshots.
    Per size: 169 cells of "raise.jam.call"; fold is the remainder. `X` = the hand
    is not in our opening range. `!` = one of six cells a cursor covered in the
@@ -506,14 +544,18 @@ const SPOT_DATA = [
   },
 ];
 
+</script>
+<script>
 /* ===========================================================================
    Big Ante drill.
 
    Grading follows how you would actually run a mixed strategy at the table:
    you get a number from 1 to 100, the actions are laid out in bands, and the
-   right play is whichever band the number lands in. That gives a mixed hand
-   one correct answer instead of a judgement call. "Most frequent" is there
-   for anyone who would rather just learn the dominant action.
+   right play is whichever band the number lands in. The bands run in the same
+   order as the buttons, fold then call then raise, so the aggressive action
+   always sits at the TOP of the range: a hand that raises 8% raises on 93-100.
+   High roll, aggressive play. "Most frequent" is there for anyone who would
+   rather just learn the dominant action.
    =========================================================================== */
 
 const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
@@ -527,6 +569,8 @@ for (let i = 0; i < 13; i++) {
     HANDS.push({
       code: i === j ? RANKS[i] + RANKS[i]
         : (i < j ? RANKS[i] + RANKS[j] + 's' : RANKS[j] + RANKS[i] + 'o'),
+      hiR: i < j ? RANKS[i] : RANKS[j],
+      loR: i < j ? RANKS[j] : RANKS[i],
       kind: i === j ? 'pair' : (i < j ? 's' : 'o'),
       hi, lo, gap: i === j ? 0 : hi - lo - 1,
     });
@@ -545,14 +589,153 @@ const BUCKETS = [
 HANDS.forEach((h) => {
   const b = BUCKETS.find((x) => x.test(h));
   h.bucket = b ? b.id : 'other';
-  h.bucketName = b ? b.name : '';
 });
 
 const FAM_LABEL = { rfi: 'vs RFI', vs3b: 'vs 3-bet', limp: 'Limp vs ISO' };
 const HERO_ORDER = ['UTG','HJ','CO','BTN','SB','BB'];
 const POS_ORDER = ['UTG','EP','HJ','CO','BTN','SB','BB'];
 
-/* Build one flat pool of questions: every hand in every size of every spot. */
+/* ---- the table ---------------------------------------------------------- */
+/* Six seats, hero always at the bottom, the rest laid out in action order
+   round to the right. Sims are 100bb deep with a half-blind ante from
+   everyone, which is what the stacks and the pot are built from. */
+const RING = ['UTG','HJ','CO','BTN','SB','BB'];
+const START = 100, ANTE = 0.5, SB_POST = 0.5, BB_POST = 1;
+const SUITS = ['s','h','d','c'];
+const GLYPH = { s: '♠', h: '♥', d: '♦', c: '♣' };
+const SUIT_COLOR = { s: '#23262a', h: '#b02f38', d: '#2b62b8', c: '#2e7d46' };
+
+const bb = (n) => (Math.round(n * 10) / 10).toString();
+const seatOf = (p) => (p === 'EP' ? 'UTG' : p);
+
+/** What everyone has in front of them, and what the pot is, in this spot. */
+function scenario(q) {
+  const fam = q.sp.fam;
+  const heroSeat = seatOf(q.sp.hero);
+  const vsSeat = seatOf(q.sp.vs);
+  const face = parseFloat(q.z.face);
+
+  const wager = {};
+  RING.forEach((p) => { wager[p] = p === 'SB' ? SB_POST : p === 'BB' ? BB_POST : 0; });
+
+  let heroAction = '';
+  if (fam === 'rfi') {
+    wager[vsSeat] = face;
+    heroAction = '';
+  } else if (fam === 'vs3b') {
+    wager[heroSeat] = 5;                       // every vs-3-bet sim opens 5x
+    wager[vsSeat] = face;
+    heroAction = 'we open 5bb';
+  } else {
+    wager[heroSeat] = 1;                       // the limp
+    wager[vsSeat] = face;
+    heroAction = 'we limp';
+  }
+
+  const pot = RING.length * ANTE + RING.reduce((t, p) => t + wager[p], 0);
+  const toCall = wager[vsSeat] - wager[heroSeat];
+
+  const verb = fam === 'rfi' ? 'raises to' : fam === 'vs3b' ? '3-bets to' : 'isolates to';
+  const seats = RING.map((p) => ({
+    seat: p,
+    label: (p === 'UTG' && (q.sp.vs === 'EP' || q.sp.hero === 'EP')) ? 'EP' : p,
+    role: p === heroSeat ? 'hero' : p === vsSeat ? 'aggro' : wager[p] > 0 ? 'live' : 'out',
+    wager: wager[p],
+    stack: START - ANTE - wager[p],
+  }));
+
+  return {
+    seats, pot, toCall, heroSeat, vsSeat,
+    line: `${q.sp.vs} ${verb} ${bb(face)}bb`,
+    heroAction,
+  };
+}
+
+/** Two cards that agree with the hand code: same suit for s, different for o. */
+function dealSuits(h) {
+  const a = SUITS[Math.floor(Math.random() * 4)];
+  if (h.kind === 's') return [a, a];
+  let b = SUITS[Math.floor(Math.random() * 3)];
+  if (b === a) b = SUITS[3];
+  return [a, b];
+}
+
+function cardSVG(rank, suit) {
+  const face = rank === 'T' ? '10' : rank;
+  const size = face.length > 1 ? 52 : 62;
+  return `<svg class="pc" viewBox="0 0 100 140" width="44" height="62" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="97" height="137" rx="9"
+      fill="#f5f2e7" stroke="rgba(10,14,12,.55)" stroke-width="3"/>
+    <text x="50" y="72" text-anchor="middle" font-family="'League Spartan',sans-serif"
+      font-weight="700" font-size="${size}" fill="${SUIT_COLOR[suit]}">${face}</text>
+    <text x="50" y="122" text-anchor="middle" font-size="48"
+      fill="${SUIT_COLOR[suit]}">${GLYPH[suit]}</text>
+  </svg>`;
+}
+
+/* Seat k sits 60 degrees round from hero, who is at the bottom. */
+function place(i, heroIdx) {
+  const step = ((i - heroIdx) % 6 + 6) % 6;
+  const t = (90 - 60 * step) * Math.PI / 180;
+  return { x: 50 + 39 * Math.cos(t), y: 47 + 36 * Math.sin(t) };
+}
+const pullIn = (p, k) => ({ x: 50 + (p.x - 50) * k, y: 47 + (p.y - 47) * k });
+
+function drawTable(q, cards) {
+  const sc = scenario(q);
+  const heroIdx = RING.indexOf(sc.heroSeat);
+  const stage = $('stage');
+  [...stage.querySelectorAll('.seat,.chip,.dealer,.line')].forEach((n) => n.remove());
+
+  sc.seats.forEach((s, i) => {
+    const p = place(i, heroIdx);
+    const el = document.createElement('div');
+    el.className = 'seat ' + s.role;
+    el.style.left = p.x + '%';
+    el.style.top = p.y + '%';
+    const hole = s.role === 'hero'
+      ? `<div class="cards"><span class="l">${cardSVG(q.h.hiR, cards[0])}</span>` +
+        `<span class="r">${cardSVG(q.h.loR, cards[1])}</span></div>`
+      : '';
+    el.innerHTML = hole +
+      `<div class="plate"><div class="pos">${s.label}</div>` +
+      `<div class="stack">${bb(s.stack)}</div></div>`;
+    stage.appendChild(el);
+
+    if (s.wager > 0) {
+      const step = ((i - heroIdx) % 6 + 6) % 6;
+      const c = pullIn(p, step === 0 ? 0.50 : step === 3 ? 0.72 : 0.62);
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.style.left = c.x + '%';
+      chip.style.top = c.y + '%';
+      chip.innerHTML = `<i></i>${bb(s.wager)}`;
+      stage.appendChild(chip);
+    }
+
+    if (s.seat === 'BTN') {
+      const d = pullIn(p, 0.79);
+      const btn = document.createElement('div');
+      btn.className = 'dealer';
+      btn.style.left = (d.x - 5) + '%';
+      btn.style.top = d.y + '%';
+      btn.textContent = 'D';
+      stage.appendChild(btn);
+    }
+  });
+
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.textContent = sc.heroAction ? `${sc.heroAction} · ${sc.line}` : sc.line;
+  stage.appendChild(line);
+
+  $('pot').textContent = bb(sc.pot);
+  return sc;
+}
+
+/* ---- pool --------------------------------------------------------------- */
+/* Actions are stored passive-first so the bands and the buttons agree: fold,
+   then call, then the aggressive action at the top of the roll. */
 const POOL = [];
 SPOT_DATA.forEach((sp) => {
   sp.sizes.forEach((z, si) => {
@@ -560,11 +743,13 @@ SPOT_DATA.forEach((sp) => {
       if (tok === 'X') return;                       // never reaches the spot
       const [r, j, c] = tok.replace('!', '').split('.').map(Number);
       const f = Math.max(0, 100 - r - j - c);
-      const acts = [];
-      if (sp.fam === 'vs3b') acts.push({ id: 'jam', name: 'Jam', pct: r + j });
-      else acts.push({ id: 'raise', name: '3-bet', pct: r + j });
-      acts.push({ id: 'call', name: 'Call', pct: c });
-      acts.push({ id: 'fold', name: 'Fold', pct: f });
+      const acts = [
+        { id: 'fold', name: 'Fold', pct: f },
+        { id: 'call', name: 'Call', pct: c },
+        sp.fam === 'vs3b'
+          ? { id: 'jam', name: 'Jam', pct: r + j }
+          : { id: 'raise', name: '3-bet', pct: r + j },
+      ];
       POOL.push({ sp, si, z, h: HANDS[n], acts });
     });
   });
@@ -680,23 +865,19 @@ function nextHand() {
   $('answer').hidden = true;
   if (!p.length) {
     current = null;
-    $('spotline').textContent = 'No hands match these filters.';
-    $('sizeline').textContent = '';
-    $('hand').textContent = '—';
-    $('handkind').textContent = '';
+    [...$('stage').querySelectorAll('.seat,.chip,.dealer,.line')].forEach((n) => n.remove());
+    $('pot').textContent = '—';
     $('rng').hidden = true;
     $('acts').innerHTML = '';
-    $('hint').textContent = '';
+    $('hint').textContent = 'No hands match these filters.';
     return;
   }
   const q = p[Math.floor(Math.random() * p.length)];
   const roll = 1 + Math.floor(Math.random() * 100);
+  const cards = dealSuits(q.h);
   current = { q, roll };
 
-  $('spotline').textContent = q.sp.title;
-  $('sizeline').textContent = q.z.sub;
-  $('hand').textContent = q.h.code;
-  $('handkind').textContent = q.h.bucketName;
+  const sc = drawTable(q, cards);
 
   const useRng = filters.grade === 'rng';
   $('rng').hidden = !useRng;
@@ -708,16 +889,21 @@ function nextHand() {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'act ' + a.id;
-    b.innerHTML = `${a.name}<small>${i + 1}</small>`;
+    const sub = a.id === 'call' ? `${bb(sc.toCall)}bb`
+      : a.id === 'fold' ? '&nbsp;'
+      : a.id === 'jam' ? `${bb(START - ANTE)}bb`
+      : `${bb(q.z.ours)}bb`;
+    b.innerHTML = `${a.name}<small>${sub}</small>`;
     b.addEventListener('click', () => answer(a.id));
     acts.appendChild(b);
   });
   $('hint').textContent = useRng
-    ? 'Press 1, 2 or 3. The bands run left to right in the order shown.'
-    : 'Press 1, 2 or 3.';
+    ? 'Keys 1, 2, 3 left to right. Bands run fold, call, raise, so a high number is the aggressive play.'
+    : 'Keys 1, 2, 3 left to right.';
 }
 
-/** Which action the roll lands in, reading the bands left to right. */
+/** Which action the roll lands in. Bands run fold, then call, then raise, so
+    a hand that raises 8% raises on 93-100. */
 function bandFor(q, roll) {
   let edge = 0;
   for (const a of q.acts) {
@@ -735,7 +921,6 @@ function answer(pick) {
   const best = q.acts.reduce((m, a) => (a.pct > m.pct ? a : m), q.acts[0]);
   const target = filters.grade === 'rng' ? bandFor(q, roll) : best.id;
   const right = pick === target;
-  const targetAct = q.acts.find((a) => a.id === target);
 
   session.n++;
   session.sum += chosen.pct;
@@ -760,9 +945,7 @@ function answer(pick) {
   const v = $('verdict');
   v.className = 'verdict ' + (right ? 'good' : 'bad');
   v.innerHTML = (right ? 'Correct' : 'Not this time') +
-    `<small>${filters.grade === 'rng'
-      ? `${roll} lands in ${targetAct.name.toLowerCase()}. You played ${chosen.name.toLowerCase()}, which the solver takes ${chosen.pct}% of the time.`
-      : `The solver's most frequent action is ${targetAct.name.toLowerCase()} at ${targetAct.pct}%. You played ${chosen.name.toLowerCase()} at ${chosen.pct}%.`}</small>`;
+    `<small>${q.h.code} · ${q.sp.title} · ${q.z.sub}</small>`;
 
   const bars = $('bars');
   bars.innerHTML = '';
@@ -770,7 +953,7 @@ function answer(pick) {
   q.acts.forEach((a) => {
     const start = edge; edge += a.pct;
     const row = document.createElement('div');
-    row.className = 'bar ' + a.id + (a.id === pick ? ' chosen' : '');
+    row.className = 'b ' + a.id + (a.id === pick ? ' chosen' : '');
     const pin = (filters.grade === 'rng' && roll > start && roll <= edge)
       ? `<span class="pin" style="left:${((roll - start) / Math.max(a.pct, 1)) * 100}%"></span>` : '';
     row.innerHTML = `<span class="nm">${a.name}</span>` +
@@ -841,8 +1024,4 @@ buildFilters();
 paintStats();
 nextHand();
 
-})();
 </script>
-
-</body>
-</html>
