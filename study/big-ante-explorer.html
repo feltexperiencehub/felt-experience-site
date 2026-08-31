@@ -81,6 +81,21 @@
 
   .cols { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; align-items: start; }
 
+  /* ---- isolate, folded away until wanted ---- */
+  .isolate { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 1px; }
+  .isolate > summary {
+    cursor: pointer; list-style: none; width: fit-content;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
+  }
+  .isolate > summary::-webkit-details-marker { display: none; }
+  .isolate > summary::before { content: "\25B8"; display: inline-block; margin-right: 7px; transition: transform .15s ease; }
+  .isolate[open] > summary::before { transform: rotate(90deg); }
+  .isolate > summary:hover { color: var(--muted); }
+  .isolate > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
+  .isolate .seg { margin-top: 9px; }
+  .isolate.on > summary { color: var(--call); }
+
   /* ---- grid ---- */
   .gridhead { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
   .gridhead strong { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 16px; font-weight: 600; }
@@ -156,6 +171,10 @@
     <div class="prow">
       <div class="grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
     </div>
+    <details class="isolate" id="isolate">
+      <summary><span id="isolate-summary">Isolate a bucket</span></summary>
+      <div class="seg" role="group" aria-label="Isolate a bucket" id="bucket-seg"></div>
+    </details>
   </div>
 
   <div class="cols">
@@ -508,7 +527,7 @@ const FAM_ORDER = [
 const HERO_ORDER = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 const OURS_LABEL = { rfi: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet' };
 
-const state = { hero: 'SB', fam: 'rfi', vs: null, size: 0 };
+const state = { hero: 'SB', fam: 'rfi', vs: null, size: 0, bucket: null };
 
 const $ = (id) => document.getElementById(id);
 const branch = () => SPOT_DATA.filter((s) => s.hero === state.hero && s.fam === state.fam);
@@ -571,10 +590,8 @@ function detail(c) {
   if (c.c) parts.push(`<span class="a call">${c.c}% call</span>`);
   if (c.f) parts.push(`<span class="a fold">${c.f}% fold</span>`);
   $('d-nums').innerHTML = parts.join('');
-  const bucket = BUCKETS.find((b) => b.id === c.h.bucket);
-  let why = bucket ? bucket.name + '.' : '';
-  if (c.est) why += ' Estimated: this cell was under the cursor in the source capture.';
-  $('d-why').textContent = why;
+  $('d-why').textContent = c.est
+    ? 'Estimated: this cell was under the cursor in the source capture.' : '';
 }
 
 function render() {
@@ -606,11 +623,21 @@ function render() {
   seg('size-seg', sp.sizes.map((z, i) => ({ label: z.face, v: i })),
     (it) => it.v === state.size, (it) => { state.size = it.v; render(); });
 
+  seg('bucket-seg', BUCKETS.map((b) => ({ label: b.name, v: b.id })),
+    (it) => it.v === state.bucket,
+    (it) => { state.bucket = (state.bucket === it.v) ? null : it.v; render(); });
+
+  // Say which bucket is live even when the control is folded shut.
+  const active = BUCKETS.find((b) => b.id === state.bucket);
+  $('isolate').classList.toggle('on', !!active);
+  $('isolate-summary').textContent = active ? `Isolating ${active.name}` : 'Isolate a bucket';
+
   let n = 0, raiseW = 0, jamW = 0, callW = 0, foldW = 0;
   cells.forEach((b, i) => {
     const c = now[i];
     b.style.background = paint(c);
     b.classList.toggle('oor', !!c.oor);
+    b.classList.toggle('dim', !!state.bucket && c.h.bucket !== state.bucket);
     b.setAttribute('aria-label', c.oor
       ? `${c.h.code}: not in our opening range`
       : `${c.h.code}: ${c.r + c.j}% ${c.j > c.r ? 'jam' : 'raise'}, ${c.c}% call, ${c.f}% fold`);
