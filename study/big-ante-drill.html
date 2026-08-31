@@ -84,7 +84,13 @@
 
   /* ---- the table ---- */
   .tablewrap {
-    position: relative; width: 100%; aspect-ratio: 800 / 490; container-type: inline-size;
+    /* Sized from the height actually left over once the header, the buttons and
+       the result panel have taken theirs, so a short laptop window still shows
+       the whole table without scrolling. 340px is that fixed furniture. */
+    position: relative; margin-inline: auto; container-type: inline-size;
+    width: min(100%, max(360px, (100vh - 340px) * 800 / 490));
+    width: min(100%, max(360px, (100dvh - 340px) * 800 / 490));
+    aspect-ratio: 800 / 490;
     background: radial-gradient(ellipse 90% 70% at 50% 42%, #1a211c 0%, #111513 78%);
     border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
   }
@@ -155,6 +161,7 @@
 
   /* ---- action bar ---- */
   .bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .bar[hidden] { display: none; }   /* the display rule above outranks the hidden attribute */
   .act {
     appearance: none; border: 1px solid var(--line); border-radius: 12px;
     background: linear-gradient(180deg, #232a24, #191e1a); color: var(--ink); cursor: pointer;
@@ -228,7 +235,6 @@
   @media (max-width: 940px) {
     .cols { grid-template-columns: minmax(0,1fr); }
     .lbl { min-width: 0; }
-    .tablewrap { aspect-ratio: 800 / 520; }
   }
   /* Keep fold, call and raise on one line however narrow it gets, since the
      order is what tells you which band is which. */
@@ -873,10 +879,19 @@ function buildFilters() {
 }
 
 /* ---- a question --------------------------------------------------------- */
+/** Bring the table back into frame if a previous answer pushed it off the top.
+    Leaves the page alone when the table is simply further down, so changing a
+    filter does not yank you away from the filters. */
+function frameTable() {
+  const r = $('stage').parentElement.getBoundingClientRect();
+  if (r.top < 12) window.scrollTo(0, window.scrollY + r.top - 12);
+}
+
 function nextHand() {
   const p = pool();
   answered = false;
   $('answer').hidden = true;
+  $('bar').hidden = false;
   if (!p.length) {
     current = null;
     [...$('stage').querySelectorAll('.seat,.chip,.dealer,.line')].forEach((n) => n.remove());
@@ -912,6 +927,7 @@ function nextHand() {
     acts.appendChild(b);
   });
   $('hint').textContent = 'Keys 1, 2, 3 left to right.';
+  frameTable();
 }
 
 /** Which action the roll lands in. Bands run fold, then call, then raise, so
@@ -974,8 +990,9 @@ function answer(pick) {
     bars.appendChild(row);
   });
 
+  $('bar').hidden = true;
   $('answer').hidden = false;
-  $('next').focus();
+  $('next').focus({ preventScroll: true });
   paintStats();
 }
 
