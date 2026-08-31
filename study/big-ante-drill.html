@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Big Ante Range Explorer – Felt Experience Poker</title>
+<title>Big Ante Drill – Felt Experience Poker</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,8 @@
   :root {
     --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
     --ink: #171c18; --muted: #5c665e; --faint: #838d85;
-    --raise: #b23a2c; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7; --oor: #d3dad1;
+    --raise: #b23a2c; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7;
+    --good: #3f7a44; --bad: #b23a2c;
     --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
     --focus: #2f6d8f;
   }
@@ -23,7 +24,8 @@
     :root:not([data-theme="light"]) {
       --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
       --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
-      --raise: #d2503c; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+      --raise: #d2503c; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
+      --good: #6fbb6a; --bad: #d2503c;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
       --focus: #7fb6d4;
     }
@@ -31,7 +33,8 @@
   :root[data-theme="dark"] {
     --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
     --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
-    --raise: #d2503c; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+    --raise: #d2503c; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
+    --good: #6fbb6a; --bad: #d2503c;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
     --focus: #7fb6d4;
   }
@@ -42,15 +45,13 @@
     font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
     font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
   }
-  .shell { max-width: 1400px; margin: 0 auto; padding: 22px 20px 52px; }
-
+  .shell { max-width: 1180px; margin: 0 auto; padding: 22px 20px 52px; }
   .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-  .top a { font-size: 13px; color: var(--muted); }
   h1 {
     font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
-    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em;
-    margin: 0; color: var(--ink);
+    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em; margin: 0;
   }
+  .top a { font-size: 13px; color: var(--muted); }
 
   .card {
     background: var(--panel); border: 1px solid var(--line);
@@ -62,156 +63,199 @@
     color: var(--faint); margin: 0 0 11px;
   }
 
-  /* ---- picker: two groups per row, wrapping ---- */
-  .picker { margin-bottom: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
-  .prow { display: flex; flex-wrap: wrap; gap: 10px 26px; align-items: center; }
-  .grp { display: flex; align-items: center; gap: 10px; }
-  .lbl {
-    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--faint); white-space: nowrap;
-  }
-  .seg { display: flex; flex-wrap: wrap; gap: 3px; background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
-  .seg button {
-    appearance: none; border: 0; background: transparent; color: var(--muted);
-    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13.5px;
-    padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap;
-  }
-  .seg button:hover:not([disabled]) { color: var(--ink); }
-  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.16); }
-  .seg button[disabled] { opacity: .3; cursor: not-allowed; }
-  .seg button:focus-visible, .cell:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-
-  .cols { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; align-items: start; }
-
-  /* ---- isolate, folded away until wanted ---- */
-  .isolate { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 1px; }
-  .isolate > summary {
+  /* ---- filters ---- */
+  .filters { margin-bottom: 16px; padding: 14px 16px; }
+  .filters > summary {
     cursor: pointer; list-style: none; width: fit-content;
     font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
     letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
   }
-  .isolate > summary::-webkit-details-marker { display: none; }
-  .isolate > summary::before { content: "\25B8"; display: inline-block; margin-right: 7px; transition: transform .15s ease; }
-  .isolate[open] > summary::before { transform: rotate(90deg); }
-  .isolate > summary:hover { color: var(--muted); }
-  .isolate > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
-  .isolate .seg { margin-top: 9px; }
-  .isolate.on > summary { color: var(--call); }
-
-  /* ---- grid ---- */
-  .gridhead { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
-  .gridhead strong { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 16px; font-weight: 600; }
-  .gridhead .sub { display: block; font-size: 13px; color: var(--muted); font-family: Montserrat, sans-serif; font-weight: 400; margin-top: 2px; }
-  .mix { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .mix .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 6px 0 14px; }
-  .mix .k:first-child { margin-left: 0; }
-  .mix .k.r { background: var(--raise); }
-  .mix .k.j { background: var(--jam); }
-  .mix .k.c { background: var(--call); }
-  .mix .k.f { background: var(--fold); }
-
-  .gridwrap { overflow-x: auto; }
-  .axis, .grid { display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr)); gap: 2px; min-width: 500px; }
-  .axis { margin-bottom: 4px; }
-  .axis span { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint); }
-
-  .cell {
-    appearance: none; border: 0; aspect-ratio: 1; border-radius: 4px;
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: clamp(9px, .92vw, 11.5px); font-weight: 500; letter-spacing: -.02em;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; position: relative; overflow: hidden;
-    color: #fff; transition: opacity .15s ease, transform .1s ease;
+  .filters > summary::-webkit-details-marker { display: none; }
+  .filters > summary::before { content: "\25B8"; display: inline-block; margin-right: 7px; transition: transform .15s ease; }
+  .filters[open] > summary::before { transform: rotate(90deg); }
+  .filters > summary:hover { color: var(--muted); }
+  .filters.on > summary { color: var(--call); }
+  .fbody { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .frow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .lbl {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
+    white-space: nowrap; min-width: 84px;
   }
-  .cell:hover { transform: translateY(-1px); z-index: 4; }
-  .cell .t { position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
-  .cell.oor { color: var(--faint); }
-  .cell.oor .t { text-shadow: none; opacity: .55; }
-  .cell.dim { opacity: .15; }
+  .seg { display: flex; flex-wrap: wrap; gap: 3px; background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px;
+    padding: 5px 11px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.16); }
+  .seg button:focus-visible, .act:focus-visible, .btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .pool { margin: 4px 0 0; font-size: 12.5px; color: var(--faint); }
 
-  /* ---- rail ---- */
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; align-items: start; }
+
+  /* ---- the question ---- */
+  .q { text-align: center; padding: 26px 18px 22px; }
+  .spotline { font-size: 14px; color: var(--muted); margin: 0 0 2px; }
+  .sizeline { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; color: var(--faint); margin: 0 0 20px; }
+  .hand {
+    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
+    font-size: clamp(56px, 11vw, 92px); line-height: 1; letter-spacing: -.03em;
+    margin: 0 0 6px;
+  }
+  .handkind { font-size: 13px; color: var(--faint); margin: 0 0 22px; }
+
+  /* ---- the randomiser, the way you would use one at the table ---- */
+  .rng {
+    display: inline-flex; align-items: center; gap: 11px;
+    background: var(--sunk); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 15px; margin: 0 0 22px;
+  }
+  .rlbl, .rhelp {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 10.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
+  }
+  .rhelp { text-transform: none; letter-spacing: 0; font-family: Montserrat, sans-serif; font-size: 12px; }
+  .rnum {
+    font-family: 'League Spartan', sans-serif; font-weight: 700; font-size: 27px;
+    line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 44px; text-align: center;
+  }
+  .bar .mark { position: relative; }
+  .bar .tr { position: relative; }
+  .bar .pin {
+    position: absolute; top: -3px; bottom: -3px; width: 2px;
+    background: var(--ink); border-radius: 1px;
+  }
+
+  .acts { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .act {
+    appearance: none; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--panel); color: var(--ink); cursor: pointer;
+    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 600;
+    font-size: 17px; padding: 13px 30px; min-width: 132px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .act:hover:not([disabled]) { border-color: var(--muted); }
+  .act small { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 400; color: var(--faint); letter-spacing: .08em; }
+  .act[disabled] { cursor: default; }
+  .act.raise { border-left: 4px solid var(--raise); }
+  .act.jam { border-left: 4px solid var(--jam); }
+  .act.call { border-left: 4px solid var(--call); }
+  .act.fold { border-left: 4px solid var(--fold); }
+  .act.picked { box-shadow: 0 0 0 2px var(--ink) inset; }
+
+  /* ---- answer ---- */
+  .answer { margin-top: 20px; }
+  .verdict { font-family: 'League Spartan', sans-serif; font-weight: 700; font-size: 21px; margin: 0 0 4px; }
+  .verdict.good { color: var(--good); }
+  .verdict.bad { color: var(--bad); }
+  .verdict small { display: block; font-family: Montserrat, sans-serif; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .bars { display: flex; flex-direction: column; gap: 5px; max-width: 380px; margin: 16px auto 0; }
+  .bar { display: grid; grid-template-columns: 62px 1fr 46px; align-items: center; gap: 9px; font-size: 13px; }
+  .bar .nm { text-align: right; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .bar .tr { height: 12px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+  .bar .fl { height: 100%; }
+  .bar .pc { text-align: left; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; }
+  .bar.raise .fl { background: var(--raise); }
+  .bar.jam .fl { background: var(--jam); }
+  .bar.call .fl { background: var(--call); }
+  .bar.fold .fl { background: var(--fold); }
+  .bar.chosen .nm { color: var(--ink); font-weight: 600; }
+
+  .btn {
+    appearance: none; border: 0; border-radius: 9px; cursor: pointer;
+    background: var(--call); color: #fff;
+    font-family: 'League Spartan', sans-serif; font-weight: 600; font-size: 15px;
+    padding: 11px 26px; margin-top: 18px;
+  }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-size: 13px; padding: 7px 14px; margin: 0; }
+  .hint { margin: 14px 0 0; font-size: 12px; color: var(--faint); }
+
+  /* ---- stats ---- */
   .rail { display: flex; flex-direction: column; gap: 16px; }
-  .big { display: flex; align-items: baseline; gap: 8px; }
-  .big .n {
-    font-family: 'League Spartan', system-ui, sans-serif; font-size: 40px;
-    font-weight: 700; line-height: 1; letter-spacing: -.03em; color: var(--raise);
-    font-variant-numeric: tabular-nums;
-  }
-  .big .u { font-size: 14px; color: var(--muted); }
-  .bigsub { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
-
-  .detail .hand { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 27px; font-weight: 600; margin: 0; line-height: 1.1; }
-  .detail .verdict { font-size: 14px; font-weight: 600; margin: 3px 0 0; color: var(--muted); }
-  .detail .nums { margin: 6px 0 8px; font-size: 14px; font-variant-numeric: tabular-nums;
-                  display: flex; flex-direction: column; gap: 2px; }
-  .detail .nums .a { font-weight: 600; }
-  .detail .nums .raise { color: var(--raise); }
-  .detail .nums .jam { color: var(--jam); }
-  .detail .nums .call { color: var(--call); }
-  .detail .nums .fold { color: var(--muted); }
-  .detail .why { margin: 0; font-size: 13px; color: var(--muted); }
-
-  #notes { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13.5px; padding: 3px 0; }
+  .stat b { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); }
+  .big2 { font-family: 'League Spartan', sans-serif; font-size: 34px; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .worst { display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+  .worst div { display: flex; justify-content: space-between; gap: 8px; }
+  .worst code { font-family: 'IBM Plex Mono', monospace; color: var(--ink); }
+  .worst span { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .none { color: var(--faint); font-size: 13px; margin: 0; }
   .foot { margin: 22px 0 0; font-size: 13px; color: var(--faint); }
   .foot a { color: var(--muted); }
 
-  @media (max-width: 920px) {
+  @media (max-width: 900px) {
     .cols { grid-template-columns: minmax(0,1fr); }
-    .grp { flex: 1 1 100%; }
+    .lbl { min-width: 0; }
   }
 </style>
 
 <div class="shell">
   <div class="top">
-    <h1>Big Ante Range Explorer</h1>
-    <a href="/study/big-ante-drill">Drill these ranges</a>
+    <h1>Big Ante Drill</h1>
+    <a href="/study/big-ante-explorer">Back to the explorer</a>
   </div>
 
-  <div class="card picker">
-    <div class="prow">
-      <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
-      <div class="grp"><span class="lbl" id="l2">Facing</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
-      <div class="grp"><span class="lbl" id="l3">Raiser</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
+  <details class="card filters" id="filters">
+    <summary><span id="filters-summary">Filters</span></summary>
+    <div class="fbody">
+      <div class="frow"><span class="lbl" id="f1">Position</span><div class="seg" role="group" aria-labelledby="f1" id="f-hero"></div></div>
+      <div class="frow"><span class="lbl" id="f2">Facing</span><div class="seg" role="group" aria-labelledby="f2" id="f-fam"></div></div>
+      <div class="frow"><span class="lbl" id="f3">Raiser</span><div class="seg" role="group" aria-labelledby="f3" id="f-vs"></div></div>
+      <div class="frow"><span class="lbl" id="f4">Size</span><div class="seg" role="group" aria-labelledby="f4" id="f-size"></div></div>
+      <div class="frow"><span class="lbl" id="f5">Bucket</span><div class="seg" role="group" aria-labelledby="f5" id="f-bucket"></div></div>
+      <div class="frow"><span class="lbl" id="f6">Hands</span><div class="seg" role="group" aria-labelledby="f6" id="f-mode"></div></div>
+      <div class="frow"><span class="lbl" id="f7">Grading</span><div class="seg" role="group" aria-labelledby="f7" id="f-grade"></div></div>
+      <p class="pool" id="pool"></p>
     </div>
-    <div class="prow">
-      <div class="grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
-    </div>
-    <details class="isolate" id="isolate">
-      <summary><span id="isolate-summary">Isolate a bucket</span></summary>
-      <div class="seg" role="group" aria-label="Isolate a bucket" id="bucket-seg"></div>
-    </details>
-  </div>
+  </details>
 
   <div class="cols">
-    <div class="card">
-      <div class="gridhead">
-        <strong id="spot-title"><span class="sub" id="spot-sub"></span></strong>
-        <span class="mix" id="mix"></span>
+    <div class="card q">
+      <p class="spotline" id="spotline"></p>
+      <p class="sizeline" id="sizeline"></p>
+      <p class="hand" id="hand">—</p>
+      <p class="handkind" id="handkind"></p>
+      <div class="rng" id="rng" hidden>
+        <span class="rlbl">Your roll</span>
+        <span class="rnum" id="rnum">—</span>
+        <span class="rhelp">play the action this number lands in</span>
       </div>
-      <div class="gridwrap">
-        <div class="axis" id="axis" aria-hidden="true"></div>
-        <div class="grid" id="grid"></div>
+      <div class="acts" id="acts"></div>
+      <div class="answer" id="answer" hidden>
+        <p class="verdict" id="verdict"></p>
+        <div class="bars" id="bars"></div>
+        <button class="btn" id="next">Next hand</button>
       </div>
+      <p class="hint" id="hint"></p>
     </div>
 
     <div class="rail">
       <div class="card">
-        <h2 id="ours-label">Our 3-bet</h2>
-        <div class="big"><span class="n" id="ours">—</span><span class="u">bb</span></div>
-        <p class="bigsub" id="ours-sub"></p>
-      </div>
-
-      <div class="card detail">
-        <h2>Hand</h2>
-        <p class="hand" id="d-hand">—</p>
-        <p class="verdict" id="d-verdict">Hover any cell</p>
-        <p class="nums" id="d-nums"></p>
-        <p class="why" id="d-why">Every number is read off the solver grid.</p>
+        <h2>This session</h2>
+        <div class="big2" id="s-acc">—</div>
+        <p class="pool" style="margin:4px 0 12px" id="s-accnote">average match</p>
+        <div class="stat"><span>Hands</span><b id="s-n">0</b></div>
+        <div class="stat"><span>Solid picks</span><b id="s-good">0</b></div>
+        <div class="stat"><span>Streak</span><b id="s-streak">0</b></div>
+        <div class="stat"><span>Best streak</span><b id="s-best">0</b></div>
+        <button class="btn ghost" id="reset-session" style="margin-top:12px">Reset session</button>
       </div>
 
       <div class="card">
-        <h2>Worth remembering</h2>
-        <p id="notes"></p>
+        <h2>Lifetime</h2>
+        <div class="stat"><span>Hands</span><b id="l-n">0</b></div>
+        <div class="stat"><span>Average match</span><b id="l-acc">—</b></div>
+        <div class="stat"><span>Solid picks</span><b id="l-good">—</b></div>
+        <div class="stat"><span>Best streak</span><b id="l-best">0</b></div>
+        <button class="btn ghost" id="reset-life" style="margin-top:12px">Clear lifetime</button>
+      </div>
+
+      <div class="card">
+        <h2>Leaks</h2>
+        <div class="worst" id="worst"></div>
       </div>
     </div>
   </div>
@@ -463,7 +507,13 @@ const SPOT_DATA = [
 ];
 
 /* ===========================================================================
-   Big Ante range explorer.
+   Big Ante drill.
+
+   Grading follows how you would actually run a mixed strategy at the table:
+   you get a number from 1 to 100, the actions are laid out in bands, and the
+   right play is whichever band the number lands in. That gives a mixed hand
+   one correct answer instead of a judgement call. "Most frequent" is there
+   for anyone who would rather just learn the dominant action.
    =========================================================================== */
 
 const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
@@ -482,8 +532,6 @@ for (let i = 0; i < 13; i++) {
     });
   }
 }
-
-/* Buckets follow the sheets' one-combo-one-bucket order. */
 const BUCKETS = [
   { id: 'pairs',  name: 'Pairs',               test: (h) => h.kind === 'pair' },
   { id: 'sbway',  name: 'Suited Broadways',    test: (h) => h.kind === 's' && h.lo >= 10 },
@@ -494,186 +542,304 @@ const BUCKETS = [
   { id: 'oblock', name: 'Offsuit Blockers',    test: (h) => h.kind === 'o' && h.hi >= 12 && h.lo <= 9 },
   { id: 'oconn',  name: 'Offsuit Ladders',     test: (h) => h.kind === 'o' && h.hi <= 11 && h.lo <= 9 },
 ];
-HANDS.forEach((h) => { h.bucket = (BUCKETS.find((b) => b.test(h)) || { id: 'other' }).id; });
+HANDS.forEach((h) => {
+  const b = BUCKETS.find((x) => x.test(h));
+  h.bucket = b ? b.id : 'other';
+  h.bucketName = b ? b.name : '';
+});
 
-function decode(row) {
-  return row.split(',').map((tok, n) => {
-    const h = HANDS[n];
-    if (tok === 'X') return { h, oor: true, r: 0, j: 0, c: 0, f: 0 };
-    const est = tok.endsWith('!');
-    const [r, j, c] = (est ? tok.slice(0, -1) : tok).split('.').map(Number);
-    return { h, r, j, c, f: Math.max(0, 100 - r - j - c), est };
+const FAM_LABEL = { rfi: 'vs RFI', vs3b: 'vs 3-bet', limp: 'Limp vs ISO' };
+const HERO_ORDER = ['UTG','HJ','CO','BTN','SB','BB'];
+const POS_ORDER = ['UTG','EP','HJ','CO','BTN','SB','BB'];
+
+/* Build one flat pool of questions: every hand in every size of every spot. */
+const POOL = [];
+SPOT_DATA.forEach((sp) => {
+  sp.sizes.forEach((z, si) => {
+    z.g.split(',').forEach((tok, n) => {
+      if (tok === 'X') return;                       // never reaches the spot
+      const [r, j, c] = tok.replace('!', '').split('.').map(Number);
+      const f = Math.max(0, 100 - r - j - c);
+      const acts = [];
+      if (sp.fam === 'vs3b') acts.push({ id: 'jam', name: 'Jam', pct: r + j });
+      else acts.push({ id: 'raise', name: '3-bet', pct: r + j });
+      acts.push({ id: 'call', name: 'Call', pct: c });
+      acts.push({ id: 'fold', name: 'Fold', pct: f });
+      POOL.push({ sp, si, z, h: HANDS[n], acts });
+    });
   });
-}
-
-/* One straight bar per cell: raise, then jam, then call, then fold. No
-   hatching, so a 20% fold simply shows as a fifth of the cell in fold grey. */
-function paint(c) {
-  if (c.oor) return 'var(--oor)';
-  const r = c.r, j = r + c.j, k = j + c.c;
-  const stops = [];
-  if (r > 0) stops.push(`var(--raise) 0 ${r}%`);
-  if (c.j > 0) stops.push(`var(--jam) ${r}% ${j}%`);
-  if (c.c > 0) stops.push(`var(--call) ${j}% ${k}%`);
-  if (c.f > 0) stops.push(`var(--fold) ${k}% 100%`);
-  if (!stops.length) return 'var(--fold)';
-  if (stops.length === 1) {
-    return c.f >= 99.5 ? 'var(--fold)' : c.c >= 99.5 ? 'var(--call)'
-      : c.j >= 99.5 ? 'var(--jam)' : 'var(--raise)';
-  }
-  return `linear-gradient(to right, ${stops.join(', ')})`;
-}
-
-const FAM_ORDER = [
-  { id: 'rfi',  label: 'vs RFI' },
-  { id: 'vs3b', label: 'vs 3-bet' },
-  { id: 'limp', label: 'Limp vs ISO' },
-];
-const HERO_ORDER = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
-const OURS_LABEL = { rfi: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet' };
-
-const state = { hero: 'SB', fam: 'rfi', vs: null, size: 0, bucket: null };
+});
 
 const $ = (id) => document.getElementById(id);
-const branch = () => SPOT_DATA.filter((s) => s.hero === state.hero && s.fam === state.fam);
-const spot = () => branch().find((s) => s.vs === state.vs) || branch()[0] || null;
+const LIFE_KEY = 'fe-bigante-drill-v1';
 
-const cells = [];
-(function build() {
-  const axis = $('axis');
-  RANKS.forEach((r) => {
-    const s = document.createElement('span');
-    s.textContent = r;
-    axis.appendChild(s);
-  });
-  const grid = $('grid');
-  HANDS.forEach((h) => {
+const filters = { hero: new Set(), fam: new Set(), vs: new Set(), size: new Set(), bucket: new Set(),
+                  mode: 'decisions', grade: 'rng' };
+
+const session = { n: 0, sum: 0, good: 0, streak: 0, best: 0 };
+let life = load();
+let current = null, answered = false;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(LIFE_KEY);
+    if (raw) {
+      const v = JSON.parse(raw);
+      return { n: v.n || 0, sum: v.sum || 0, good: v.good || 0, best: v.best || 0, byHand: v.byHand || {} };
+    }
+  } catch (e) { /* storage can be unavailable; carry on in memory */ }
+  return { n: 0, sum: 0, good: 0, best: 0, byHand: {} };
+}
+function save() {
+  try { localStorage.setItem(LIFE_KEY, JSON.stringify(life)); } catch (e) { /* ignore */ }
+}
+
+/* ---- filters ------------------------------------------------------------ */
+function multi(id, items, set, after) {
+  const box = $(id);
+  box.innerHTML = '';
+  const all = document.createElement('button');
+  all.type = 'button';
+  all.textContent = 'All';
+  all.setAttribute('aria-pressed', String(set.size === 0));
+  all.addEventListener('click', () => { set.clear(); after(); });
+  box.appendChild(all);
+  items.forEach((it) => {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'cell';
-    b.innerHTML = '<span class="t"></span>';
-    b.querySelector('.t').textContent = h.code;
-    grid.appendChild(b);
-    cells.push(b);
+    b.textContent = it.label;
+    b.setAttribute('aria-pressed', String(set.has(it.v)));
+    b.addEventListener('click', () => {
+      if (set.has(it.v)) set.delete(it.v); else set.add(it.v);
+      after();
+    });
+    box.appendChild(b);
   });
-})();
-
-function seg(id, items, isOn, pick) {
+}
+function single(id, items, get, set) {
   const box = $(id);
   box.innerHTML = '';
   items.forEach((it) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.textContent = it.label;
-    b.setAttribute('aria-pressed', String(isOn(it)));
-    if (it.off) { b.disabled = true; b.title = 'No data for this position'; }
-    else b.addEventListener('click', () => pick(it));
+    b.title = it.title || '';
+    b.setAttribute('aria-pressed', String(get() === it.v));
+    b.addEventListener('click', () => set(it.v));
     box.appendChild(b);
   });
 }
 
-function clearDetail() {
-  $('d-hand').textContent = '—';
-  $('d-verdict').textContent = 'Hover any hand';
-  $('d-nums').innerHTML = '';
-  $('d-why').textContent = '';
+/** A hand worth asking about: not a pure single action. */
+const isDecision = (q) => q.acts.filter((a) => a.pct > 0).length > 1;
+
+function pool() {
+  return POOL.filter((q) => {
+    if (filters.hero.size && !filters.hero.has(q.sp.hero)) return false;
+    if (filters.fam.size && !filters.fam.has(q.sp.fam)) return false;
+    if (filters.vs.size && !filters.vs.has(q.sp.vs)) return false;
+    if (filters.size.size && !filters.size.has(q.z.face)) return false;
+    if (filters.bucket.size && !filters.bucket.has(q.h.bucket)) return false;
+    if (filters.mode === 'decisions' && !isDecision(q)) return false;
+    return true;
+  });
 }
 
-function detail(c) {
-  $('d-hand').textContent = c.h.code;
-  if (c.oor) {
-    $('d-verdict').textContent = 'Not in our opening range';
-    $('d-nums').innerHTML = '';
-    $('d-why').textContent = 'This hand never reaches the spot, so there is nothing to decide.';
+function buildFilters() {
+  const heroes = HERO_ORDER.filter((h) => SPOT_DATA.some((s) => s.hero === h));
+  const vss = POS_ORDER.filter((p) => SPOT_DATA.some((s) => s.vs === p));
+  const sizes = [];
+  SPOT_DATA.forEach((s) => s.sizes.forEach((z) => { if (!sizes.includes(z.face)) sizes.push(z.face); }));
+  sizes.sort((a, b) => parseFloat(a) - parseFloat(b));
+
+  const redraw = () => { buildFilters(); nextHand(); };
+  multi('f-hero', heroes.map((h) => ({ label: h, v: h })), filters.hero, redraw);
+  multi('f-fam', ['rfi','vs3b','limp'].map((f) => ({ label: FAM_LABEL[f], v: f })), filters.fam, redraw);
+  multi('f-vs', vss.map((v) => ({ label: v, v })), filters.vs, redraw);
+  multi('f-size', sizes.map((s) => ({ label: s, v: s })), filters.size, redraw);
+  multi('f-bucket', BUCKETS.map((b) => ({ label: b.name, v: b.id })), filters.bucket, redraw);
+  single('f-mode', [
+      { label: 'Decisions only', v: 'decisions', title: 'Skip hands with a single pure action' },
+      { label: 'Everything', v: 'all', title: 'Include pure folds and pure raises' }],
+    () => filters.mode, (v) => { filters.mode = v; redraw(); });
+  single('f-grade', [
+      { label: 'Randomiser', v: 'rng', title: 'Play the band your number lands in' },
+      { label: 'Most frequent', v: 'top', title: 'Play the action the solver takes most often' }],
+    () => filters.grade, (v) => { filters.grade = v; redraw(); });
+
+  const active = filters.hero.size + filters.fam.size + filters.vs.size + filters.size.size + filters.bucket.size;
+  $('filters').classList.toggle('on', active > 0);
+  $('filters-summary').textContent = active ? `Filters (${active} active)` : 'Filters';
+  $('pool').textContent = `${pool().length.toLocaleString()} hands in the pool`;
+}
+
+/* ---- a question --------------------------------------------------------- */
+function nextHand() {
+  const p = pool();
+  answered = false;
+  $('answer').hidden = true;
+  if (!p.length) {
+    current = null;
+    $('spotline').textContent = 'No hands match these filters.';
+    $('sizeline').textContent = '';
+    $('hand').textContent = '—';
+    $('handkind').textContent = '';
+    $('rng').hidden = true;
+    $('acts').innerHTML = '';
+    $('hint').textContent = '';
     return;
   }
-  $('d-verdict').textContent = '';
-  // Each frequency wears the colour it has on the grid.
-  const parts = [];
-  if (c.r) parts.push(`<span class="a raise">${c.r}% raise</span>`);
-  if (c.j) parts.push(`<span class="a jam">${c.j}% jam</span>`);
-  if (c.c) parts.push(`<span class="a call">${c.c}% call</span>`);
-  if (c.f) parts.push(`<span class="a fold">${c.f}% fold</span>`);
-  $('d-nums').innerHTML = parts.join('');
-  $('d-why').textContent = c.est
-    ? 'Estimated: this cell was under the cursor in the source capture.' : '';
+  const q = p[Math.floor(Math.random() * p.length)];
+  const roll = 1 + Math.floor(Math.random() * 100);
+  current = { q, roll };
+
+  $('spotline').textContent = q.sp.title;
+  $('sizeline').textContent = q.z.sub;
+  $('hand').textContent = q.h.code;
+  $('handkind').textContent = q.h.bucketName;
+
+  const useRng = filters.grade === 'rng';
+  $('rng').hidden = !useRng;
+  if (useRng) $('rnum').textContent = roll;
+
+  const acts = $('acts');
+  acts.innerHTML = '';
+  q.acts.forEach((a, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'act ' + a.id;
+    b.innerHTML = `${a.name}<small>${i + 1}</small>`;
+    b.addEventListener('click', () => answer(a.id));
+    acts.appendChild(b);
+  });
+  $('hint').textContent = useRng
+    ? 'Press 1, 2 or 3. The bands run left to right in the order shown.'
+    : 'Press 1, 2 or 3.';
 }
 
-function render() {
-  const heroes = HERO_ORDER.filter((h) => SPOT_DATA.some((s) => s.hero === h));
-  if (!heroes.includes(state.hero)) state.hero = heroes[0];
-  const fams = FAM_ORDER.filter((f) => SPOT_DATA.some((s) => s.hero === state.hero && s.fam === f.id));
-  if (!fams.some((f) => f.id === state.fam)) state.fam = fams[0].id;
-  const opts = branch();
-  if (!opts.some((s) => s.vs === state.vs)) state.vs = opts[0] ? opts[0].vs : null;
+/** Which action the roll lands in, reading the bands left to right. */
+function bandFor(q, roll) {
+  let edge = 0;
+  for (const a of q.acts) {
+    edge += a.pct;
+    if (roll <= edge) return a.id;
+  }
+  return q.acts[q.acts.length - 1].id;
+}
 
-  const sp = spot();
-  if (!sp) return;
-  if (state.size >= sp.sizes.length) state.size = 0;
-  const size = sp.sizes[state.size];
-  const now = decode(size.g);
+function answer(pick) {
+  if (answered || !current) return;
+  answered = true;
+  const { q, roll } = current;
+  const chosen = q.acts.find((a) => a.id === pick);
+  const best = q.acts.reduce((m, a) => (a.pct > m.pct ? a : m), q.acts[0]);
+  const target = filters.grade === 'rng' ? bandFor(q, roll) : best.id;
+  const right = pick === target;
+  const targetAct = q.acts.find((a) => a.id === target);
 
-  seg('hero-seg', heroes.map((h) => ({ label: h, v: h })),
-    (it) => it.v === state.hero, (it) => { state.hero = it.v; state.size = 0; render(); });
+  session.n++;
+  session.sum += chosen.pct;
+  if (right) { session.good++; session.streak++; session.best = Math.max(session.best, session.streak); }
+  else session.streak = 0;
 
-  seg('fam-seg', FAM_ORDER.map((f) => ({
-      label: f.label, v: f.id,
-      off: !SPOT_DATA.some((s) => s.hero === state.hero && s.fam === f.id),
-    })),
-    (it) => it.v === state.fam, (it) => { state.fam = it.v; state.size = 0; render(); });
+  life.n++;
+  life.sum += chosen.pct;
+  if (right) life.good++;
+  life.best = Math.max(life.best, session.streak);
+  const key = q.h.code;
+  const rec = life.byHand[key] || (life.byHand[key] = { n: 0, right: 0 });
+  rec.n++;
+  if (right) rec.right++;
+  save();
 
-  seg('vs-seg', opts.map((o) => ({ label: o.vs, v: o.vs })),
-    (it) => it.v === state.vs, (it) => { state.vs = it.v; state.size = 0; render(); });
-
-  seg('size-seg', sp.sizes.map((z, i) => ({ label: z.face, v: i })),
-    (it) => it.v === state.size, (it) => { state.size = it.v; render(); });
-
-  seg('bucket-seg', BUCKETS.map((b) => ({ label: b.name, v: b.id })),
-    (it) => it.v === state.bucket,
-    (it) => { state.bucket = (state.bucket === it.v) ? null : it.v; render(); });
-
-  // Say which bucket is live even when the control is folded shut.
-  const active = BUCKETS.find((b) => b.id === state.bucket);
-  $('isolate').classList.toggle('on', !!active);
-  $('isolate-summary').textContent = active ? `Isolating ${active.name}` : 'Isolate a bucket';
-
-  let n = 0, raiseW = 0, jamW = 0, callW = 0, foldW = 0;
-  cells.forEach((b, i) => {
-    const c = now[i];
-    b.style.background = paint(c);
-    b.classList.toggle('oor', !!c.oor);
-    b.classList.toggle('dim', !!state.bucket && c.h.bucket !== state.bucket);
-    b.setAttribute('aria-label', c.oor
-      ? `${c.h.code}: not in our opening range`
-      : `${c.h.code}: ${c.r + c.j}% ${c.j > c.r ? 'jam' : 'raise'}, ${c.c}% call, ${c.f}% fold`);
-    b.onmouseenter = () => detail(c);
-    b.onfocus = () => detail(c);
-    b.onblur = clearDetail;
-    if (!c.oor) { n++; raiseW += c.r; jamW += c.j; callW += c.c; foldW += c.f; }
+  [...$('acts').children].forEach((b, i) => {
+    b.disabled = true;
+    if (q.acts[i].id === pick) b.classList.add('picked');
   });
 
-  $('spot-title').innerHTML = `${sp.title}<span class="sub">${size.sub}</span>`;
-  $('ours').textContent = size.ours;
-  $('ours-label').textContent = OURS_LABEL[sp.fam];
-  $('ours-sub').textContent = size.sub;
+  const v = $('verdict');
+  v.className = 'verdict ' + (right ? 'good' : 'bad');
+  v.innerHTML = (right ? 'Correct' : 'Not this time') +
+    `<small>${filters.grade === 'rng'
+      ? `${roll} lands in ${targetAct.name.toLowerCase()}. You played ${chosen.name.toLowerCase()}, which the solver takes ${chosen.pct}% of the time.`
+      : `The solver's most frequent action is ${targetAct.name.toLowerCase()} at ${targetAct.pct}%. You played ${chosen.name.toLowerCase()} at ${chosen.pct}%.`}</small>`;
 
-  // The jam entry doubles as the legend for the purple, so it only shows up
-  // in the spots that actually have one.
-  const d = n || 1;
-  const bits = [];
-  if (raiseW / d >= 0.05) bits.push(`<span class="k r"></span>${(raiseW / d).toFixed(1)}% raise`);
-  if (jamW / d >= 0.05) bits.push(`<span class="k j"></span>${(jamW / d).toFixed(1)}% jam`);
-  bits.push(`<span class="k c"></span>${(callW / d).toFixed(1)}% call`);
-  bits.push(`<span class="k f"></span>${(foldW / d).toFixed(1)}% fold`);
-  $('mix').innerHTML = bits.join('');
+  const bars = $('bars');
+  bars.innerHTML = '';
+  let edge = 0;
+  q.acts.forEach((a) => {
+    const start = edge; edge += a.pct;
+    const row = document.createElement('div');
+    row.className = 'bar ' + a.id + (a.id === pick ? ' chosen' : '');
+    const pin = (filters.grade === 'rng' && roll > start && roll <= edge)
+      ? `<span class="pin" style="left:${((roll - start) / Math.max(a.pct, 1)) * 100}%"></span>` : '';
+    row.innerHTML = `<span class="nm">${a.name}</span>` +
+      `<span class="tr"><span class="fl" style="width:${a.pct}%"></span>${pin}</span>` +
+      `<span class="pc">${a.pct}%</span>`;
+    bars.appendChild(row);
+  });
 
-  $('notes').textContent = sp.note || '';
+  $('answer').hidden = false;
+  $('next').focus();
+  paintStats();
 }
 
-$('grid').addEventListener('mouseleave', clearDetail);
+/* ---- stats -------------------------------------------------------------- */
+function paintStats() {
+  $('s-acc').textContent = session.n ? Math.round(session.sum / session.n) + '%' : '—';
+  $('s-n').textContent = session.n;
+  $('s-good').textContent = session.n ? `${session.good} (${Math.round(100 * session.good / session.n)}%)` : '0';
+  $('s-streak').textContent = session.streak;
+  $('s-best').textContent = session.best;
 
-render();
-clearDetail();
+  $('l-n').textContent = life.n.toLocaleString();
+  $('l-acc').textContent = life.n ? Math.round(life.sum / life.n) + '%' : '—';
+  $('l-good').textContent = life.n ? Math.round(100 * life.good / life.n) + '%' : '—';
+  $('l-best').textContent = life.best;
+
+  const worst = Object.entries(life.byHand)
+    .filter(([, r]) => r.n >= 3)
+    .map(([code, r]) => ({ code, n: r.n, pct: Math.round(100 * r.right / r.n) }))
+    .sort((a, b) => a.pct - b.pct || b.n - a.n)
+    .slice(0, 8);
+  const box = $('worst');
+  box.innerHTML = '';
+  if (!worst.length) {
+    box.innerHTML = '<p class="none">Hands you miss will collect here once you have seen them a few times.</p>';
+    return;
+  }
+  worst.forEach((w) => {
+    const d = document.createElement('div');
+    d.innerHTML = `<code>${w.code}</code><span>${w.pct}% right · ${w.n} seen</span>`;
+    box.appendChild(d);
+  });
+}
+
+/* ---- wiring ------------------------------------------------------------- */
+$('next').addEventListener('click', nextHand);
+$('reset-session').addEventListener('click', () => {
+  session.n = session.sum = session.good = session.streak = session.best = 0;
+  paintStats();
+});
+$('reset-life').addEventListener('click', () => {
+  if (!confirm('Clear your lifetime drill stats? This cannot be undone.')) return;
+  life = { n: 0, sum: 0, good: 0, best: 0, byHand: {} };
+  save();
+  paintStats();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!answered && current) {
+    const i = ['1','2','3'].indexOf(e.key);
+    if (i >= 0 && current.q.acts[i]) { e.preventDefault(); answer(current.q.acts[i].id); return; }
+  }
+  if (answered && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); nextHand(); }
+});
+
+buildFilters();
+paintStats();
+nextHand();
 
 })();
 </script>
