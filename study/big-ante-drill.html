@@ -150,6 +150,16 @@
     white-space: nowrap; line-height: 1.4;
   }
   .chip i { width: 1.05cqw; height: 1.05cqw; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f2e7cd, #cdb87f 70%); display: block; }
+  .chip[hidden] { display: none; }   /* the display rule above outranks the hidden attribute */
+  .chip.mine { transition: background .18s ease, border-color .18s ease, color .18s ease; }
+  .chip.mine.committed {
+    background: rgba(21,34,25,.92); border-color: rgba(167,220,165,.55); color: var(--accent);
+  }
+  .chip.mine.committed i { background: radial-gradient(circle at 35% 30%, #dff3dd, #7cb87a 70%); }
+
+  .seat.hero .cards { transition: opacity .2s ease, filter .2s ease; }
+  .seat.hero.folded .cards { opacity: .2; filter: grayscale(1); }
+  .seat.hero.folded .plate { opacity: .5; }
 
   .dealer {
     position: absolute; transform: translate(-50%,-50%); z-index: 3;
@@ -204,7 +214,7 @@
   .b { display: grid; grid-template-columns: 52px 1fr 42px; align-items: center; gap: 8px; font-size: 12.5px; }
   .b .nm { text-align: right; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; }
   .b .tr { height: 11px; border-radius: 3px; background: var(--sunk); overflow: hidden; position: relative; }
-  .b .fl { height: 100%; }
+  .b .fl { display: block; height: 100%; }
   .b .pin { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); border-radius: 1px; }
   .b .pc { text-align: left; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
   .b.raise .fl { background: var(--raise); }
@@ -663,7 +673,7 @@ function scenario(q) {
   }));
 
   return {
-    seats, pot, toCall, heroSeat, vsSeat,
+    seats, pot, toCall, heroSeat, vsSeat, heroWager: wager[heroSeat],
     line: `${q.sp.vs} ${verb} ${bb(face)}bb`,
     heroAction,
   };
@@ -725,13 +735,15 @@ function drawTable(q, cards) {
       `<div class="stack">${bb(s.stack)}</div></div>`;
     stage.appendChild(el);
 
-    if (s.wager > 0) {
+    const isHero = s.role === 'hero';
+    if (s.wager > 0 || isHero) {
       const c = pullIn(p, p.step === 0 ? 0.50 : p.step === 3 ? 0.72 : 0.62);
       const chip = document.createElement('div');
-      chip.className = 'chip';
+      chip.className = 'chip' + (isHero ? ' mine' : '');
       chip.style.left = c.x + '%';
       chip.style.top = c.y + '%';
       chip.innerHTML = `<i></i>${bb(s.wager)}`;
+      if (s.wager <= 0) chip.hidden = true;
       stage.appendChild(chip);
     }
 
@@ -906,8 +918,8 @@ function nextHand() {
   const roll = 1 + Math.floor(Math.random() * 100);
   const cards = dealSuits(q.h);
   current = { q, roll };
-
-  const sc = drawTable(q, cards);
+  current.sc = drawTable(q, cards);
+  const sc = current.sc;
 
   $('rng').hidden = false;
   $('rnum').textContent = roll;
@@ -926,8 +938,26 @@ function nextHand() {
     b.addEventListener('click', () => answer(a.id));
     acts.appendChild(b);
   });
-  $('hint').textContent = 'Keys 1, 2, 3 left to right.';
+  $('hint').textContent = 'Keys Q, W, E left to right.';
   frameTable();
+}
+
+/** Put our action on the felt the way a client would: chips out in front for
+    a call or a raise, cards dead for a fold. */
+function showOnTable(pick) {
+  const stage = $('stage');
+  const hero = stage.querySelector('.seat.hero');
+  const mine = stage.querySelector('.chip.mine');
+  if (!hero || !mine) return;
+  if (pick === 'fold') { hero.classList.add('folded'); return; }
+  const { sc, q } = current;
+  const total = pick === 'call' ? sc.heroWager + sc.toCall
+    : pick === 'jam' ? START - ANTE
+    : parseFloat(q.z.ours);
+  mine.hidden = false;
+  mine.classList.add('committed');
+  mine.innerHTML = `<i></i>${pick === 'jam' ? 'ALL IN' : bb(total)}`;
+  hero.querySelector('.stack').textContent = bb(START - ANTE - total);
 }
 
 /** Which action the roll lands in. Bands run fold, then call, then raise, so
@@ -967,6 +997,7 @@ function answer(pick) {
     b.disabled = true;
     if (q.acts[i].id === pick) b.classList.add('picked');
   });
+  showOnTable(pick);
 
   const v = $('verdict');
   v.className = 'verdict ' + (right ? 'good' : 'bad');
@@ -1041,7 +1072,7 @@ $('reset-life').addEventListener('click', () => {
 document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (!answered && current) {
-    const i = ['1','2','3'].indexOf(e.key);
+    const i = ['q','w','e'].indexOf(e.key.toLowerCase());
     if (i >= 0 && current.q.acts[i]) { e.preventDefault(); answer(current.q.acts[i].id); return; }
   }
   if (answered && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); nextHand(); }
