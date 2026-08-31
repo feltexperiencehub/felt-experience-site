@@ -782,7 +782,7 @@ const $ = (id) => document.getElementById(id);
 const LIFE_KEY = 'fe-bigante-drill-v1';
 
 const filters = { hero: new Set(), fam: new Set(), vs: new Set(), size: new Set(), bucket: new Set(),
-                  mode: 'decisions', grade: 'rng' };
+                  mode: 'all', grade: 'rng' };
 
 const session = { n: 0, sum: 0, good: 0, streak: 0, best: 0 };
 let life = load();
@@ -868,8 +868,8 @@ function buildFilters() {
   multi('f-size', sizes.map((s) => ({ label: s, v: s })), filters.size, redraw);
   multi('f-bucket', BUCKETS.map((b) => ({ label: b.name, v: b.id })), filters.bucket, redraw);
   single('f-mode', [
-      { label: 'Mixed only', v: 'decisions', title: 'Only hands the solver splits between two or more actions' },
-      { label: 'Every hand', v: 'all', title: 'Also ask hands with a single 100% action, most of them pure folds' }],
+      { label: 'Every hand', v: 'all', title: 'Every hand that reaches the spot, pure folds included' },
+      { label: 'Mixes only', v: 'decisions', title: 'Only hands the solver splits between two or more actions' }],
     () => filters.mode, (v) => { filters.mode = v; redraw(); });
   single('f-grade', [
       { label: 'Randomiser', v: 'rng', title: 'Play the band your number lands in' },
