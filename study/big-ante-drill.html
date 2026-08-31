@@ -238,11 +238,6 @@
   .stat b { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-variant-numeric: tabular-nums; }
   .stat span { color: var(--muted); }
   .big2 { font-family: var(--font-head); font-size: 31px; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--accent); }
-  .worst { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
-  .worst div { display: flex; justify-content: space-between; gap: 8px; }
-  .worst code { font-family: 'IBM Plex Mono', monospace; color: var(--ink); }
-  .worst span { color: var(--muted); font-variant-numeric: tabular-nums; }
-  .none { color: var(--faint); font-size: 12.5px; margin: 0; }
   .foot { margin: 20px 0 0; font-size: 12.5px; color: var(--faint); }
   .foot a { color: var(--muted); }
 
@@ -322,10 +317,6 @@
         <button class="btn ghost" id="reset-life">Clear lifetime</button>
       </div>
 
-      <div class="card">
-        <h2>Leaks</h2>
-        <div class="worst" id="worst"></div>
-      </div>
     </div>
   </div>
 
@@ -804,10 +795,10 @@ function load() {
     const raw = localStorage.getItem(LIFE_KEY);
     if (raw) {
       const v = JSON.parse(raw);
-      return { n: v.n || 0, sum: v.sum || 0, good: v.good || 0, best: v.best || 0, byHand: v.byHand || {} };
+      return { n: v.n || 0, sum: v.sum || 0, good: v.good || 0, best: v.best || 0 };
     }
   } catch (e) { /* storage can be unavailable; carry on in memory */ }
-  return { n: 0, sum: 0, good: 0, best: 0, byHand: {} };
+  return { n: 0, sum: 0, good: 0, best: 0 };
 }
 function save() {
   try { localStorage.setItem(LIFE_KEY, JSON.stringify(life)); } catch (e) { /* ignore */ }
@@ -987,10 +978,6 @@ function answer(pick) {
   life.sum += chosen.pct;
   if (right) life.good++;
   life.best = Math.max(life.best, session.streak);
-  const key = q.h.code;
-  const rec = life.byHand[key] || (life.byHand[key] = { n: 0, right: 0 });
-  rec.n++;
-  if (right) rec.right++;
   save();
 
   [...$('acts').children].forEach((b, i) => {
@@ -1040,23 +1027,6 @@ function paintStats() {
   $('l-acc').textContent = life.n ? Math.round(life.sum / life.n) + '%' : '—';
   $('l-good').textContent = life.n ? Math.round(100 * life.good / life.n) + '%' : '—';
   $('l-best').textContent = life.best;
-
-  const worst = Object.entries(life.byHand)
-    .filter(([, r]) => r.n >= 3)
-    .map(([code, r]) => ({ code, n: r.n, pct: Math.round(100 * r.right / r.n) }))
-    .sort((a, b) => a.pct - b.pct || b.n - a.n)
-    .slice(0, 8);
-  const box = $('worst');
-  box.innerHTML = '';
-  if (!worst.length) {
-    box.innerHTML = '<p class="none">Hands you miss will collect here once you have seen them a few times.</p>';
-    return;
-  }
-  worst.forEach((w) => {
-    const d = document.createElement('div');
-    d.innerHTML = `<code>${w.code}</code><span>${w.pct}% right · ${w.n} seen</span>`;
-    box.appendChild(d);
-  });
 }
 
 /* ---- wiring ------------------------------------------------------------- */
@@ -1067,7 +1037,7 @@ $('reset-session').addEventListener('click', () => {
 });
 $('reset-life').addEventListener('click', () => {
   if (!confirm('Clear your lifetime drill stats? This cannot be undone.')) return;
-  life = { n: 0, sum: 0, good: 0, best: 0, byHand: {} };
+  life = { n: 0, sum: 0, good: 0, best: 0 };
   save();
   paintStats();
 });
