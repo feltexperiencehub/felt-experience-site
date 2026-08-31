@@ -1011,8 +1011,11 @@ function answer(pick) {
     const start = edge; edge += a.pct;
     const row = document.createElement('div');
     row.className = 'b ' + a.id + (a.id === pick ? ' chosen' : '');
+    // The band spans a.pct roll points and its fill is a.pct% of the track, so
+    // one roll point is one percent of the track. Scaling to the band instead
+    // pushed the mark past the end of the fill on anything short of a pure 100%.
     const pin = (roll > start && roll <= edge)
-      ? `<span class="pin" style="left:${((roll - start) / Math.max(a.pct, 1)) * 100}%"></span>` : '';
+      ? `<span class="pin" style="left:${roll - start}%"></span>` : '';
     row.innerHTML = `<span class="nm">${a.name}</span>` +
       `<span class="tr"><span class="fl" style="width:${a.pct}%"></span>${pin}</span>` +
       `<span class="pc">${a.pct}%</span>`;
