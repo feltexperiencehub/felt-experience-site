@@ -1,8 +1,16 @@
-<title>Big Ante Drill</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Big Ante Drill – Felt Experience Poker</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-
+</head>
+<body>
 <style>
   /* Table styling follows the replayer's, so the two feel like one product. */
   :root {
@@ -304,6 +312,8 @@
 </div>
 
 <script>
+(function(){
+"use strict";
 /* Big Ante — strategies read off the solver screenshots.
    Per size: 169 cells of "raise.jam.call"; fold is the remainder. `X` = the hand
    is not in our opening range. `!` = one of six cells a cursor covered in the
@@ -544,8 +554,6 @@ const SPOT_DATA = [
   },
 ];
 
-</script>
-<script>
 /* ===========================================================================
    Big Ante drill.
 
@@ -673,11 +681,16 @@ function cardSVG(rank, suit) {
   </svg>`;
 }
 
-/* Seat k sits 60 degrees round from hero, who is at the bottom. */
+/* Hero sits at the bottom and the rest follow clockwise, the way the action
+   actually moves: the button is one seat clockwise from the cutoff, then the
+   small blind, then the big blind. */
+const ring = (deg, rx, ry) => {
+  const t = deg * Math.PI / 180;
+  return { x: 50 + rx * Math.cos(t), y: 47 + ry * Math.sin(t) };
+};
 function place(i, heroIdx) {
   const step = ((i - heroIdx) % 6 + 6) % 6;
-  const t = (90 - 60 * step) * Math.PI / 180;
-  return { x: 50 + 39 * Math.cos(t), y: 47 + 36 * Math.sin(t) };
+  return { ...ring(90 + 60 * step, 39, 36), deg: 90 + 60 * step, step };
 }
 const pullIn = (p, k) => ({ x: 50 + (p.x - 50) * k, y: 47 + (p.y - 47) * k });
 
@@ -703,8 +716,7 @@ function drawTable(q, cards) {
     stage.appendChild(el);
 
     if (s.wager > 0) {
-      const step = ((i - heroIdx) % 6 + 6) % 6;
-      const c = pullIn(p, step === 0 ? 0.50 : step === 3 ? 0.72 : 0.62);
+      const c = pullIn(p, p.step === 0 ? 0.50 : p.step === 3 ? 0.72 : 0.62);
       const chip = document.createElement('div');
       chip.className = 'chip';
       chip.style.left = c.x + '%';
@@ -714,10 +726,10 @@ function drawTable(q, cards) {
     }
 
     if (s.seat === 'BTN') {
-      const d = pullIn(p, 0.79);
+      const d = pullIn(ring(p.deg + 20, 39, 36), 0.66);
       const btn = document.createElement('div');
       btn.className = 'dealer';
-      btn.style.left = (d.x - 5) + '%';
+      btn.style.left = d.x + '%';
       btn.style.top = d.y + '%';
       btn.textContent = 'D';
       stage.appendChild(btn);
@@ -1024,4 +1036,8 @@ buildFilters();
 paintStats();
 nextHand();
 
+})();
 </script>
+
+</body>
+</html>
