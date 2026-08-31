@@ -838,7 +838,8 @@ function single(id, items, get, set) {
   });
 }
 
-/** A hand worth asking about: not a pure single action. */
+/** A hand the solver plays more than one way. The rest have a single 100%
+    action, and most of those are pure folds. */
 const isDecision = (q) => q.acts.filter((a) => a.pct > 0).length > 1;
 
 function pool() {
@@ -867,8 +868,8 @@ function buildFilters() {
   multi('f-size', sizes.map((s) => ({ label: s, v: s })), filters.size, redraw);
   multi('f-bucket', BUCKETS.map((b) => ({ label: b.name, v: b.id })), filters.bucket, redraw);
   single('f-mode', [
-      { label: 'Decisions only', v: 'decisions', title: 'Skip hands with a single pure action' },
-      { label: 'Everything', v: 'all', title: 'Include pure folds and pure raises' }],
+      { label: 'Mixed only', v: 'decisions', title: 'Only hands the solver splits between two or more actions' },
+      { label: 'Every hand', v: 'all', title: 'Also ask hands with a single 100% action, most of them pure folds' }],
     () => filters.mode, (v) => { filters.mode = v; redraw(); });
   single('f-grade', [
       { label: 'Randomiser', v: 'rng', title: 'Play the band your number lands in' },
@@ -878,7 +879,10 @@ function buildFilters() {
   const active = filters.hero.size + filters.fam.size + filters.vs.size + filters.size.size + filters.bucket.size;
   $('filters').classList.toggle('on', active > 0);
   $('filters-summary').textContent = active ? `Filters (${active} active)` : 'Filters';
-  $('pool').textContent = `${pool().length.toLocaleString()} hands in the pool`;
+  const n = pool().length.toLocaleString();
+  $('pool').textContent = filters.mode === 'decisions'
+    ? `${n} hands in the pool · only the ones the solver splits between actions`
+    : `${n} hands in the pool · also the ones with a single 100% action, mostly pure folds`;
 }
 
 /* ---- a question --------------------------------------------------------- */
