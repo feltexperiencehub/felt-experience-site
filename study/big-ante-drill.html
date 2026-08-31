@@ -263,7 +263,6 @@
       <div class="frow"><span class="lbl" id="f4">Size</span><div class="seg" role="group" aria-labelledby="f4" id="f-size"></div></div>
       <div class="frow"><span class="lbl" id="f5">Bucket</span><div class="seg" role="group" aria-labelledby="f5" id="f-bucket"></div></div>
       <div class="frow"><span class="lbl" id="f6">Hands</span><div class="seg" role="group" aria-labelledby="f6" id="f-mode"></div></div>
-      <div class="frow"><span class="lbl" id="f7">Grading</span><div class="seg" role="group" aria-labelledby="f7" id="f-grade"></div></div>
       <p class="pool" id="pool"></p>
     </div>
   </details>
@@ -573,8 +572,7 @@ const SPOT_DATA = [
    right play is whichever band the number lands in. The bands run in the same
    order as the buttons, fold then call then raise, so the aggressive action
    always sits at the TOP of the range: a hand that raises 8% raises on 93-100.
-   High roll, aggressive play. "Most frequent" is there for anyone who would
-   rather just learn the dominant action.
+   High roll, aggressive play.
    =========================================================================== */
 
 const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
@@ -782,7 +780,7 @@ const $ = (id) => document.getElementById(id);
 const LIFE_KEY = 'fe-bigante-drill-v1';
 
 const filters = { hero: new Set(), fam: new Set(), vs: new Set(), size: new Set(), bucket: new Set(),
-                  mode: 'all', grade: 'rng' };
+                  mode: 'all' };
 
 const session = { n: 0, sum: 0, good: 0, streak: 0, best: 0 };
 let life = load();
@@ -871,11 +869,6 @@ function buildFilters() {
       { label: 'Every hand', v: 'all', title: 'Every hand that reaches the spot, pure folds included' },
       { label: 'Mixes only', v: 'decisions', title: 'Only hands the solver splits between two or more actions' }],
     () => filters.mode, (v) => { filters.mode = v; redraw(); });
-  single('f-grade', [
-      { label: 'Randomiser', v: 'rng', title: 'Play the band your number lands in' },
-      { label: 'Most frequent', v: 'top', title: 'Play the action the solver takes most often' }],
-    () => filters.grade, (v) => { filters.grade = v; redraw(); });
-
   const active = filters.hero.size + filters.fam.size + filters.vs.size + filters.size.size + filters.bucket.size;
   $('filters').classList.toggle('on', active > 0);
   $('filters-summary').textContent = active ? `Filters (${active} active)` : 'Filters';
@@ -915,9 +908,8 @@ function nextHand() {
 
   const sc = drawTable(q, cards);
 
-  const useRng = filters.grade === 'rng';
-  $('rng').hidden = !useRng;
-  if (useRng) $('rnum').textContent = roll;
+  $('rng').hidden = false;
+  $('rnum').textContent = roll;
 
   const acts = $('acts');
   acts.innerHTML = '';
@@ -953,9 +945,7 @@ function answer(pick) {
   answered = true;
   const { q, roll } = current;
   const chosen = q.acts.find((a) => a.id === pick);
-  const best = q.acts.reduce((m, a) => (a.pct > m.pct ? a : m), q.acts[0]);
-  const target = filters.grade === 'rng' ? bandFor(q, roll) : best.id;
-  const right = pick === target;
+  const right = pick === bandFor(q, roll);
 
   session.n++;
   session.sum += chosen.pct;
@@ -989,7 +979,7 @@ function answer(pick) {
     const start = edge; edge += a.pct;
     const row = document.createElement('div');
     row.className = 'b ' + a.id + (a.id === pick ? ' chosen' : '');
-    const pin = (filters.grade === 'rng' && roll > start && roll <= edge)
+    const pin = (roll > start && roll <= edge)
       ? `<span class="pin" style="left:${((roll - start) / Math.max(a.pct, 1)) * 100}%"></span>` : '';
     row.innerHTML = `<span class="nm">${a.name}</span>` +
       `<span class="tr"><span class="fl" style="width:${a.pct}%"></span>${pin}</span>` +
