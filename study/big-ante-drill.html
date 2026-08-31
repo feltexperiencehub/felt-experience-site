@@ -86,10 +86,10 @@
   .tablewrap {
     /* Sized from the height actually left over once the header, the buttons and
        the result panel have taken theirs, so a short laptop window still shows
-       the whole table without scrolling. 212px is that fixed furniture. */
+       the whole table without scrolling. 250px is that fixed furniture. */
     position: relative; margin-inline: auto; container-type: inline-size;
-    width: min(100%, max(480px, (100vh - 212px) * 800 / 490));
-    width: min(100%, max(480px, (100dvh - 212px) * 800 / 490));
+    width: min(100%, max(480px, (100vh - 250px) * 800 / 490));
+    width: min(100%, max(480px, (100dvh - 250px) * 800 / 490));
     aspect-ratio: 800 / 490;
     background: radial-gradient(ellipse 90% 70% at 50% 42%, #1a211c 0%, #111513 78%);
     border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
@@ -195,6 +195,7 @@
     display: flex; align-items: center; justify-content: center;
     gap: 24px; flex-wrap: wrap; margin-top: 16px;
   }
+  .answer[hidden] { display: none; }   /* the display rule above outranks the hidden attribute */
   .verdict { font-family: var(--font-head); font-weight: 700; font-size: 20px; margin: 0; text-align: left; }
   .verdict.good { color: var(--good); }
   .verdict.bad { color: var(--bad); }
@@ -875,7 +876,7 @@ function buildFilters() {
   const n = pool().length.toLocaleString();
   $('pool').textContent = filters.mode === 'decisions'
     ? `${n} hands in the pool · only the ones the solver splits between actions`
-    : `${n} hands in the pool · also the ones with a single 100% action, mostly pure folds`;
+    : `${n} hands in the pool`;
 }
 
 /* ---- a question --------------------------------------------------------- */
