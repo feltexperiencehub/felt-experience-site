@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Big Ante Drill – Felt Experience Poker</title>
+<title>Big Ante Preflop Drill – Felt Experience Poker</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,10 +33,10 @@
 
   .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
   h1 {
-    font-family: var(--font-head); font-weight: 600; font-size: 24px;
-    letter-spacing: .26em; margin: 0; color: var(--ink);
+    font-family: var(--font-head); font-weight: 700;
+    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em;
+    margin: 0; color: var(--ink);
   }
-  h1 b { color: var(--accent); font-weight: 600; }
   .top a { font-size: 13px; color: var(--muted); text-decoration: none; }
   .top a:hover { color: var(--accent); }
 
@@ -113,13 +113,6 @@
     letter-spacing: .1em; text-transform: uppercase; color: rgba(238,241,236,.72);
     white-space: nowrap; z-index: 3; text-shadow: 0 1px 6px rgba(0,0,0,.8);
   }
-  .wordmark {
-    position: absolute; left: 50%; top: 58%; transform: translate(-50%,-50%);
-    font-family: var(--font-head); font-weight: 700; font-size: 3.1cqw;
-    letter-spacing: .42em; color: rgba(167,220,165,.13); white-space: nowrap;
-    user-select: none; padding-left: .42em;
-  }
-
   .pot { position: absolute; left: 50%; top: 32%; transform: translate(-50%,-50%); text-align: center; z-index: 3; }
   .pot .lb { font-family: var(--font-head); font-size: 1.3cqw; font-weight: 600; letter-spacing: .4em; color: var(--gold); padding-left: .4em; }
   .pot .amt { font-size: 3.2cqw; font-weight: 700; color: #eef1ec; font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0,0,0,.7); line-height: 1.15; }
@@ -161,17 +154,20 @@
   }
 
   /* ---- action bar ---- */
-  .bar { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
   .act {
-    appearance: none; border: 1px solid var(--line); border-radius: 10px;
+    appearance: none; border: 1px solid var(--line); border-radius: 12px;
     background: linear-gradient(180deg, #232a24, #191e1a); color: var(--ink); cursor: pointer;
-    font-family: var(--font-head); font-weight: 600; font-size: 16px;
-    padding: 12px 26px; min-width: 124px; position: relative;
-    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    font-family: var(--font-head); font-weight: 600; font-size: 21px;
+    padding: 15px 34px; min-width: 168px; position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
   }
   .act:hover:not([disabled]) { border-color: var(--muted); }
-  .act small { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 400; color: var(--faint); letter-spacing: .08em; }
-  .act::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; }
+  .act small {
+    font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500;
+    color: var(--muted); letter-spacing: .03em; font-variant-numeric: tabular-nums;
+  }
+  .act::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; }
   .act.raise::before { background: var(--raise); }
   .act.jam::before { background: var(--jam); }
   .act.call::before { background: var(--call); }
@@ -234,11 +230,18 @@
     .lbl { min-width: 0; }
     .tablewrap { aspect-ratio: 800 / 520; }
   }
+  /* Keep fold, call and raise on one line however narrow it gets, since the
+     order is what tells you which band is which. */
+  @media (max-width: 620px) {
+    #acts { width: 100%; gap: 7px !important; }
+    .act { min-width: 0; flex: 1 1 0; padding: 13px 6px; font-size: 18px; }
+    .act small { font-size: 13px; }
+  }
 </style>
 
 <div class="shell">
   <div class="top">
-    <h1><b>FELT</b> EXPERIENCE DRILL</h1>
+    <h1>Big Ante Preflop Drill</h1>
     <a href="/study/big-ante-explorer">Back to the explorer</a>
   </div>
 
@@ -262,7 +265,6 @@
         <div class="stage" id="stage">
           <div class="rail"></div>
           <div class="felt"></div>
-          <div class="wordmark">FELT EXPERIENCE</div>
           <div class="pot"><div class="lb">POT</div><div class="amt" id="pot">—</div></div>
         </div>
         <div class="rng" id="rng" hidden>RNG<b id="rnum">—</b></div>
