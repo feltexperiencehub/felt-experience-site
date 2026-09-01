@@ -19,9 +19,9 @@ REPLAY= "https://replayer.feltexperiencepoker.com"
 # than dropping a first-time visitor on an empty paste box.
 HERO_HAND = REPLAY + "/?h=PZCxagQxDET_RfVgJNna2y3ThaQ6CGmMi5AN7MGRwN3_Q5AsFoEs3iB7PF3BYAi4mHcsEPQuoNefxx9BmEEv-_tOkIGuoM_b_f51-1WCiBYD0UCvJ6-EbSlqoOvxcbjWTq0RpNWyzh07ueU7TpeTLoR1Lc3xCEvsJsOEQIIxKnigM1qelqcTLReLFkRSUS9XZCoCja_5_dUrmeasqWvoG7ZkmnNNvXqMY4Cuz8uh3297fVJYnPHN8GYmbl2ha9ksVqSwjX8"
 STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"      # $149/mo coaching group
-BUY2   = "https://buy.stripe.com/4gMbJ282n8xCfLu2P65kk03"     # 2 sessions, $680
-BUY5   = "https://buy.stripe.com/7sY9AU5UfbJO0QA89q5kk04"     # Silver, $1,600
-BUY10  = "https://buy.stripe.com/aFa9AU4Qb3diarablC5kk05"     # Gold, $3,000
+BUY2   = "https://buy.stripe.com/cNi00kbez9BGarablC5kk06"     # 2 sessions, $680
+BUY5   = "https://buy.stripe.com/9B614ogyT4hm1UE89q5kk07"     # Silver, $1,600
+BUY10  = "https://buy.stripe.com/7sYdRa6YjaFKczigFW5kk08"     # Gold, $3,000
 MAIL  = "feltexperiencepoker@gmail.com"
 
 NAV = [(YT,"YouTube"),("coaching.html","Coaching"),("staking.html","Staking"),
