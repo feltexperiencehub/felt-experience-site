@@ -19,9 +19,9 @@ REPLAY= "https://replayer.feltexperiencepoker.com"
 # than dropping a first-time visitor on an empty paste box.
 HERO_HAND = REPLAY + "/?h=PZCxagQxDET_RfVgJNna2y3ThaQ6CGmMi5AN7MGRwN3_Q5AsFoEs3iB7PF3BYAi4mHcsEPQuoNefxx9BmEEv-_tOkIGuoM_b_f51-1WCiBYD0UCvJ6-EbSlqoOvxcbjWTq0RpNWyzh07ueU7TpeTLoR1Lc3xCEvsJsOEQIIxKnigM1qelqcTLReLFkRSUS9XZCoCja_5_dUrmeasqWvoG7ZkmnNNvXqMY4Cuz8uh3297fVJYnPHN8GYmbl2ha9ksVqSwjX8"
 STRIPE= "https://buy.stripe.com/9B68wQ2I35lq2YIgFW5kk01"      # $149/mo coaching group
-BUY2   = "https://buy.stripe.com/4gMbJ282n8xCfLu2P65kk03"     # 2 sessions, $625
-BUY5   = "https://buy.stripe.com/7sY9AU5UfbJO0QA89q5kk04"     # Silver, $1,500
-BUY10  = "https://buy.stripe.com/aFa9AU4Qb3diarablC5kk05"     # Gold, $2,750
+BUY2   = "https://buy.stripe.com/4gMbJ282n8xCfLu2P65kk03"     # 2 sessions, $680
+BUY5   = "https://buy.stripe.com/7sY9AU5UfbJO0QA89q5kk04"     # Silver, $1,600
+BUY10  = "https://buy.stripe.com/aFa9AU4Qb3diarablC5kk05"     # Gold, $3,000
 MAIL  = "feltexperiencepoker@gmail.com"
 
 NAV = [(YT,"YouTube"),("coaching.html","Coaching"),("staking.html","Staking"),
@@ -193,7 +193,7 @@ coaching = f"""
   <div class="path hi">
     <div class="who">Most direct</div>
     <h2>1-on-1 Coaching</h2>
-    <div class="price">From $625</div>
+    <div class="price">From $680</div>
     <p>Your database, your hands, your leaks. For serious 50NL&ndash;1kNL players who want the spots
        costing them money found and fixed rather than explained in general.</p>
     <a class="btn p" href="{TG}" target="_blank" rel="noopener">Ask about 1-on-1</a>
@@ -223,17 +223,17 @@ coaching = f"""
   <div class="cards">
     <div class="card">
       <div class="tier">2 Sessions</div><div class="count">Minimum booking</div>
-      <div class="money"><div class="price2">$625</div><div class="per">$312.50 per session</div></div>
+      <div class="money"><div class="price2">$680</div><div class="per">$340 per session</div></div>
       <a class="btn s" href="{BUY2}" target="_blank" rel="noopener">Book 2 Sessions</a>
     </div>
     <div class="card s">
       <div class="tier">Silver Package</div><div class="count">5 sessions</div>
-      <div class="money"><div class="price2">$1,500</div><div class="per">$300 per session</div></div>
+      <div class="money"><div class="price2">$1,600</div><div class="per">$320 per session</div></div>
       <a class="btn s" href="{BUY5}" target="_blank" rel="noopener">Book Silver Package</a>
     </div>
     <div class="card g">
       <div class="tier">Gold Package</div><div class="count">10 sessions</div>
-      <div class="money"><div class="price2">$2,750</div><div class="per">$275 per session</div>
+      <div class="money"><div class="price2">$3,000</div><div class="per">$300 per session</div>
         <div class="extra">Includes 6 months in my private Discord group with monthly live calls and
           ongoing hand discussions</div></div>
       <a class="btn s" href="{BUY10}" target="_blank" rel="noopener">Book Gold Package</a>
@@ -366,9 +366,9 @@ refunds = f"""
   {RULE}
   <h2>1-on-1 coaching packages</h2>
   <p class="sub">Unused sessions are refundable within 60 days of purchase. Completed sessions are
-     charged at the single-session rate of $312.50, and the balance is returned.</p>
+     charged at the single-session rate of $340, and the balance is returned.</p>
   <p class="sub">For example: if you buy the Gold Package and decide after three sessions that it
-     isn't working for you, those three are charged at $312.50 each and the remaining $1,812.50
+     isn't working for you, those three are charged at $340 each and the remaining $1,980
      is refunded.</p>
   <p class="sub">Sessions are valid for 12 months from the date of purchase.</p>
 
