@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Big Ante Drill – Felt Experience Poker</title>
+<title>Big Ante Preflop Drill – Felt Experience Poker</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -193,12 +193,30 @@
   .act.picked { border-color: var(--ink); opacity: 1; }
   .rng {
     position: absolute; right: 1.7cqw; bottom: 1.4cqw; z-index: 5;
+    appearance: none; cursor: pointer; font-family: inherit;
     font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 1.42cqw;
     letter-spacing: .12em; color: var(--muted); background: rgba(13,18,15,.8);
     border: 1px solid rgba(255,255,255,.2); border-radius: 1cqw; padding: .7cqw 1.3cqw;
     font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.35;
   }
   .rng b { font-size: 1.8cqw; font-weight: 600; letter-spacing: 0; margin-left: .6cqw; color: #fff; }
+  .rng:hover { border-color: rgba(255,255,255,.45); }
+  .rng:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rng i { font-style: normal; color: var(--faint); margin-left: .5cqw; font-size: 1.2cqw; }
+
+  .rngrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .rngrow .lbl { min-width: 74px; }
+  .rngnum {
+    width: 74px; background: var(--sunk); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    padding: 6px 9px; text-align: center;
+  }
+  .rngnum:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rngnote {
+    margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line);
+    font-size: 12.5px; color: var(--muted); line-height: 1.5;
+  }
+  .rngnote b { color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
 
   /* ---- answer ---- */
   .answer {
@@ -246,6 +264,7 @@
     background: rgba(7,10,8,.84); backdrop-filter: blur(3px);
   }
   .modal[hidden] { display: none; }
+  .sheet.narrow { width: min(430px, 94vw) !important; }
   .sheet {
     position: relative; background: var(--panel); border: 1px solid var(--line);
     border-radius: 14px; padding: 16px 18px 18px;
@@ -351,7 +370,8 @@
           <div class="felt"></div>
           <div class="pot"><div class="lb">POT</div><div class="amt" id="pot">—</div></div>
         </div>
-        <div class="rng" id="rng" hidden>RNG<b id="rnum">—</b></div>
+        <button type="button" class="rng" id="rng" hidden
+                aria-label="Randomiser settings">RNG<b id="rnum">—</b><i id="rngrange"></i></button>
       </div>
 
       <div class="bar" id="bar">
@@ -392,6 +412,25 @@
   </div>
 
   <p class="foot"><a href="https://feltexperiencepoker.com" target="_blank" rel="noopener">Felt Experience Poker</a></p>
+</div>
+
+<div class="modal" id="rng-modal" hidden role="dialog" aria-modal="true" aria-labelledby="rng-title">
+  <div class="sheet narrow">
+    <button class="x" id="rng-close" aria-label="Close">&times;</button>
+    <h2 class="rtitle" id="rng-title">Randomiser</h2>
+    <p class="rsub">How the number is drawn, and which end of it is aggressive.</p>
+    <div class="rngrow">
+      <span class="lbl" id="rl1">1 up to</span>
+      <div class="seg" role="group" aria-labelledby="rl1" id="rng-max"></div>
+      <input class="rngnum" id="rng-custom" type="number" min="2" max="100" step="1"
+             aria-label="Custom highest number">
+    </div>
+    <div class="rngrow">
+      <span class="lbl" id="rl2">Aggressive</span>
+      <div class="seg" role="group" aria-labelledby="rl2" id="rng-dir"></div>
+    </div>
+    <p class="rngnote" id="rng-note"></p>
+  </div>
 </div>
 
 <div class="modal" id="range-modal" hidden role="dialog" aria-modal="true" aria-labelledby="range-title">
@@ -674,11 +713,14 @@ const SPOT_DATA = [
    Big Ante drill.
 
    Grading follows how you would actually run a mixed strategy at the table:
-   you get a number from 1 to 100, the actions are laid out in bands, and the
-   right play is whichever band the number lands in. The bands run in the same
-   order as the buttons, fold then call then raise, so the aggressive action
-   always sits at the TOP of the range: a hand that raises 8% raises on 93-100.
-   High roll, aggressive play.
+   you draw a number, the actions are laid out in bands, and the right play is
+   whichever band the number lands in. By default the draw is 1 to 100 and the
+   aggressive action sits at the TOP of the range, so a hand that raises 8%
+   raises on 93-100. Both the size of the range and which end is aggressive are
+   settings, since people randomise off all sorts of things at the table.
+
+   A roll is mapped to a percentile at the midpoint of its slice, so the same
+   band edges work whether the draw is 1 to 100 or 1 to 12.
    =========================================================================== */
 
 const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
@@ -759,10 +801,15 @@ function scenario(q) {
   const toCall = wager[vsSeat] - wager[heroSeat];
 
   const verb = fam === 'rfi' ? 'raises to' : fam === 'vs3b' ? '3-bets to' : 'isolates to';
+  /* Only facing an open is anyone still to come: the seats after us have not
+     acted yet. Once we have opened or limped, the action has already passed
+     everyone else and come back to us, so they have all folded. */
+  const heroIdx = RING.indexOf(heroSeat);
+  const yetToAct = (p) => fam === 'rfi' && RING.indexOf(p) > heroIdx;
   const seats = RING.map((p) => ({
     seat: p,
     label: (p === 'UTG' && (q.sp.vs === 'EP' || q.sp.hero === 'EP')) ? 'EP' : p,
-    role: p === heroSeat ? 'hero' : p === vsSeat ? 'aggro' : wager[p] > 0 ? 'live' : 'out',
+    role: p === heroSeat ? 'hero' : p === vsSeat ? 'aggro' : yetToAct(p) ? 'live' : 'out',
     wager: wager[p],
     stack: START - ANTE - wager[p],
   }));
@@ -811,7 +858,7 @@ const pullIn = (p, k) => ({ x: 50 + (p.x - 50) * k, y: 47 + (p.y - 47) * k });
 
 function drawTable(q, cards) {
   const sc = scenario(q);
-  const heroIdx = RING.indexOf(sc.heroSeat);
+  const heroIdx = RING.indexOf(sc.heroSeat);   // seat ring position, for layout
   const stage = $('stage');
   [...stage.querySelectorAll('.seat,.chip,.dealer,.line')].forEach((n) => n.remove());
 
@@ -886,6 +933,32 @@ SPOT_DATA.forEach((sp) => {
 
 const $ = (id) => document.getElementById(id);
 const LIFE_KEY = 'fe-bigante-drill-v1';
+const RNG_KEY = 'fe-bigante-rng-v1';
+
+/* ---- the randomiser ----------------------------------------------------- */
+const rng = { max: 100, highAgg: true };
+(function loadRng() {
+  try {
+    const v = JSON.parse(localStorage.getItem(RNG_KEY) || 'null');
+    if (v && Number.isFinite(v.max)) rng.max = Math.min(100, Math.max(2, Math.round(v.max)));
+    if (v && typeof v.highAgg === 'boolean') rng.highAgg = v.highAgg;
+  } catch (e) { /* storage can be unavailable; the defaults stand */ }
+})();
+const saveRng = () => {
+  try { localStorage.setItem(RNG_KEY, JSON.stringify(rng)); } catch (e) { /* ignore */ }
+};
+
+const drawRoll = () => 1 + Math.floor(Math.random() * rng.max);
+/** Where a roll sits on the 0-100 scale: the middle of the slice it owns. */
+const pctOf = (roll) => ((roll - 0.5) / rng.max) * 100;
+/** Bands run from the passive end to the aggressive end, or the reverse. */
+const bandOrder = (acts) => (rng.highAgg ? acts : [...acts].reverse());
+/** How far along the 0-100 scale a given action's band begins. */
+function bandStart(acts, id) {
+  let edge = 0;
+  for (const a of bandOrder(acts)) { if (a.id === id) return edge; edge += a.pct; }
+  return edge;
+}
 
 const filters = { hero: new Set(), fam: new Set(), vs: new Set(), size: new Set(), bucket: new Set(),
                   mode: 'all' };
@@ -1014,14 +1087,14 @@ function nextHand() {
     return;
   }
   const q = p[Math.floor(Math.random() * p.length)];
-  const roll = 1 + Math.floor(Math.random() * 100);
+  const roll = drawRoll();
   const cards = dealSuits(q.h);
   current = { q, roll };
   current.sc = drawTable(q, cards);
   const sc = current.sc;
 
   $('rng').hidden = false;
-  $('rnum').textContent = roll;
+  showRoll(roll);
 
   const acts = $('acts');
   acts.innerHTML = '';
@@ -1059,15 +1132,16 @@ function showOnTable(pick) {
   hero.querySelector('.stack').textContent = bb(START - ANTE - total);
 }
 
-/** Which action the roll lands in. Bands run fold, then call, then raise, so
-    a hand that raises 8% raises on 93-100. */
+/** Which action the roll lands in, reading the bands from the passive end. */
 function bandFor(q, roll) {
+  const p = pctOf(roll);
+  const order = bandOrder(q.acts);
   let edge = 0;
-  for (const a of q.acts) {
+  for (const a of order) {
     edge += a.pct;
-    if (roll <= edge) return a.id;
+    if (p <= edge) return a.id;
   }
-  return q.acts[q.acts.length - 1].id;
+  return order[order.length - 1].id;
 }
 
 function answer(pick) {
@@ -1101,16 +1175,16 @@ function answer(pick) {
 
   const bars = $('bars');
   bars.innerHTML = '';
-  let edge = 0;
+  const p100 = pctOf(roll);
   q.acts.forEach((a) => {
-    const start = edge; edge += a.pct;
+    const start = bandStart(q.acts, a.id), edge = start + a.pct;
     const row = document.createElement('div');
     row.className = 'b ' + a.id + (a.id === pick ? ' chosen' : '');
-    // The band spans a.pct roll points and its fill is a.pct% of the track, so
-    // one roll point is one percent of the track. Scaling to the band instead
-    // pushed the mark past the end of the fill on anything short of a pure 100%.
-    const pin = (roll > start && roll <= edge)
-      ? `<span class="pin" style="left:${roll - start}%"></span>` : '';
+    // The band spans a.pct points of the 0-100 scale and its fill is a.pct% of
+    // the track, so one point is one percent of the track. Scaling to the band
+    // instead pushed the mark past the end of the fill on anything short of pure.
+    const pin = (p100 > start && p100 <= edge)
+      ? `<span class="pin" style="left:${p100 - start}%"></span>` : '';
     row.innerHTML = `<span class="nm">${a.name}</span>` +
       `<span class="tr"><span class="fl" style="width:${a.pct}%"></span>${pin}</span>` +
       `<span class="pc">${a.pct}%</span>`;
@@ -1166,6 +1240,72 @@ const rcells = [];
   });
 })();
 
+/* ---- randomiser settings ------------------------------------------------ */
+/** The compact readout: the raw draw, plus its range when it is not the 1-100
+    default, so the number is never ambiguous. */
+function showRoll(roll) {
+  $('rnum').textContent = roll;
+  $('rngrange').textContent = rng.max === 100 ? '' : '/ ' + rng.max;
+}
+
+/** Which draws send a hand with this much aggression to the aggressive action.
+    Used to state the current setting in plain numbers rather than describing it. */
+function aggRolls(pct) {
+  const probe = [{ id: 'fold', pct: 100 - pct }, { id: 'call', pct: 0 }, { id: 'agg', pct }];
+  const hits = [];
+  for (let r = 1; r <= rng.max; r++) {
+    const p = pctOf(r);
+    let edge = 0, id = null;
+    for (const a of bandOrder(probe)) { edge += a.pct; if (p <= edge) { id = a.id; break; } }
+    if ((id || 'agg') === 'agg') hits.push(r);
+  }
+  return hits;
+}
+
+function paintRngNote() {
+  const hits = aggRolls(8);
+  const span = !hits.length ? 'never'
+    : hits.length === 1 ? `only on <b>${hits[0]}</b>`
+    : `on <b>${hits[0]} to ${hits[hits.length - 1]}</b>`;
+  $('rng-note').innerHTML =
+    `Drawing <b>1 to ${rng.max}</b>, ${rng.highAgg ? 'high' : 'low'} is aggressive. ` +
+    `A hand the solver raises 8% of the time raises ${span}` +
+    (hits.length ? `, which is ${Math.round(1000 * hits.length / rng.max) / 10}% of the draws.` : '.');
+}
+
+function buildRngPanel() {
+  single('rng-max', [10, 20, 50, 100].map((v) => ({ label: String(v), v })),
+    () => rng.max, (v) => setRng({ max: v }));
+  single('rng-dir', [
+      { label: 'High', v: true, title: 'The aggressive action sits at the top of the range' },
+      { label: 'Low', v: false, title: 'The aggressive action sits at the bottom of the range' }],
+    () => rng.highAgg, (v) => setRng({ highAgg: v }));
+  const box = $('rng-custom');
+  if (document.activeElement !== box) box.value = rng.max;
+  paintRngNote();
+}
+
+function setRng(patch) {
+  Object.assign(rng, patch);
+  rng.max = Math.min(100, Math.max(2, Math.round(rng.max)));
+  saveRng();
+  buildRngPanel();
+  // A live question may be holding a draw from the old range, so take a new one.
+  if (current && !answered) { current.roll = drawRoll(); showRoll(current.roll); }
+}
+
+function openRngSettings() {
+  buildRngPanel();
+  lastFocus = document.activeElement;
+  $('rng-modal').hidden = false;
+  $('rng-close').focus();
+}
+function closeRngSettings() {
+  if ($('rng-modal').hidden) return;
+  $('rng-modal').hidden = true;
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+}
+
 let lastFocus = null;
 
 function openRange() {
@@ -1210,6 +1350,7 @@ function closeRange() {
   else if (!$('answer').hidden) $('next').focus();
 }
 const rangeOpen = () => !$('range-modal').hidden;
+const modalOpen = () => rangeOpen() || !$('rng-modal').hidden;
 
 /* ---- stats -------------------------------------------------------------- */
 function paintStats() {
@@ -1238,15 +1379,24 @@ $('reset-life').addEventListener('click', () => {
   paintStats();
 });
 
+$('rng').addEventListener('click', openRngSettings);
+$('rng-close').addEventListener('click', closeRngSettings);
+$('rng-modal').addEventListener('click', (e) => { if (e.target === $('rng-modal')) closeRngSettings(); });
+$('rng-custom').addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  if (Number.isFinite(v) && v >= 2 && v <= 100) setRng({ max: v });
+});
+$('rng-custom').addEventListener('blur', () => buildRngPanel());
+
 $('show-range').addEventListener('click', openRange);
 $('range-close').addEventListener('click', closeRange);
 $('range-modal').addEventListener('click', (e) => { if (e.target === $('range-modal')) closeRange(); });
 
 document.addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if (rangeOpen()) {
-    if (e.key === 'Escape') { e.preventDefault(); closeRange(); }
-    return;                                    // nothing else while it is up
+  if (modalOpen()) {
+    if (e.key === 'Escape') { e.preventDefault(); closeRange(); closeRngSettings(); }
+    return;                                    // nothing else while one is up
   }
   if (e.key === 'r' || e.key === 'R') { if (answered) { e.preventDefault(); openRange(); } return; }
   if (!answered && current) {
@@ -1257,6 +1407,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 buildFilters();
+buildRngPanel();
 paintStats();
 nextHand();
 
