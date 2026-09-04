@@ -418,7 +418,7 @@
   <div class="sheet narrow">
     <button class="x" id="rng-close" aria-label="Close">&times;</button>
     <h2 class="rtitle" id="rng-title">Randomiser</h2>
-    <p class="rsub">How the number is drawn, and which end of it is aggressive.</p>
+    <p class="rsub">How the number is rolled, and which end of it is aggressive.</p>
     <div class="rngrow">
       <span class="lbl" id="rl1">1 up to</span>
       <div class="seg" role="group" aria-labelledby="rl1" id="rng-max"></div>
@@ -713,14 +713,14 @@ const SPOT_DATA = [
    Big Ante drill.
 
    Grading follows how you would actually run a mixed strategy at the table:
-   you draw a number, the actions are laid out in bands, and the right play is
-   whichever band the number lands in. By default the draw is 1 to 100 and the
+   you roll a number, the actions are laid out in bands, and the right play is
+   whichever band the number lands in. By default the roll is 1 to 100 and the
    aggressive action sits at the TOP of the range, so a hand that raises 8%
    raises on 93-100. Both the size of the range and which end is aggressive are
    settings, since people randomise off all sorts of things at the table.
 
    A roll is mapped to a percentile at the midpoint of its slice, so the same
-   band edges work whether the draw is 1 to 100 or 1 to 12.
+   band edges work whether the roll is 1 to 100 or 1 to 12.
    =========================================================================== */
 
 const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
@@ -948,7 +948,7 @@ const saveRng = () => {
   try { localStorage.setItem(RNG_KEY, JSON.stringify(rng)); } catch (e) { /* ignore */ }
 };
 
-const drawRoll = () => 1 + Math.floor(Math.random() * rng.max);
+const rollOnce = () => 1 + Math.floor(Math.random() * rng.max);
 /** Where a roll sits on the 0-100 scale: the middle of the slice it owns. */
 const pctOf = (roll) => ((roll - 0.5) / rng.max) * 100;
 /** Bands run from the passive end to the aggressive end, or the reverse. */
@@ -1087,7 +1087,7 @@ function nextHand() {
     return;
   }
   const q = p[Math.floor(Math.random() * p.length)];
-  const roll = drawRoll();
+  const roll = rollOnce();
   const cards = dealSuits(q.h);
   current = { q, roll };
   current.sc = drawTable(q, cards);
@@ -1241,14 +1241,14 @@ const rcells = [];
 })();
 
 /* ---- randomiser settings ------------------------------------------------ */
-/** The compact readout: the raw draw, plus its range when it is not the 1-100
+/** The compact readout: the raw roll, plus its range when it is not the 1-100
     default, so the number is never ambiguous. */
 function showRoll(roll) {
   $('rnum').textContent = roll;
   $('rngrange').textContent = rng.max === 100 ? '' : '/ ' + rng.max;
 }
 
-/** Which draws send a hand with this much aggression to the aggressive action.
+/** Which rolls send a hand with this much aggression to the aggressive action.
     Used to state the current setting in plain numbers rather than describing it. */
 function aggRolls(pct) {
   const probe = [{ id: 'fold', pct: 100 - pct }, { id: 'call', pct: 0 }, { id: 'agg', pct }];
@@ -1268,9 +1268,9 @@ function paintRngNote() {
     : hits.length === 1 ? `only on <b>${hits[0]}</b>`
     : `on <b>${hits[0]} to ${hits[hits.length - 1]}</b>`;
   $('rng-note').innerHTML =
-    `Drawing <b>1 to ${rng.max}</b>, ${rng.highAgg ? 'high' : 'low'} is aggressive. ` +
+    `Rolling <b>1 to ${rng.max}</b>, ${rng.highAgg ? 'high' : 'low'} is aggressive. ` +
     `A hand the solver raises 8% of the time raises ${span}` +
-    (hits.length ? `, which is ${Math.round(1000 * hits.length / rng.max) / 10}% of the draws.` : '.');
+    (hits.length ? `, which is ${Math.round(1000 * hits.length / rng.max) / 10}% of the rolls.` : '.');
 }
 
 function buildRngPanel() {
@@ -1290,8 +1290,8 @@ function setRng(patch) {
   rng.max = Math.min(100, Math.max(2, Math.round(rng.max)));
   saveRng();
   buildRngPanel();
-  // A live question may be holding a draw from the old range, so take a new one.
-  if (current && !answered) { current.roll = drawRoll(); showRoll(current.roll); }
+  // A live question may be holding a roll from the old range, so take a new one.
+  if (current && !answered) { current.roll = rollOnce(); showRoll(current.roll); }
 }
 
 function openRngSettings() {
