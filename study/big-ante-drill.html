@@ -8,7 +8,7 @@
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
 </head>
 <body>
 <style>
@@ -292,19 +292,28 @@
   }
   .rsub { margin: 0 40px 12px 0; font-size: 12.5px; color: var(--muted); }
   .rsub b { color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
-  .raxis, .rgrid { display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px; }
+  /* Same treatment as the explorer's grid: sized off the grid rather than the
+     viewport, set in Inter, and in the top left so the label sits on one band
+     of the fill instead of straddling two. */
+  .raxis, .rgrid {
+    display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px;
+    container-type: inline-size;
+  }
   .raxis { margin-bottom: 3px; }
   .raxis span {
-    text-align: center; font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; color: var(--faint);
+    text-align: center; font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500; letter-spacing: .02em;
+    font-size: clamp(9px, 1.35cqw, 13px); color: var(--faint);
   }
   .rcell {
     aspect-ratio: 1; border-radius: 3px; position: relative; overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'IBM Plex Mono', monospace; font-size: clamp(7px, 1.35vw, 11px);
-    font-weight: 500; letter-spacing: -.02em; color: #fff;
+    display: flex; align-items: flex-start; justify-content: flex-start;
+    padding: .3em 0 0 .4em;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(10px, 2.3cqw, 16px);
+    font-weight: 500; letter-spacing: .02em; color: #fff;
   }
-  .rcell span { position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,.65); }
+  .rcell span { position: relative; z-index: 2; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
   .rcell.oor { background: var(--sunk); color: var(--faint); }
   .rcell.oor span { text-shadow: none; opacity: .5; }
   .rcell.you {
