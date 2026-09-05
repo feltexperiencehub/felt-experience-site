@@ -8,7 +8,7 @@
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
 </head>
 <body>
 <style>
@@ -131,12 +131,12 @@
   }
   .axis, .grid { display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr)); gap: 2px; min-width: 500px; }
   .axis { margin-bottom: 4px; }
-  .axis span { text-align: center; font-family: Montserrat, ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: clamp(10px, 1.35cqw, 14px); color: var(--faint); }
+  .axis span { text-align: center; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 500; letter-spacing: .02em; font-size: clamp(10px, 1.35cqw, 14px); color: var(--faint); }
 
   .cell {
     appearance: none; border: 0; aspect-ratio: 1; border-radius: 4px;
-    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(11px, 2.3cqw, 17px); font-weight: 600; letter-spacing: -.03em;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(11px, 2.3cqw, 17px); font-weight: 500; letter-spacing: .02em;
     /* Top left like Wizard. With the fills running left to right a centred
        label often straddles a colour boundary; this one sits on a single band. */
     display: flex; align-items: flex-start; justify-content: flex-start;
@@ -145,7 +145,7 @@
     color: #fff; transition: opacity .15s ease, transform .1s ease;
   }
   .cell:hover { transform: translateY(-1px); z-index: 4; }
-  .cell .t { position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
+  .cell .t { position: relative; z-index: 2; text-shadow: 0 1px 1px rgba(0,0,0,.3); }
   .cell.oor { color: var(--faint); }
   .cell.oor .t { text-shadow: none; opacity: .55; }
   .cell.dim { opacity: .15; }
