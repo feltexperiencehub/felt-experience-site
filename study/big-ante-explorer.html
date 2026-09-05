@@ -114,18 +114,33 @@
   .mix .k.c { background: var(--call); }
   .mix .k.f { background: var(--fold); }
 
-  /* Sizing the labels off the grid's own width rather than the viewport, so
-     they grow with the cells instead of staying small once the column is wide. */
-  .gridwrap { overflow-x: auto; container-type: inline-size; }
+  /* The grid is square, so at full column width it runs well below the fold on
+     a laptop. Cap it by the height actually available, and let the labels keep
+     a floor so shrinking the grid does not shrink them out of readability. */
+  .gridwrap {
+    overflow-x: auto; container-type: inline-size; margin-inline: auto;
+    max-width: min(100%, max(660px, 100vh - 250px));
+    max-width: min(100%, max(660px, 100dvh - 250px));
+  }
+  /* The heading and legend track the grid's width so they line up with its
+     edges rather than the full card. */
+  .gridhead {
+    margin-inline: auto;
+    max-width: min(100%, max(660px, 100vh - 250px));
+    max-width: min(100%, max(660px, 100dvh - 250px));
+  }
   .axis, .grid { display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr)); gap: 2px; min-width: 500px; }
   .axis { margin-bottom: 4px; }
-  .axis span { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: clamp(10px, 1.2cqw, 14px); color: var(--faint); }
+  .axis span { text-align: center; font-family: Montserrat, ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: clamp(10px, 1.35cqw, 14px); color: var(--faint); }
 
   .cell {
     appearance: none; border: 0; aspect-ratio: 1; border-radius: 4px;
-    font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: clamp(10px, 1.55cqw, 17px); font-weight: 600; letter-spacing: -.02em;
-    display: flex; align-items: center; justify-content: center;
+    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(11px, 2.3cqw, 17px); font-weight: 600; letter-spacing: -.03em;
+    /* Top left like Wizard. With the fills running left to right a centred
+       label often straddles a colour boundary; this one sits on a single band. */
+    display: flex; align-items: flex-start; justify-content: flex-start;
+    padding: .35em 0 0 .45em;
     cursor: pointer; position: relative; overflow: hidden;
     color: #fff; transition: opacity .15s ease, transform .1s ease;
   }
