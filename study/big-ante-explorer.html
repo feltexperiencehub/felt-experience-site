@@ -114,15 +114,17 @@
   .mix .k.c { background: var(--call); }
   .mix .k.f { background: var(--fold); }
 
-  .gridwrap { overflow-x: auto; }
+  /* Sizing the labels off the grid's own width rather than the viewport, so
+     they grow with the cells instead of staying small once the column is wide. */
+  .gridwrap { overflow-x: auto; container-type: inline-size; }
   .axis, .grid { display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr)); gap: 2px; min-width: 500px; }
   .axis { margin-bottom: 4px; }
-  .axis span { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: var(--faint); }
+  .axis span { text-align: center; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: clamp(10px, 1.2cqw, 14px); color: var(--faint); }
 
   .cell {
     appearance: none; border: 0; aspect-ratio: 1; border-radius: 4px;
     font-family: 'IBM Plex Mono', ui-monospace, monospace;
-    font-size: clamp(9px, .92vw, 11.5px); font-weight: 500; letter-spacing: -.02em;
+    font-size: clamp(10px, 1.55cqw, 17px); font-weight: 600; letter-spacing: -.02em;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; position: relative; overflow: hidden;
     color: #fff; transition: opacity .15s ease, transform .1s ease;
