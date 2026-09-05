@@ -239,8 +239,8 @@ coaching = f"""
       <a class="btn s" href="{BUY10}" target="_blank" rel="noopener">Book Gold Package</a>
     </div>
   </div>
-  <div class="mid-note">Not sure which fits? Message me first and we'll work it out.</div>
-  <div class="mid"><a class="btn s" href="{TG}" target="_blank" rel="noopener">Ask about 1-on-1 coaching &rarr;</a></div>
+  <div class="mid-note">Unused sessions are refundable within 60 days. <a href="/refunds">Full terms</a><br>
+    Questions before you book? <a href="{TG}" target="_blank" rel="noopener">Message me on Telegram</a>.</div>
 
   {RULE}
   <h2>The Coaching Group</h2>
