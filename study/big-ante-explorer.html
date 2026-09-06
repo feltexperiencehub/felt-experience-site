@@ -87,21 +87,6 @@
 
   .cols { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; align-items: start; }
 
-  /* ---- isolate, folded away until wanted ---- */
-  .isolate { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 1px; }
-  .isolate > summary {
-    cursor: pointer; list-style: none; width: fit-content;
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
-  }
-  .isolate > summary::-webkit-details-marker { display: none; }
-  .isolate > summary::before { content: "\25B8"; display: inline-block; margin-right: 7px; transition: transform .15s ease; }
-  .isolate[open] > summary::before { transform: rotate(90deg); }
-  .isolate > summary:hover { color: var(--muted); }
-  .isolate > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
-  .isolate .seg { margin-top: 9px; }
-  .isolate.on > summary { color: var(--call); }
-
   /* ---- grid ---- */
   .gridhead { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
   .gridhead strong { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; }
@@ -148,7 +133,6 @@
   .cell .t { position: relative; z-index: 2; text-shadow: 0 1px 1px rgba(0,0,0,.3); }
   .cell.oor { color: var(--faint); }
   .cell.oor .t { text-shadow: none; opacity: .55; }
-  .cell.dim { opacity: .15; }
 
   /* ---- rail ---- */
   .rail { display: flex; flex-direction: column; gap: 16px; }
@@ -198,10 +182,6 @@
     <div class="prow">
       <div class="grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
     </div>
-    <details class="isolate" id="isolate">
-      <summary><span id="isolate-summary">Isolate a bucket</span></summary>
-      <div class="seg" role="group" aria-label="Isolate a bucket" id="bucket-seg"></div>
-    </details>
   </div>
 
   <div class="cols">
@@ -562,19 +542,6 @@ for (let i = 0; i < 13; i++) {
   }
 }
 
-/* Buckets follow the sheets' one-combo-one-bucket order. */
-const BUCKETS = [
-  { id: 'pairs',  name: 'Pairs',               test: (h) => h.kind === 'pair' },
-  { id: 'sbway',  name: 'Suited Broadways',    test: (h) => h.kind === 's' && h.lo >= 10 },
-  { id: 'sblock', name: 'Suited Blockers',     test: (h) => h.kind === 's' && h.hi >= 12 && h.lo <= 9 },
-  { id: 'sconn',  name: 'Suited Connectivity', test: (h) => h.kind === 's' && h.hi <= 11 && h.lo <= 9 && h.gap <= 2 },
-  { id: 'sdis',   name: 'Disconnected Suited', test: (h) => h.kind === 's' && h.hi <= 11 && h.lo <= 9 && h.gap > 2 },
-  { id: 'obway',  name: 'Offsuit Broadways',   test: (h) => h.kind === 'o' && h.lo >= 10 },
-  { id: 'oblock', name: 'Offsuit Blockers',    test: (h) => h.kind === 'o' && h.hi >= 12 && h.lo <= 9 },
-  { id: 'oconn',  name: 'Offsuit Ladders',     test: (h) => h.kind === 'o' && h.hi <= 11 && h.lo <= 9 },
-];
-HANDS.forEach((h) => { h.bucket = (BUCKETS.find((b) => b.test(h)) || { id: 'other' }).id; });
-
 function decode(row) {
   return row.split(',').map((tok, n) => {
     const h = HANDS[n];
@@ -629,7 +596,7 @@ const OOR_LABEL = {
 const oorText = (fam) => `Not in our ${OOR_LABEL[fam] || 'opening'} range`;
 const GAME_KEY = 'fe-bigante-game-v1';
 
-const state = { game: '6max', hero: 'SB', fam: 'rfi', vs: null, size: 0, bucket: null };
+const state = { game: '6max', hero: 'SB', fam: 'rfi', vs: null, size: 0 };
 try { const v = localStorage.getItem(GAME_KEY); if (v && GAME_LABEL[v]) state.game = v; }
 catch (e) { /* storage can be unavailable; the default stands */ }
 
@@ -740,21 +707,11 @@ function render() {
   seg('size-seg', sp.sizes.map((z, i) => ({ label: z.face, v: i })),
     (it) => it.v === state.size, (it) => { state.size = it.v; render(); });
 
-  seg('bucket-seg', BUCKETS.map((b) => ({ label: b.name, v: b.id })),
-    (it) => it.v === state.bucket,
-    (it) => { state.bucket = (state.bucket === it.v) ? null : it.v; render(); });
-
-  // Say which bucket is live even when the control is folded shut.
-  const active = BUCKETS.find((b) => b.id === state.bucket);
-  $('isolate').classList.toggle('on', !!active);
-  $('isolate-summary').textContent = active ? `Isolating ${active.name}` : 'Isolate a bucket';
-
   let n = 0, raiseW = 0, jamW = 0, callW = 0, foldW = 0;
   cells.forEach((b, i) => {
     const c = now[i];
     b.style.background = paint(c);
     b.classList.toggle('oor', !!c.oor);
-    b.classList.toggle('dim', !!state.bucket && c.h.bucket !== state.bucket);
     b.setAttribute('aria-label', c.oor
       ? `${c.h.code}: ${oorText(sp.fam).toLowerCase()}`
       : `${c.h.code}: ${c.r + c.j}% ${c.j > c.r ? 'jam' : 'raise'}, ${c.c}% call, ${c.f}% fold`);
