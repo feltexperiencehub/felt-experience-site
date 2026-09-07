@@ -657,7 +657,9 @@ const OOR_LABEL = {
 const oorText = (fam) => `Not in our ${OOR_LABEL[fam] || 'opening'} range`;
 const GAME_KEY = 'fe-bigante-game-v1';
 
-const state = { game: '6max', hero: 'SB', fam: 'rfi', vs: null, size: 0 };
+/* The size is held by its face rather than its index, so switching who
+   opened keeps you on the same price where the new spot has one. */
+const state = { game: '6max', hero: 'SB', fam: 'rfi', vs: null, face: null };
 try { const v = localStorage.getItem(GAME_KEY); if (v && GAME_LABEL[v]) state.game = v; }
 catch (e) { /* storage can be unavailable; the default stands */ }
 
@@ -738,8 +740,13 @@ function render() {
 
   const sp = spot();
   if (!sp) return;
-  if (state.size >= sp.sizes.length) state.size = 0;
-  const size = sp.sizes[state.size];
+  /* Comparing 3x from the cutoff against 3x from the button is the whole
+     point of switching raiser, so hold the face across the change and only
+     fall back to the smallest when the new spot does not offer it. */
+  let si = sp.sizes.findIndex((z) => z.face === state.face);
+  if (si < 0) si = 0;
+  state.face = sp.sizes[si].face;
+  const size = sp.sizes[si];
   const now = decode(size.g);
 
   seg('game-seg', Object.entries(GAME_LABEL).map(([v, label]) => ({ label, v })),
@@ -747,26 +754,26 @@ function render() {
     (it) => {
       state.game = it.v;
       try { localStorage.setItem(GAME_KEY, it.v); } catch (e) { /* ignore */ }
-      state.vs = null; state.size = 0;
+      state.vs = null;
       const first = inGame()[0];
       state.hero = first.hero; state.fam = first.fam;
       render();
     });
 
   seg('hero-seg', heroes.map((h) => ({ label: h, v: h })),
-    (it) => it.v === state.hero, (it) => { state.hero = it.v; state.size = 0; render(); });
+    (it) => it.v === state.hero, (it) => { state.hero = it.v; render(); });
 
   seg('fam-seg', FAM_ORDER.filter((f) => here.some((s) => s.fam === f.id)).map((f) => ({
       label: f.label, v: f.id,
       off: !here.some((s) => s.hero === state.hero && s.fam === f.id),
     })),
-    (it) => it.v === state.fam, (it) => { state.fam = it.v; state.size = 0; render(); });
+    (it) => it.v === state.fam, (it) => { state.fam = it.v; render(); });
 
   seg('vs-seg', opts.map((o) => ({ label: o.vs, v: o.vs })),
-    (it) => it.v === state.vs, (it) => { state.vs = it.v; state.size = 0; render(); });
+    (it) => it.v === state.vs, (it) => { state.vs = it.v; render(); });
 
-  seg('size-seg', sp.sizes.map((z, i) => ({ label: z.face, v: i })),
-    (it) => it.v === state.size, (it) => { state.size = it.v; render(); });
+  seg('size-seg', sp.sizes.map((z) => ({ label: z.face, v: z.face })),
+    (it) => it.v === state.face, (it) => { state.face = it.v; render(); });
 
   let n = 0, raiseW = 0, jamW = 0, callW = 0, foldW = 0;
   cells.forEach((b, i) => {
