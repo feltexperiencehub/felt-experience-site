@@ -144,7 +144,10 @@ ul.ticks li b{color:#fff;font-weight:600}
 
 /* ---------- about ---------- */
 .about{border-top:1px solid var(--line);margin-top:66px;padding-top:42px;
-  display:grid;grid-template-columns:.75fr 1.25fr;gap:40px}
+  display:grid;grid-template-columns:.6fr auto 1.4fr;gap:40px;align-items:start}
+/* the flyer photo is a circle with a ring baked in, so the source is cropped
+   inside that ring and the round edge comes from here instead */
+.about-photo img{width:150px;height:150px;border-radius:50%;object-fit:cover;display:block}
 .about p{color:#c9d2cb;font-size:16.5px;line-height:1.65}
 
 /* ---------- footer ---------- */
