@@ -193,7 +193,7 @@ coaching = f"""
   <div class="path">
     <div class="who">Most direct</div>
     <h2>1-on-1 Coaching</h2>
-    <div class="price">From $680</div>
+    <div class="price">$300 to $340 per session</div>
     <p>Your database, your hands, your leaks. For serious 50NL&ndash;1kNL players who want the spots
        costing them money found and fixed rather than explained in general.</p>
     <a class="btn s" href="#one-on-one">See 1-on-1 details</a>
