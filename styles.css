@@ -142,6 +142,9 @@ ul.ticks li b{color:#fff;font-weight:600}
 .qcard cite{display:block;margin-top:14px;font-style:normal;font-size:14px;font-weight:600;color:var(--accent)}
 .attrib{color:var(--muted);font-size:14.5px;margin-top:20px}
 
+/* the nav is sticky, so an anchored heading would otherwise land underneath it */
+h2[id]{scroll-margin-top:124px}
+
 /* ---------- about ---------- */
 .about{border-top:1px solid var(--line);margin-top:66px;padding-top:42px;
   display:grid;grid-template-columns:.6fr auto 1.4fr;gap:40px;align-items:start}
@@ -181,4 +184,6 @@ footer .foot-meta .c + .c{margin-top:6px}
   /* more headroom under the browser chrome on phones */
   .nav-in{padding-top:30px;padding-bottom:18px}
   .about{margin-top:48px}
+  /* the nav wraps to two lines on phones, so anchors need more clearance */
+  h2[id]{scroll-margin-top:170px}
 }

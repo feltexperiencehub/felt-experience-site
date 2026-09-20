@@ -182,27 +182,50 @@ coaching = f"""
 </div>
 
 <div class="wrap fork">
-  <div class="path">
-    <div class="who">Community</div>
+  <div class="path hi">
+    <div class="who">Start here</div>
     <h2>Coaching Group</h2>
     <div class="price">$149 / month &middot; cancel anytime</div>
     <p>Monthly live group coaching calls, an active Discord server to discuss hands with me and
        other winning players, and access to every group coaching recording.</p>
-    <a class="btn s" href="{STRIPE}" target="_blank" rel="noopener">Join the group</a>
+    <a class="btn p" href="{STRIPE}" target="_blank" rel="noopener">Join the group</a>
   </div>
-  <div class="path hi">
+  <div class="path">
     <div class="who">Most direct</div>
     <h2>1-on-1 Coaching</h2>
     <div class="price">From $680</div>
     <p>Your database, your hands, your leaks. For serious 50NL&ndash;1kNL players who want the spots
        costing them money found and fixed rather than explained in general.</p>
-    <a class="btn p" href="{TG}" target="_blank" rel="noopener">Ask about 1-on-1</a>
+    <a class="btn s" href="#one-on-one">See 1-on-1 details</a>
   </div>
 </div>
 
 <div class="wrap">
   {RULE}
-  <h2>1-on-1 Coaching</h2>
+  <h2>The Coaching Group</h2>
+  <p class="sub">A private group for players who want ongoing coaching alongside other winning
+     players, rather than a fixed number of sessions.</p>
+  <div class="grp">
+    <div>
+      <div class="colhead">Includes</div>
+      <ul class="ticks">
+        <li>Monthly live group coaching</li>
+        <li>Private Discord study group</li>
+        <li>Access to all past group coaching recordings</li>
+        <li>One personalized database review when you join</li>
+        <li>Access to custom HUDs and pop-ups</li>
+      </ul>
+    </div>
+    <div>
+      <div class="p">$149<small> / month</small></div>
+      <div class="fine">Cancel anytime. Once you sign up you'll be emailed an invite link within
+        one business day.</div>
+      <a class="btn s" style="margin-top:20px" href="{STRIPE}" target="_blank" rel="noopener">Join the group</a>
+    </div>
+  </div>
+
+  {RULE}
+  <h2 id="one-on-one">1-on-1 Coaching</h2>
   <p class="sub">Sessions are built around your game. We often start by diving into your database
      to find your biggest leaks. The plan is different for each player.</p>
 
@@ -240,29 +263,6 @@ coaching = f"""
     </div>
   </div>
   <div class="mid-note">Questions before you book? <a href="{TG}" target="_blank" rel="noopener">Message me on Telegram</a>.</div>
-
-  {RULE}
-  <h2>The Coaching Group</h2>
-  <p class="sub">A private group for players who want ongoing coaching alongside other winning
-     players, rather than a fixed number of sessions.</p>
-  <div class="grp">
-    <div>
-      <div class="colhead">Includes</div>
-      <ul class="ticks">
-        <li>Monthly live group coaching</li>
-        <li>Private Discord study group</li>
-        <li>Access to all past group coaching recordings</li>
-        <li>One personalized database review when you join</li>
-        <li>Access to custom HUDs and pop-ups</li>
-      </ul>
-    </div>
-    <div>
-      <div class="p">$149<small> / month</small></div>
-      <div class="fine">Cancel anytime. Once you sign up you'll be emailed an invite link within
-        one business day.</div>
-      <a class="btn s" style="margin-top:20px" href="{STRIPE}" target="_blank" rel="noopener">Join the group</a>
-    </div>
-  </div>
 
   <div class="about">
     <div><div class="colhead">About me</div></div>
