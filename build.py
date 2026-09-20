@@ -266,9 +266,10 @@ coaching = f"""
 
   <div class="about">
     <div><div class="colhead">About me</div></div>
-    <div><p>I've played online poker professionally since 2007 and currently play up to 2kNL.
-      I was a video coach for PokerStrategy and Red Chip Poker, and I run the Felt Experience Poker
-      YouTube channel, where I break down real hands every week.</p></div>
+    <div><p>My name is Dustin. I've played online poker professionally since 2007 and currently
+      play up to 2kNL. I was a video coach for PokerStrategy and Red Chip Poker, and I run the
+      Felt Experience Poker YouTube channel, where I break down real hands and the theory behind
+      them every week.</p></div>
   </div>
 </div>
 """
