@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Big Ante Hand Analyzer – Felt Experience Poker</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+  :root {
+    --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
+    --ink: #171c18; --muted: #5c665e; --faint: #838d85;
+    --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7;
+    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
+    --focus: #2f6d8f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+      --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
+      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+      --focus: #7fb6d4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+    --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
+    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+    --focus: #7fb6d4;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 1100px; margin: 0 auto; padding: 22px 20px 52px; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .top a { font-size: 13px; color: var(--muted); }
+  h1 {
+    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
+    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em; margin: 0;
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); padding: 16px; margin-bottom: 16px;
+  }
+  .card > h2 {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 11px;
+  }
+  .card[hidden] { display: none; }
+
+  textarea {
+    width: 100%; min-height: 190px; resize: vertical; padding: 11px 12px;
+    background: var(--sunk); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.45;
+  }
+  textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 11px; }
+  .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--sunk); color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 600;
+    padding: 9px 18px; border-radius: 8px; cursor: pointer;
+  }
+  .btn:hover:not([disabled]) { border-color: var(--faint); }
+  .btn.go { background: var(--call); border-color: var(--call); color: #fff; }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; }
+  .hint { font-size: 12.5px; color: var(--faint); }
+
+  .tot { display: flex; gap: 26px; flex-wrap: wrap; }
+  .tot div { min-width: 92px; }
+  .tot .n { font-family: 'League Spartan', system-ui, sans-serif; font-size: 27px; font-weight: 700; line-height: 1.1; }
+  .tot .n.bad { color: var(--raise); }
+  .tot .k {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 10.5px;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
+    text-align: left; font-weight: 600; padding: 0 10px 7px 0; white-space: nowrap;
+  }
+  td { padding: 8px 10px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  td.h { font-family: Inter, sans-serif; font-weight: 600; white-space: nowrap; }
+  .did { font-weight: 600; color: var(--raise); white-space: nowrap; }
+  .freqs { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+  .freqs b { color: var(--ink); font-weight: 600; }
+  .k { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .k.r { background: var(--raise); } .k.j { background: var(--jam); }
+  .k.c { background: var(--call); } .k.f { background: var(--fold); }
+  .muted { color: var(--muted); }
+  .why { font-size: 12.5px; color: var(--muted); }
+  .note { font-size: 12.5px; color: var(--muted); margin: 11px 0 0; }
+  .err { color: var(--raise); font-size: 13px; }
+  ul.reasons { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
+  ul.reasons b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  @media (max-width: 620px) { th.hide, td.hide { display: none; } }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <h1>Big Ante Hand Analyzer</h1>
+    <a href="/study/big-ante-explorer">Back to the explorer</a>
+  </div>
+
+  <div class="card">
+    <h2>Your hands</h2>
+    <textarea id="src" spellcheck="false" placeholder="Paste hand histories here. Several hands at once is fine."></textarea>
+    <div class="row">
+      <button type="button" class="btn go" id="go">Analyze</button>
+      <input type="file" id="file" accept=".txt,.log,.csv" multiple hidden />
+      <button type="button" class="btn" id="pick">Load files…</button>
+      <button type="button" class="btn" id="clear">Clear</button>
+      <span class="hint" id="filehint"></span>
+    </div>
+    <p class="note">
+      Judged against the big ante charts, so a hand is only read when it matches
+      what was solved: six handed, half-blind ante, 75 to 150bb deep.
+    </p>
+  </div>
+
+  <div class="card" id="sum" hidden>
+    <h2>Summary</h2>
+    <div class="tot">
+      <div><div class="n" id="t-hands">0</div><div class="k">Hands read</div></div>
+      <div><div class="n" id="t-dec">0</div><div class="k">Your decisions</div></div>
+      <div><div class="n" id="t-cov">0</div><div class="k">On a chart</div></div>
+      <div><div class="n bad" id="t-flag">0</div><div class="k">Never do this</div></div>
+    </div>
+    <p class="note" id="precision"></p>
+  </div>
+
+  <div class="card" id="flagcard" hidden>
+    <h2>Flagged</h2>
+    <table>
+      <thead><tr>
+        <th>Hand</th><th>Spot</th><th class="hide">Depth</th>
+        <th>You</th><th>The chart</th>
+      </tr></thead>
+      <tbody id="flags"></tbody>
+    </table>
+    <p class="note">
+      Only decisions the charts never make are listed. Anything the solver does
+      even occasionally is left alone, and bet sizing is not judged.
+    </p>
+  </div>
+
+  <div class="card" id="skipcard" hidden>
+    <h2>Not on a chart</h2>
+    <ul class="reasons" id="skips"></ul>
+    <p class="note">
+      These were read but had no chart to check them against. Opening decisions
+      are the big one: the charts cover defending against an open, facing a
+      3-bet and limped pots, but there are no raise-first-in ranges in the set.
+    </p>
+  </div>
+
+  <div class="card" id="errcard" hidden>
+    <h2>Could not read</h2>
+    <ul class="reasons" id="errs"></ul>
+  </div>
+</div>
+
+<script src="bigante-ranges.js"></script>
+<script src="fe-parse.js"></script>
+<script>
+(function () {
+"use strict";
+
+/* Big Ante hand analyzer.
+
+   Reads hand histories with the same parsers the replayer uses, finds the
+   preflop decisions that match a solved spot, and reports the ones the charts
+   never make. Mixes are deliberately left alone: the question is not whether
+   we picked the solver's favourite branch, it is whether we did something it
+   never does at all. */
+
+const RANKS = 'AKQJT98765432';
+const STACKS = [75, 100, 125, 150];
+/* Solved with everyone posting half a blind. Judging a no-ante hand against
+   these would flag folds that are perfectly correct without the dead money. */
+const ANTE_LO = 0.35, ANTE_HI = 0.65;
+/* Outside this the nearest chart is too far away to mean anything. */
+const DEPTH_LO = 60, DEPTH_HI = 185;
+/* The vs-3-bet trees all open to 5bb. Off that, the node is a different one. */
+const OPEN_LO = 4.4, OPEN_HI = 5.6;
+
+const $ = (id) => document.getElementById(id);
+const isRaise = (a) => a.kind === 'raise' || a.kind === 'bet';
+
+/** Grid index for a hand, matching the row-major order the charts are stored in. */
+function handCode(cards) {
+  if (!cards || cards.length < 2) return null;
+  const a = RANKS.indexOf(String(cards[0][0]).toUpperCase());
+  const b = RANKS.indexOf(String(cards[1][0]).toUpperCase());
+  if (a < 0 || b < 0) return null;
+  if (a === b) return { code: RANKS[a] + RANKS[a], idx: a * 13 + a };
+  const hi = Math.min(a, b), lo = Math.max(a, b);
+  const suited = cards[0][1] === cards[1][1];
+  return suited
+    ? { code: RANKS[hi] + RANKS[lo] + 's', idx: hi * 13 + lo }
+    : { code: RANKS[hi] + RANKS[lo] + 'o', idx: lo * 13 + hi };
+}
+
+function cellAt(row, idx) {
+  const tok = row.split(',')[idx];
+  if (tok === undefined || tok === 'X') return null;
+  const t = tok.endsWith('!') ? tok.slice(0, -1) : tok;
+  const p = t.split('.').map(Number);
+  return { raise: p[0], jam: p[1], call: p[2], fold: Math.max(0, 100 - p[0] - p[1] - p[2]) };
+}
+
+/** 100bb lumps UTG and HJ together as EP for the blinds; the other depths don't. */
+function findSpot(stack, fam, hero, vs) {
+  const tries = [vs];
+  if ((hero === 'SB' || hero === 'BB') && (vs === 'UTG' || vs === 'HJ')) tries.push('EP');
+  for (const v of tries) {
+    const s = SPOT_DATA.find((x) => x.stack === stack && x.game === '6max'
+      && x.fam === fam && x.hero === hero && x.vs === v);
+    if (s) return s;
+  }
+  return null;
+}
+
+const nearest = (list, want) =>
+  list.reduce((best, n) => (Math.abs(n - want) < Math.abs(best - want) ? n : best), list[0]);
+
+/** Nearest solved size, clamping to the end of the range when we faced something
+    outside it. A 2x open still gets judged, against the smallest chart we have. */
+function chooseSize(sizes, want) {
+  const val = (z) => parseFloat(z.face);
+  const best = sizes.reduce((b, z) => (Math.abs(val(z) - want) < Math.abs(val(b) - want) ? z : b), sizes[0]);
+  const lo = Math.min(...sizes.map(val)), hi = Math.max(...sizes.map(val));
+  return { size: best, clamped: want < lo - 0.05 || want > hi + 0.05 };
+}
+
+/** Hero's preflop decisions, each tagged with the spot it belongs to or why not.
+
+    Only the shapes the charts actually solve are picked up, and anything the
+    least bit unusual is left alone rather than forced onto the nearest node. */
+function decisions(hand, hero) {
+  const pre = hand.actions.filter((a) => a.street === 'preflop' && a.kind !== 'return');
+  const out = [];
+  let seen = 0;
+  for (let i = 0; i < pre.length; i++) {
+    const act = pre[i];
+    if (act.player !== hero.name) continue;
+    seen++;
+    const nonFold = pre.slice(0, i).filter((x) => x.kind !== 'fold');
+
+    if (seen === 1) {
+      if (nonFold.length === 0) { out.push({ act, skip: 'opening decision, no chart for it' }); continue; }
+      if (nonFold.length === 1 && isRaise(nonFold[0])) {
+        out.push({ act, fam: 'rfi', vs: nonFold[0].player, face: nonFold[0].to / hand.bb, unit: 'x' });
+        continue;
+      }
+      const raises = nonFold.filter(isRaise).length;
+      out.push({ act, skip: raises > 1 ? 'a 3-bet was already in, multiway or a 4-bet'
+        : raises === 1 ? 'someone had already called the open, multiway'
+        : 'limped pot we were not in' });
+      continue;
+    }
+
+    if (seen === 2 && nonFold.length === 2
+        && nonFold[0].player === hero.name && isRaise(nonFold[1])) {
+      const mine = nonFold[0], face = nonFold[1].to / hand.bb;
+      const openBB = mine.to / hand.bb;
+      if (isRaise(mine)) {
+        if (openBB >= OPEN_LO && openBB <= OPEN_HI) {
+          out.push({ act, fam: 'vs3b', vs: nonFold[1].player, face, unit: 'bb' });
+        } else {
+          out.push({ act, skip: `we opened ${openBB.toFixed(1)}bb, the charts open 5bb` });
+        }
+        continue;
+      }
+      if (mine.kind === 'call' && Math.abs(openBB - 1) < 0.02) {
+        out.push({ act, fam: 'limp', vs: nonFold[1].player, face, unit: 'bb' });
+        continue;
+      }
+    }
+    out.push({ act, skip: 'later in the hand than the charts go' });
+  }
+  return out;
+}
+
+const CATEGORY = (a) => (a.kind === 'fold' ? 'fold' : a.kind === 'call' ? 'call' : isRaise(a) ? 'raise' : null);
+const DID = { fold: 'Folded', call: 'Called', raise: 'Raised' };
+
+function analyze(text) {
+  const res = { hands: 0, dec: 0, cov: 0, flags: [], skips: {}, errs: {} };
+  const chunks = FEParse.splitHands(text);
+  const bump = (bag, k) => { bag[k] = (bag[k] || 0) + 1; };
+
+  chunks.forEach((chunk) => {
+    let hand;
+    try {
+      hand = FEParse.parseHandHistory(chunk).hand;
+    } catch (e) {
+      bump(res.errs, (e && e.message) ? e.message.split('\n')[0] : 'could not be parsed');
+      return;
+    }
+    res.hands++;
+
+    const live = hand.players.filter((p) => !p.sittingOut);
+    const hero = hand.players.find((p) => p.isHero);
+    const ante = hand.bb ? hand.ante / hand.bb : 0;
+    if (live.length !== 6) { bump(res.skips, `${live.length}-handed, the charts are six handed`); return; }
+    if (ante < ANTE_LO || ante > ANTE_HI) { bump(res.skips, 'not a half-blind ante game'); return; }
+    if (!hero) { bump(res.skips, 'no hero in the hand, nothing of ours to check'); return; }
+    const hc = handCode(hero.cards);
+    if (!hc) { bump(res.skips, 'our cards are not in the history'); return; }
+
+    const pos = FEParse.positionMap(hand);
+    const heroPos = pos[hero.name];
+
+    decisions(hand, hero).forEach((d) => {
+      res.dec++;
+      if (d.skip) { bump(res.skips, d.skip); return; }
+
+      const villain = hand.players.find((p) => p.name === d.vs);
+      const eff = Math.min(hero.stack, villain ? villain.stack : hero.stack) / hand.bb;
+      if (eff < DEPTH_LO || eff > DEPTH_HI) {
+        bump(res.skips, `${Math.round(eff)}bb effective, outside the charts`); return;
+      }
+      const stack = nearest(STACKS, eff);
+      const spot = findSpot(stack, d.fam, heroPos, pos[d.vs]);
+      if (!spot) { bump(res.skips, `${heroPos} vs ${pos[d.vs]} at ${stack}bb is not in the set`); return; }
+
+      const { size, clamped } = chooseSize(spot.sizes, d.face);
+      const cell = cellAt(size.g, hc.idx);
+      const cat = CATEGORY(d.act);
+      if (!cat) { bump(res.skips, 'could not tell what we did'); return; }
+      res.cov++;
+
+      if (!cell) {
+        res.flags.push({ hand, hc, spot, size, stack, eff, cat, clamped, faced: d.face, unit: d.unit,
+          oor: true, cell: null });
+        return;
+      }
+      const freq = cat === 'raise' ? cell.raise + cell.jam : cell[cat];
+      if (freq === 0) {
+        res.flags.push({ hand, hc, spot, size, stack, eff, cat, clamped, faced: d.face, unit: d.unit,
+          oor: false, cell });
+      }
+    });
+  });
+  return res;
+}
+
+/* ---- rendering ---------------------------------------------------------- */
+
+function freqBits(c) {
+  const bits = [];
+  const add = (k, cls, v) => { if (v > 0) bits.push(`<span class="k ${cls}"></span>${v}% ${k}`); };
+  add('raise', 'r', c.raise); add('jam', 'j', c.jam); add('call', 'c', c.call); add('fold', 'f', c.fold);
+  return bits.join('  ');
+}
+
+function show(res) {
+  $('t-hands').textContent = res.hands;
+  $('t-dec').textContent = res.dec;
+  $('t-cov').textContent = res.cov;
+  $('t-flag').textContent = res.flags.length;
+  $('precision').textContent = res.cov
+    ? 'A chart frequency under about 3% was stored as zero when these were read off the'
+      + ' solver, so "never" means at most a 3% action, not strictly none.'
+    : 'Nothing matched a chart. The note above the box says what has to line up.';
+  $('sum').hidden = false;
+
+  const tb = $('flags');
+  tb.innerHTML = '';
+  res.flags.forEach((f) => {
+    const tr = document.createElement('tr');
+    const faced = f.unit === 'x' ? `${+f.faced.toFixed(2)}x` : `${Math.round(f.faced)}bb`;
+    const sizeNote = f.clamped ? ` <span class="why">(faced ${faced}, judged on ${f.size.face})</span>` : '';
+    tr.innerHTML =
+      `<td class="h">${f.hc.code}<div class="why">${f.hand.handId || ''}</div></td>` +
+      `<td>${f.spot.title} · ${f.size.face}${sizeNote}<div class="why">${f.size.sub}</div></td>` +
+      `<td class="hide">${f.stack}bb${Math.round(f.eff) === f.stack ? ''
+        : `<div class="why">${Math.round(f.eff)}bb in play</div>`}</td>` +
+      `<td class="did">${DID[f.cat]}</td>` +
+      `<td class="freqs">${f.oor
+        ? '<span class="muted">this hand is never in our range here at all</span>'
+        : freqBits(f.cell)}</td>`;
+    tb.appendChild(tr);
+  });
+  $('flagcard').hidden = res.flags.length === 0;
+
+  const list = (bag, el) => {
+    const rows = Object.entries(bag).sort((a, b) => b[1] - a[1]);
+    el.innerHTML = rows.map(([k, n]) => `<li><b>${n}</b> — ${k}</li>`).join('');
+    return rows.length > 0;
+  };
+  $('skipcard').hidden = !list(res.skips, $('skips'));
+  $('errcard').hidden = !list(res.errs, $('errs'));
+}
+
+/* ---- wiring ------------------------------------------------------------- */
+
+$('go').addEventListener('click', () => {
+  const text = $('src').value.trim();
+  if (!text) return;
+  $('go').disabled = true;
+  try {
+    show(analyze(text));
+  } finally {
+    $('go').disabled = false;
+  }
+});
+
+$('pick').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', async (e) => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+  const parts = await Promise.all(files.map((f) => f.text()));
+  $('src').value = parts.join('\n\n');
+  $('filehint').textContent = `${files.length} file${files.length > 1 ? 's' : ''} loaded`;
+  $('go').click();
+});
+
+$('clear').addEventListener('click', () => {
+  $('src').value = '';
+  $('filehint').textContent = '';
+  ['sum', 'flagcard', 'skipcard', 'errcard'].forEach((id) => { $(id).hidden = true; });
+});
+
+/* Dropping a file anywhere on the page is the same as loading it. */
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  const files = [...(e.dataTransfer ? e.dataTransfer.files : [])];
+  if (!files.length) return;
+  const parts = await Promise.all(files.map((f) => f.text()));
+  $('src').value = parts.join('\n\n');
+  $('filehint').textContent = `${files.length} file${files.length > 1 ? 's' : ''} dropped`;
+  $('go').click();
+});
+})();
+</script>
+</body>
+</html>
