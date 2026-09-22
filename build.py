@@ -194,7 +194,7 @@ coaching = f"""
     <div class="who">Most direct</div>
     <h2>1-on-1 Coaching</h2>
     <div class="price">$300 to $340 per session</div>
-    <p>Your database, your hands, your leaks. For serious 50NL&ndash;1kNL players who want the spots
+    <p>Your database, your hands, your leaks. For serious 100NL&ndash;1kNL players who want the spots
        costing them money found and fixed rather than explained in general.</p>
     <a class="btn s" href="#one-on-one">See 1-on-1 details</a>
   </div>
@@ -399,7 +399,7 @@ PAGES = [
   ("index.html",   f"{SITE} – No-Limit Hold'em Cash Game Strategy",
    "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking, and club access.", home),
   ("coaching.html", f"Poker Coaching – {SITE}",
-   "One-on-one NLHE cash coaching for 50NL-1kNL players, and a $149/month coaching group.", coaching),
+   "One-on-one NLHE cash coaching for 100NL-1kNL players, and a $149/month coaching group.", coaching),
   ("staking.html", f"Staking & Coaching for Profits – {SITE}",
    "Apply for staking or coaching for profits with Felt Experience Poker.", staking),
   ("clubs.html",   f"Club Access – {SITE}",
