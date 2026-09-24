@@ -203,8 +203,8 @@ coaching = f"""
 <div class="wrap">
   {RULE}
   <h2>The Coaching Group</h2>
-  <p class="sub">A private group for players who want ongoing coaching alongside other winning
-     players.</p>
+  <p class="sub">A private group for players who want to move up in stakes, with ongoing coaching
+     alongside other winning players.</p>
   <div class="grp">
     <div>
       <div class="colhead">Includes</div>
