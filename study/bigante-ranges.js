@@ -1,4 +1,4 @@
-/* Big Ante ranges — shared by the explorer, the drill and the hand analyzer.
+/* Big Ante ranges — shared by the explorer, the drill and the preflop analyzer.
    Lives here rather than inside each page so a range only ever gets updated in
    one place. Everything under /study sits behind the password gate, this file
    included.

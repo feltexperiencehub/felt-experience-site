@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Big Ante Hand Analyzer – Felt Experience Poker</title>
+<title>Big Ante Preflop Analyzer – Felt Experience Poker</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,14 +60,10 @@
   }
   .card[hidden] { display: none; }
 
-  textarea {
-    width: 100%; min-height: 190px; resize: vertical; padding: 11px 12px;
-    background: var(--sunk); color: var(--ink);
-    border: 1px solid var(--line); border-radius: 9px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 1.45;
-  }
-  textarea:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 11px; }
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status { font-size: 13px; color: var(--muted); margin: 11px 0 0; min-height: 1.5em; font-variant-numeric: tabular-nums; }
+  body.dragging .card.drop { border-color: var(--call); }
   .btn {
     appearance: none; border: 1px solid var(--line); background: var(--sunk); color: var(--ink);
     font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 600;
@@ -116,20 +112,25 @@
 
 <div class="shell">
   <div class="top">
-    <h1>Big Ante Hand Analyzer</h1>
+    <h1>Big Ante Preflop Analyzer</h1>
     <a href="/study/big-ante-explorer">Back to the explorer</a>
   </div>
 
-  <div class="card">
+  <div class="card drop">
     <h2>Your hands</h2>
-    <textarea id="src" spellcheck="false" placeholder="Paste hand histories here. Several hands at once is fine."></textarea>
     <div class="row">
-      <button type="button" class="btn go" id="go">Analyze</button>
-      <input type="file" id="file" accept=".txt,.log,.csv" multiple hidden />
-      <button type="button" class="btn" id="pick">Load files…</button>
-      <button type="button" class="btn" id="clear">Clear</button>
-      <span class="hint" id="filehint"></span>
+      <button type="button" class="btn go" id="pickFiles">Upload files</button>
+      <button type="button" class="btn" id="pickDir">Upload folder</button>
+      <button type="button" class="btn" id="clear" hidden>Clear</button>
+      <input type="file" id="files" accept=".txt" multiple hidden />
+      <input type="file" id="dir" webkitdirectory multiple hidden />
     </div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <p class="note">
+      A folder is read with everything inside it, subfolders included, and only
+      its .txt files are used. You can also drop files or a folder onto the page.
+      Nothing leaves your computer: the hands are read here in your browser.
+    </p>
     <p class="note">
       Judged against the big ante charts, so a hand is only read when it matches
       what was solved: six handed, half-blind ante, 75 to 150bb deep.
@@ -176,7 +177,7 @@
 (function () {
 "use strict";
 
-/* Big Ante hand analyzer.
+/* Big Ante preflop analyzer.
 
    Reads hand histories with the same parsers the replayer uses, finds the
    preflop decisions that match a solved spot, and reports the ones the charts
@@ -296,8 +297,14 @@ function decisions(hand, hero) {
 const CATEGORY = (a) => (a.kind === 'fold' ? 'fold' : a.kind === 'call' ? 'call' : isRaise(a) ? 'raise' : null);
 const DID = { fold: 'Folded', call: 'Called', raise: 'Raised' };
 
-function analyze(text) {
-  const res = { hands: 0, dec: 0, cov: 0, flags: [], skips: {}, errs: {} };
+const freshResult = () => ({ hands: 0, dups: 0, dec: 0, cov: 0, flags: [], skips: {}, errs: {} });
+
+/** Adds one file's hands to a running result. A whole database is read a file
+    at a time rather than joined into one string, which would stall the tab.
+
+    `seen` holds the hands already counted: the same hand turns up twice when a
+    session was exported twice, and it should only be judged once. */
+function analyzeInto(res, text, seen) {
   const chunks = FEParse.splitHands(text);
   const bump = (bag, k) => { bag[k] = (bag[k] || 0) + 1; };
 
@@ -308,6 +315,11 @@ function analyze(text) {
     } catch (e) {
       bump(res.errs, (e && e.message) ? e.message.split('\n')[0] : 'could not be parsed');
       return;
+    }
+    if (hand.handId) {
+      const key = hand.site + ':' + hand.handId;
+      if (seen.has(key)) { res.dups++; return; }
+      seen.add(key);
     }
     res.hands++;
 
@@ -354,7 +366,6 @@ function analyze(text) {
       }
     });
   });
-  return res;
 }
 
 /* ---- rendering ---------------------------------------------------------- */
@@ -378,10 +389,10 @@ function freqBits(c) {
 }
 
 function show(res) {
-  $('t-hands').textContent = res.hands;
-  $('t-dec').textContent = res.dec;
-  $('t-cov').textContent = res.cov;
-  $('t-flag').textContent = res.flags.length;
+  $('t-hands').textContent = res.hands.toLocaleString();
+  $('t-dec').textContent = res.dec.toLocaleString();
+  $('t-cov').textContent = res.cov.toLocaleString();
+  $('t-flag').textContent = res.flags.length.toLocaleString();
   $('precision').textContent = res.cov
     ? 'A chart frequency under about 3% was stored as zero when these were read off the'
       + ' solver, so "never" means at most a 3% action, not strictly none.'
@@ -425,43 +436,109 @@ function show(res) {
 
 /* ---- wiring ------------------------------------------------------------- */
 
-$('go').addEventListener('click', () => {
-  const text = $('src').value.trim();
-  if (!text) return;
-  $('go').disabled = true;
-  try {
-    show(analyze(text));
-  } finally {
-    $('go').disabled = false;
-  }
-});
+/** Some clients write their histories as UTF-16. The byte order mark says so. */
+async function readText(file) {
+  const buf = await file.arrayBuffer();
+  const b = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+  const enc = b[0] === 0xFF && b[1] === 0xFE ? 'utf-16le'
+    : b[0] === 0xFE && b[1] === 0xFF ? 'utf-16be' : 'utf-8';
+  return new TextDecoder(enc).decode(buf);
+}
 
-$('pick').addEventListener('click', () => $('file').click());
-$('file').addEventListener('change', async (e) => {
-  const files = [...e.target.files];
-  if (!files.length) return;
-  const parts = await Promise.all(files.map((f) => f.text()));
-  $('src').value = parts.join('\n\n');
-  $('filehint').textContent = `${files.length} file${files.length > 1 ? 's' : ''} loaded`;
-  $('go').click();
+const isHistory = (f) => /\.txt$/i.test(f.name) && !f.name.startsWith('.');
+const tick = () => new Promise((r) => setTimeout(r, 0));
+const plural = (n, word) => `${n.toLocaleString()} ${word}${n === 1 ? '' : 's'}`;
+let busy = false;
+
+async function run(all) {
+  if (busy) return;
+  const files = all.filter(isHistory);
+  if (!files.length) {
+    $('status').textContent = all.length
+      ? 'No .txt hand history files in that selection.' : '';
+    return;
+  }
+  busy = true;
+  ['pickFiles', 'pickDir', 'clear'].forEach((id) => { $(id).disabled = true; });
+  const res = freshResult(), seen = new Set();
+  try {
+    for (let i = 0; i < files.length; i++) {
+      try {
+        analyzeInto(res, await readText(files[i]), seen);
+      } catch (e) {
+        res.errs[`${files[i].name}: could not be read`] = 1;
+      }
+      // Hand the page back to the browser now and then so the count moves.
+      if (i % 5 === 4 || i === files.length - 1) {
+        $('status').textContent = `Reading ${(i + 1).toLocaleString()} of ${plural(files.length, 'file')}…`;
+        await tick();
+      }
+    }
+    show(res);
+    const extra = all.length - files.length;
+    $('status').textContent = plural(files.length, 'file') + ' read'
+      + (res.dups ? `, ${plural(res.dups, 'duplicate hand')} skipped` : '')
+      + (extra ? `, ${plural(extra, 'other file')} ignored` : '') + '.';
+  } finally {
+    busy = false;
+    ['pickFiles', 'pickDir', 'clear'].forEach((id) => { $(id).disabled = false; });
+    $('clear').hidden = false;
+  }
+}
+
+$('pickFiles').addEventListener('click', () => $('files').click());
+$('pickDir').addEventListener('click', () => $('dir').click());
+['files', 'dir'].forEach((id) => {
+  $(id).addEventListener('change', (e) => {
+    const picked = [...e.target.files];
+    e.target.value = '';                    // so choosing the same thing again still fires
+    run(picked);
+  });
 });
 
 $('clear').addEventListener('click', () => {
-  $('src').value = '';
-  $('filehint').textContent = '';
+  $('status').textContent = '';
+  $('clear').hidden = true;
   ['sum', 'flagcard', 'errcard'].forEach((id) => { $(id).hidden = true; });
 });
 
-/* Dropping a file anywhere on the page is the same as loading it. */
-document.addEventListener('dragover', (e) => e.preventDefault());
+/* Dropping files or a folder anywhere on the page does the same as choosing
+   them. A dropped folder only arrives as an entry to walk, not as files. */
+async function walk(entry, out) {
+  if (!entry) return;
+  if (entry.isFile) {
+    out.push(await new Promise((ok, no) => entry.file(ok, no)));
+  } else if (entry.isDirectory) {
+    const reader = entry.createReader();
+    for (;;) {                               // entries come back in batches
+      const batch = await new Promise((ok, no) => reader.readEntries(ok, no));
+      if (!batch.length) break;
+      for (const e of batch) await walk(e, out);
+    }
+  }
+}
+
+document.addEventListener('dragover', (e) => { e.preventDefault(); document.body.classList.add('dragging'); });
+document.addEventListener('dragleave', (e) => { if (!e.relatedTarget) document.body.classList.remove('dragging'); });
 document.addEventListener('drop', async (e) => {
   e.preventDefault();
-  const files = [...(e.dataTransfer ? e.dataTransfer.files : [])];
-  if (!files.length) return;
-  const parts = await Promise.all(files.map((f) => f.text()));
-  $('src').value = parts.join('\n\n');
-  $('filehint').textContent = `${files.length} file${files.length > 1 ? 's' : ''} dropped`;
-  $('go').click();
+  document.body.classList.remove('dragging');
+  const dt = e.dataTransfer;
+  if (!dt) return;
+  // Entries have to be taken before the first await; the list empties after.
+  const entries = [...(dt.items || [])].map((it) => (it.webkitGetAsEntry ? it.webkitGetAsEntry() : null));
+  const plain = [...dt.files];
+  let files = [];
+  if (entries.some(Boolean)) {
+    try {
+      for (const en of entries) await walk(en, files);
+    } catch (err) {
+      files = plain;
+    }
+  } else {
+    files = plain;
+  }
+  run(files);
 });
 })();
 </script>
