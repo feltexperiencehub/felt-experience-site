@@ -62,7 +62,8 @@
 
   button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .status { font-size: 13px; color: var(--muted); margin: 11px 0 0; min-height: 1.5em; font-variant-numeric: tabular-nums; }
+  .status { font-size: 13px; color: var(--muted); margin: 11px 0 0; font-variant-numeric: tabular-nums; }
+  .status:empty { display: none; }
   body.dragging .card.drop { border-color: var(--call); }
   .btn {
     appearance: none; border: 1px solid var(--line); background: var(--sunk); color: var(--ink);
@@ -120,7 +121,7 @@
     <h2>Your hands</h2>
     <div class="row">
       <button type="button" class="btn go" id="pickFiles">Upload files</button>
-      <button type="button" class="btn" id="pickDir">Upload folder</button>
+      <button type="button" class="btn go" id="pickDir">Upload folder</button>
       <button type="button" class="btn" id="clear" hidden>Clear</button>
       <input type="file" id="files" accept=".txt" multiple hidden />
       <input type="file" id="dir" webkitdirectory multiple hidden />
