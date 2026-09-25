@@ -14,7 +14,7 @@
 <style>
   :root {
     --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
-    --ink: #171c18; --muted: #5c665e; --faint: #838d85;
+    --ink: #171c18; --soft: #3a433c; --muted: #5c665e; --faint: #838d85;
     --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7;
     --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
     --focus: #2f6d8f;
@@ -22,7 +22,7 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-      --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
+      --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
       --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
       --focus: #7fb6d4;
@@ -30,7 +30,7 @@
   }
   :root[data-theme="dark"] {
     --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-    --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
+    --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
     --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
     --focus: #7fb6d4;
@@ -100,7 +100,7 @@
   .k.c { background: var(--call); } .k.f { background: var(--fold); }
   .muted { color: var(--muted); }
   .why { font-size: 12.5px; color: var(--muted); }
-  .note { font-size: 12.5px; color: var(--muted); margin: 11px 0 0; }
+  .note { font-size: 14px; line-height: 1.55; color: var(--soft); margin: 12px 0 0; }
   .err { color: var(--raise); font-size: 13px; }
   ul.reasons { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
   ul.reasons b { color: var(--ink); font-variant-numeric: tabular-nums; }
