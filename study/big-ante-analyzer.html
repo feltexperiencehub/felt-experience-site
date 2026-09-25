@@ -107,6 +107,10 @@
   .err { color: var(--raise); font-size: 13px; }
   ul.reasons { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
   ul.reasons b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  tr.go { cursor: pointer; }
+  tr.go:hover td { background: var(--sunk); }
+  td.h a { color: var(--ink); text-decoration: none; }
+  tr.go:hover td.h a { text-decoration: underline; }
   @media (max-width: 620px) { th.hide, td.hide { display: none; } }
 </style>
 
@@ -154,17 +158,9 @@
     </table>
     <p class="note">
       Only decisions the charts never make are listed. Anything the solver does
-      even occasionally is left alone, and bet sizing is not judged.
-    </p>
-  </div>
-
-  <div class="card" id="skipcard" hidden>
-    <h2>Not on a chart</h2>
-    <ul class="reasons" id="skips"></ul>
-    <p class="note">
-      These were read but had no chart to check them against. Opening decisions
-      are the big one: the charts cover defending against an open, facing a
-      3-bet and limped pots, but there are no raise-first-in ranges in the set.
+      even occasionally is left alone, and bet sizing is not judged. Click a
+      hand to replay it in the drill, or to see the range when the hand is
+      never in it.
     </p>
   </div>
 
@@ -207,12 +203,13 @@ function handCode(cards) {
   const a = RANKS.indexOf(String(cards[0][0]).toUpperCase());
   const b = RANKS.indexOf(String(cards[1][0]).toUpperCase());
   if (a < 0 || b < 0) return null;
-  if (a === b) return { code: RANKS[a] + RANKS[a], idx: a * 13 + a };
+  const suits = (a <= b ? cards[0][1] + cards[1][1] : cards[1][1] + cards[0][1]).toLowerCase();
+  if (a === b) return { code: RANKS[a] + RANKS[a], idx: a * 13 + a, suits };
   const hi = Math.min(a, b), lo = Math.max(a, b);
   const suited = cards[0][1] === cards[1][1];
   return suited
-    ? { code: RANKS[hi] + RANKS[lo] + 's', idx: hi * 13 + lo }
-    : { code: RANKS[hi] + RANKS[lo] + 'o', idx: lo * 13 + hi };
+    ? { code: RANKS[hi] + RANKS[lo] + 's', idx: hi * 13 + lo, suits }
+    : { code: RANKS[hi] + RANKS[lo] + 'o', idx: lo * 13 + hi, suits };
 }
 
 function cellAt(row, idx) {
@@ -362,6 +359,17 @@ function analyze(text) {
 
 /* ---- rendering ---------------------------------------------------------- */
 
+/** Where a flagged row goes. The drill replays the decision as it was dealt;
+    a hand that is never in our range at all never reaches the spot, so the
+    drill cannot ask it, and those open the range in the explorer instead. */
+function linkFor(f) {
+  const q = new URLSearchParams({ stack: f.spot.stack, fam: f.spot.fam, hero: f.spot.hero,
+    vs: f.spot.vs, face: f.size.face, hand: f.hc.code });
+  if (f.oor) return '/study/big-ante-explorer?' + q;
+  q.set('suits', f.hc.suits);
+  return '/study/big-ante-drill?' + q;
+}
+
 function freqBits(c) {
   const bits = [];
   const add = (k, cls, v) => { if (v > 0) bits.push(`<span class="k ${cls}"></span>${v}% ${k}`); };
@@ -384,10 +392,18 @@ function show(res) {
   tb.innerHTML = '';
   res.flags.forEach((f) => {
     const tr = document.createElement('tr');
+    const href = linkFor(f);
+    tr.className = 'go';
+    tr.title = f.oor ? 'Open this range in the explorer' : 'Replay this hand in the drill';
+    tr.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;           // the link handles its own click
+      window.open(href, '_blank', 'noopener');
+    });
     const faced = f.unit === 'x' ? `${+f.faced.toFixed(2)}x` : `${Math.round(f.faced)}bb`;
     const sizeNote = f.clamped ? ` <span class="why">(faced ${faced}, judged on ${f.size.face})</span>` : '';
     tr.innerHTML =
-      `<td class="h">${f.hc.code}<div class="why">${f.hand.handId || ''}</div></td>` +
+      `<td class="h"><a href="${href}" target="_blank" rel="noopener">${f.hc.code}</a>` +
+        `<div class="why">${f.hand.handId || ''}</div></td>` +
       `<td>${f.spot.title} · ${f.size.face}${sizeNote}<div class="why">${f.size.sub}</div></td>` +
       `<td class="hide">${f.stack}bb${Math.round(f.eff) === f.stack ? ''
         : `<div class="why">${Math.round(f.eff)}bb in play</div>`}</td>` +
@@ -404,7 +420,6 @@ function show(res) {
     el.innerHTML = rows.map(([k, n]) => `<li><b>${n}</b> — ${k}</li>`).join('');
     return rows.length > 0;
   };
-  $('skipcard').hidden = !list(res.skips, $('skips'));
   $('errcard').hidden = !list(res.errs, $('errs'));
 }
 
@@ -434,7 +449,7 @@ $('file').addEventListener('change', async (e) => {
 $('clear').addEventListener('click', () => {
   $('src').value = '';
   $('filehint').textContent = '';
-  ['sum', 'flagcard', 'skipcard', 'errcard'].forEach((id) => { $(id).hidden = true; });
+  ['sum', 'flagcard', 'errcard'].forEach((id) => { $(id).hidden = true; });
 });
 
 /* Dropping a file anywhere on the page is the same as loading it. */

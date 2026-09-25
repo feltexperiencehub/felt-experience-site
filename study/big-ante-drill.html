@@ -900,8 +900,27 @@ function frameTable() {
   if (r.top < 12) window.scrollTo(0, window.scrollY + r.top - 12);
 }
 
-function nextHand() {
-  const p = pool();
+/* A hand sent over from the analyzer, as
+   ?stack=100&fam=rfi&hero=BB&vs=BTN&face=3x&hand=72o&suits=dc
+   It is asked first, with the suits it was actually dealt, and the drill then
+   carries on from the filters as usual. */
+function linkedHand() {
+  const p = new URLSearchParams(location.search);
+  if (!p.get('hand')) return null;
+  const q = POOL.find((x) => String(x.sp.stack) === p.get('stack') && x.sp.fam === p.get('fam')
+    && x.sp.hero === p.get('hero') && x.sp.vs === p.get('vs')
+    && x.z.face === p.get('face') && x.h.code === p.get('hand'));
+  if (!q) return null;
+  const s = (p.get('suits') || '').split('');
+  const ok = s.length === 2 && s.every((c) => SUITS.includes(c))
+    && (q.h.kind === 's' ? s[0] === s[1] : s[0] !== s[1]);
+  return { q, suits: ok ? s : null };
+}
+
+function nextHand(forced) {
+  // The Next button passes its click event in here, so check for a real hand.
+  const f = forced && forced.q ? forced : null;
+  const p = f ? [f.q] : pool();
   answered = false;
   closeRange();
   $('answer').hidden = true;
@@ -915,9 +934,9 @@ function nextHand() {
     $('hint').textContent = 'No hands match these filters.';
     return;
   }
-  const q = p[Math.floor(Math.random() * p.length)];
+  const q = f ? f.q : p[Math.floor(Math.random() * p.length)];
   const roll = rollOnce();
-  const cards = dealSuits(q.h);
+  const cards = f && f.suits ? f.suits : dealSuits(q.h);
   current = { q, roll };
   current.sc = drawTable(q, cards);
   const sc = current.sc;
@@ -939,7 +958,8 @@ function nextHand() {
     b.addEventListener('click', () => answer(a.id));
     acts.appendChild(b);
   });
-  $('hint').textContent = 'Keys Q, W, E left to right.';
+  $('hint').textContent = f ? 'The hand from your history. Keys Q, W, E left to right.'
+    : 'Keys Q, W, E left to right.';
   frameTable();
 }
 
@@ -1237,11 +1257,18 @@ document.addEventListener('keydown', (e) => {
   if (answered && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); nextHand(); }
 });
 
+const linked = linkedHand();
+if (linked && linked.q.sp.game !== game) {
+  // Just for this visit: the saved format preference is left alone.
+  game = linked.q.sp.game;
+  session = sessions[game];
+  life = lives[game];
+}
 buildGameToggle();
 buildFilters();
 buildRngPanel();
 paintStats();
-nextHand();
+nextHand(linked);
 
 })();
 </script>

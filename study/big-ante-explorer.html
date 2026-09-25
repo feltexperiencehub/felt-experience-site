@@ -94,6 +94,9 @@
   .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.16); }
   .seg button[disabled] { opacity: .3; cursor: not-allowed; }
   .seg button:focus-visible, .cell:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  /* Drawn inside the cell: the grid scrolls sideways on small screens, and its
+     overflow clips anything outside the cell edge on the bottom row. */
+  .cell.linked { outline: 2px solid var(--focus); outline-offset: -2px; }
 
   .cols { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; align-items: start; }
 
@@ -458,6 +461,7 @@ function render() {
   cells.forEach((b, i) => {
     const c = now[i];
     b.style.background = paint(c);
+    b.classList.remove('linked');                  // the analyzer's pick only marks the spot it came in on
     b.classList.toggle('oor', !!c.oor);
     b.setAttribute('aria-label', c.oor
       ? `${c.h.code}: ${oorText(sp.fam).toLowerCase()}`
@@ -496,8 +500,31 @@ function render() {
 
 $('grid').addEventListener('mouseleave', clearDetail);
 
+/* Opened from the analyzer for a hand that is never in our range at a spot:
+   ?stack=100&fam=vs3b&hero=CO&vs=BB&face=18bb&hand=94o lands on that spot with
+   the hand picked out. Nothing here is saved as a preference. */
+const link = new URLSearchParams(location.search);
+if (link.get('hero')) {
+  const n = Number(link.get('stack'));
+  const hit = SPOT_DATA.find((s) => s.stack === n && s.fam === link.get('fam')
+    && s.hero === link.get('hero') && s.vs === link.get('vs'));
+  if (hit) {
+    Object.assign(state, { game: hit.game, stack: hit.stack, hero: hit.hero,
+      fam: hit.fam, vs: hit.vs, face: link.get('face') });
+  }
+}
+
 render();
 clearDetail();
+if (link.get('hand')) {
+  const i = HANDS.findIndex((h) => h.code === link.get('hand'));
+  if (i >= 0) {
+    cells[i].classList.add('linked');
+    cells[i].focus();
+    // A background tab never fires the focus event, so fill the panel directly.
+    if (cells[i].onfocus) cells[i].onfocus();
+  }
+}
 
 })();
 </script>
