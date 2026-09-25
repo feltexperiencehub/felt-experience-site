@@ -15,6 +15,7 @@
   :root {
     --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
     --ink: #171c18; --soft: #3a433c; --muted: #5c665e; --faint: #838d85;
+    --did-fold: #2a72ad; --did-call: #97750c; --did-raise: #c45f1c;
     --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7;
     --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
     --focus: #2f6d8f;
@@ -23,6 +24,7 @@
     :root:not([data-theme="light"]) {
       --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
       --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
+      --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
       --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
       --focus: #7fb6d4;
@@ -31,6 +33,7 @@
   :root[data-theme="dark"] {
     --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
     --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
+    --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
     --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
     --focus: #7fb6d4;
@@ -92,7 +95,10 @@
   }
   td { padding: 8px 10px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
   td.h { font-family: Inter, sans-serif; font-weight: 600; white-space: nowrap; }
-  .did { font-weight: 600; color: var(--raise); white-space: nowrap; }
+  .did { font-weight: 600; white-space: nowrap; }
+  .did.fold { color: var(--did-fold); }
+  .did.call { color: var(--did-call); }
+  .did.raise { color: var(--did-raise); }
   .freqs { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
   .freqs b { color: var(--ink); font-weight: 600; }
   .k { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
@@ -419,7 +425,7 @@ function show(res) {
       `<td>${f.spot.title} · ${f.size.face}${sizeNote}<div class="why">${f.size.sub}</div></td>` +
       `<td class="hide">${f.stack}bb${Math.round(f.eff) === f.stack ? ''
         : `<div class="why">${Math.round(f.eff)}bb in play</div>`}</td>` +
-      `<td class="did">${DID[f.cat]}</td>` +
+      `<td class="did ${f.cat}">${DID[f.cat]}</td>` +
       `<td class="freqs">${f.oor
         ? '<span class="muted">this hand is never in our range here at all</span>'
         : freqBits(f.cell)}</td>`;
