@@ -497,7 +497,7 @@ const plainFreqs = (c) => ['raise', 'jam', 'call', 'fold']
 /** The whole chart the decision was judged against, with our hand outlined. */
 function openRange(f) {
   const clampNote = f.clamped
-    ? ` · faced ${f.unit === 'x' ? +f.faced.toFixed(2) + 'x' : Math.round(f.faced) + 'bb'}` : '';
+    ? ` · faced ${f.unit === 'x' ? +f.faced.toFixed(2) + 'x' : +f.faced.toFixed(1) + 'bb'}` : '';
   $('rb-title').textContent = `${f.spot.title} · ${f.size.face} · ${f.stack}bb`;
   $('rb-sub').textContent = f.size.sub + clampNote;
   $('rb-hand').innerHTML =
@@ -569,7 +569,7 @@ function show(res) {
     tr.className = 'go';
     tr.title = 'See the range';
     tr.addEventListener('click', () => openRange(f));
-    const faced = f.unit === 'x' ? `${+f.faced.toFixed(2)}x` : `${Math.round(f.faced)}bb`;
+    const faced = f.unit === 'x' ? `${+f.faced.toFixed(2)}x` : `${+f.faced.toFixed(1)}bb`;
     const sizeNote = f.clamped ? ` <span class="why">(faced ${faced}, judged on ${f.size.face})</span>` : '';
     tr.innerHTML =
       `<td class="h"><button type="button" class="hbtn">${f.hc.code}</button>` +
