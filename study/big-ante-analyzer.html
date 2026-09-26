@@ -272,6 +272,9 @@ const ANTE_LO = 0.35, ANTE_HI = 0.65;
 const DEPTH_LO = 60, DEPTH_HI = 185;
 /* The vs-3-bet trees all open to 5bb. Off that, the node is a different one. */
 const OPEN_LO = 4.4, OPEN_HI = 5.6;
+/* A raise smaller than any chart is judged on the smallest one, but one far
+   above the largest is a different spot rather than a rounding question. */
+const SIZE_SLACK = 2;
 
 const $ = (id) => document.getElementById(id);
 const isRaise = (a) => a.kind === 'raise' || a.kind === 'bet';
@@ -428,6 +431,10 @@ function analyzeInto(res, text, seen) {
       const spot = findSpot(stack, d.fam, heroPos, pos[d.vs]);
       if (!spot) { bump(res.skips, `${heroPos} vs ${pos[d.vs]} at ${stack}bb is not in the set`); return; }
 
+      const top = Math.max(...spot.sizes.map((z) => parseFloat(z.face)));
+      if (d.face >= top + SIZE_SLACK - 1e-9) {
+        bump(res.skips, `facing ${SIZE_SLACK}bb or more above the largest size charted`); return;
+      }
       const { size, clamped } = chooseSize(spot.sizes, d.face);
       const cell = cellAt(size.g, hc.idx);
       const cat = CATEGORY(d.act);
@@ -529,7 +536,8 @@ function openRange(f) {
     const hi = i === STACKS.length - 1 ? DEPTH_HI : (n + STACKS[i + 1]) / 2;
     return `<div><b>${n}bb</b><span>${fmt(lo)} to ${fmt(hi)}bb</span></div>`;
   }).join('');
-  $('depthnote').textContent = `Under ${DEPTH_LO}bb or over ${DEPTH_HI}bb effective, a hand isn't judged.`;
+  $('depthnote').textContent = `Under ${DEPTH_LO}bb or over ${DEPTH_HI}bb effective, or facing a raise`
+    + ` ${SIZE_SLACK}bb or more above the largest size on the chart, a decision isn't judged.`;
 })();
 
 $('rb-close').addEventListener('click', () => $('rangebox').close());
