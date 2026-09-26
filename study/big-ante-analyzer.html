@@ -418,7 +418,9 @@ function analyzeInto(res, text, seen) {
       if (d.skip) { bump(res.skips, d.skip); return; }
 
       const villain = hand.players.find((p) => p.name === d.vs);
-      const eff = Math.min(hero.stack, villain ? villain.stack : hero.stack) / hand.bb;
+      // Rounded to a tenth so the depth cards on the page are exactly true:
+      // 87.5 goes to 75bb, 87.6 to 100bb, and nothing falls between them.
+      const eff = Math.round(Math.min(hero.stack, villain ? villain.stack : hero.stack) / hand.bb * 10) / 10;
       if (eff < DEPTH_LO || eff > DEPTH_HI) {
         bump(res.skips, `${Math.round(eff)}bb effective, outside the charts`); return;
       }
@@ -517,12 +519,13 @@ function openRange(f) {
 }
 
 /* The depth table under the upload buttons, built from the same numbers the
-   matching uses so the two cannot drift apart. A hand halfway between two
-   charts goes to the shallower one. */
+   matching uses so the two cannot drift apart. A hand exactly halfway between
+   two charts goes to the shallower one, so each band after the first starts a
+   tenth above the midpoint. */
 (function depthTable() {
   const fmt = (n) => (Number.isInteger(n) ? n : n.toFixed(1));
   $('depths').innerHTML = STACKS.map((n, i) => {
-    const lo = i === 0 ? DEPTH_LO : (STACKS[i - 1] + n) / 2;
+    const lo = i === 0 ? DEPTH_LO : (STACKS[i - 1] + n) / 2 + 0.1;
     const hi = i === STACKS.length - 1 ? DEPTH_HI : (n + STACKS[i + 1]) / 2;
     return `<div><b>${n}bb</b><span>${fmt(lo)} to ${fmt(hi)}bb</span></div>`;
   }).join('');
@@ -564,8 +567,8 @@ function show(res) {
       `<td class="h"><button type="button" class="hbtn">${f.hc.code}</button>` +
         `<div class="why">${f.hand.handId || ''}</div></td>` +
       `<td>${f.spot.title} · ${f.size.face}${sizeNote}<div class="why">${f.size.sub}</div></td>` +
-      `<td class="hide">${f.stack}bb${Math.round(f.eff) === f.stack ? ''
-        : `<div class="why">${Math.round(f.eff)}bb in play</div>`}</td>` +
+      `<td class="hide">${f.stack}bb${f.eff === f.stack ? ''
+        : `<div class="why">${+f.eff.toFixed(1)}bb in play</div>`}</td>` +
       `<td class="did ${f.cat}">${DID[f.cat]}</td>` +
       `<td class="freqs">${f.oor
         ? '<span class="muted">this hand is never in our range here at all</span>'
