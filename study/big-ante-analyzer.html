@@ -68,6 +68,11 @@
   .status { font-size: 13px; color: var(--muted); margin: 11px 0 0; font-variant-numeric: tabular-nums; }
   .status:empty { display: none; }
   body.dragging .card.drop { border-color: var(--call); }
+  .depths { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .depths div { background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; }
+  .depths b { display: block; font-family: 'League Spartan', system-ui, sans-serif; font-size: 19px; font-weight: 700; line-height: 1.1; }
+  .depths span { font-size: 13px; color: var(--soft); font-variant-numeric: tabular-nums; }
+  @media (max-width: 620px) { .depths { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .btn {
     appearance: none; border: 1px solid var(--line); background: var(--sunk); color: var(--ink);
     font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 600;
@@ -187,8 +192,15 @@
     </p>
     <p class="note">
       Judged against the big ante charts, so a hand is only read when it matches
-      what was solved: six handed, half-blind ante, 75 to 150bb deep.
+      what was solved: six handed, with a half-blind ante, at one of the depths below.
     </p>
+    <p class="note">
+      Effective stack is the smaller of your stack and the stack of the player
+      you're up against, at the start of the hand. Each decision is judged on the
+      nearest chart:
+    </p>
+    <div class="depths" id="depths"></div>
+    <p class="note" id="depthnote"></p>
   </div>
 
   <div class="card" id="sum" hidden>
@@ -507,6 +519,19 @@ function openRange(f) {
   $('rb-legend').innerHTML = leg.join('');
   $('rangebox').showModal();
 }
+
+/* The depth table under the upload buttons, built from the same numbers the
+   matching uses so the two cannot drift apart. A hand halfway between two
+   charts goes to the shallower one. */
+(function depthTable() {
+  const fmt = (n) => (Number.isInteger(n) ? n : n.toFixed(1));
+  $('depths').innerHTML = STACKS.map((n, i) => {
+    const lo = i === 0 ? DEPTH_LO : (STACKS[i - 1] + n) / 2;
+    const hi = i === STACKS.length - 1 ? DEPTH_HI : (n + STACKS[i + 1]) / 2;
+    return `<div><b>${n}bb</b><span>${fmt(lo)} to ${fmt(hi)}bb</span></div>`;
+  }).join('');
+  $('depthnote').textContent = `Under ${DEPTH_LO}bb or over ${DEPTH_HI}bb effective, a hand isn't judged.`;
+})();
 
 $('rb-close').addEventListener('click', () => $('rangebox').close());
 // A click on the dimmed backdrop lands on the dialog itself, not its contents.
