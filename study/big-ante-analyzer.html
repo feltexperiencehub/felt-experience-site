@@ -16,7 +16,7 @@
     --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
     --ink: #171c18; --soft: #3a433c; --muted: #5c665e; --faint: #838d85;
     --did-fold: #2a72ad; --did-call: #97750c; --did-raise: #c45f1c;
-    --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7;
+    --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7; --oor: #d3dad1;
     --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
     --focus: #2f6d8f;
   }
@@ -25,7 +25,7 @@
       --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
       --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
       --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
-      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
+      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
       --focus: #7fb6d4;
     }
@@ -34,7 +34,7 @@
     --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
     --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
     --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
-    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c;
+    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
     --focus: #7fb6d4;
   }
@@ -112,9 +112,56 @@
   ul.reasons b { color: var(--ink); font-variant-numeric: tabular-nums; }
   tr.go { cursor: pointer; }
   tr.go:hover td { background: var(--sunk); }
-  td.h a { color: var(--ink); text-decoration: none; }
-  tr.go:hover td.h a { text-decoration: underline; }
-  @media (max-width: 620px) { th.hide, td.hide { display: none; } }
+  .hbtn {
+    appearance: none; border: 0; background: none; padding: 0; margin: 0;
+    font: inherit; font-weight: 600; color: var(--ink); cursor: pointer;
+  }
+  tr.go:hover .hbtn, .hbtn:focus-visible { text-decoration: underline; }
+
+  /* ---- the range popup ---- */
+  #rangebox {
+    width: min(94vw, 620px); max-height: 94vh; padding: 0;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--panel); color: var(--ink);
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  #rangebox::backdrop { background: rgba(6,9,7,.62); }
+  .rb-in { padding: 16px 18px 18px; }
+  .rb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .rb-head strong { display: block; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; }
+  .rb-head .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .rb-x {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font-size: 24px; line-height: 1; cursor: pointer; padding: 2px 7px; border-radius: 6px;
+  }
+  .rb-x:hover { color: var(--ink); background: var(--sunk); }
+  .rb-hand { margin: 11px 0 9px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+  .rb-hand .code { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 17px; font-weight: 600; }
+  .rb-legend { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .rb-wrap { container-type: inline-size; }
+  .rb-wrap .axis, .rb-wrap .grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
+  .rb-wrap .axis { margin-bottom: 3px; }
+  .rb-wrap .axis span {
+    text-align: center; font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(9px, 2cqw, 12px); color: var(--faint);
+  }
+  .rb-wrap .cell {
+    aspect-ratio: 1; border-radius: 3px; overflow: hidden; color: #fff;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 500;
+    font-size: clamp(7px, 2.05cqw, 12.5px); padding: .3em 0 0 .35em;
+  }
+  .rb-wrap .cell span { text-shadow: 0 1px 1px rgba(0,0,0,.3); }
+  .rb-wrap .cell.oor { color: var(--faint); }
+  .rb-wrap .cell.oor span { text-shadow: none; opacity: .55; }
+  /* The hand we played. Drawn inside the cell so the grid edge never clips it. */
+  .rb-wrap .cell.mine { outline: 2.5px solid var(--ink); outline-offset: -2.5px; }
+  /* A wide table must scroll inside its card, not widen the page: a page wider
+     than the phone also pushes the range popup off to one side. */
+  .tablewrap { overflow-x: auto; }
+  @media (max-width: 620px) {
+    th.hide, td.hide { display: none; }
+    .freqs { white-space: normal; }
+  }
 </style>
 
 <div class="shell">
@@ -157,6 +204,7 @@
 
   <div class="card" id="flagcard" hidden>
     <h2>Flagged</h2>
+    <div class="tablewrap">
     <table>
       <thead><tr>
         <th>Hand</th><th>Spot</th><th class="hide">Depth</th>
@@ -164,11 +212,11 @@
       </tr></thead>
       <tbody id="flags"></tbody>
     </table>
+    </div>
     <p class="note">
       Only decisions the charts never make are listed. Anything the solver does
       even occasionally is left alone, and bet sizing is not judged. Click a
-      hand to replay it in the drill, or to see the range when the hand is
-      never in it.
+      hand to see the whole range, with your hand outlined.
     </p>
   </div>
 
@@ -177,6 +225,21 @@
     <ul class="reasons" id="errs"></ul>
   </div>
 </div>
+
+<dialog id="rangebox" aria-labelledby="rb-title">
+  <div class="rb-in">
+    <div class="rb-head">
+      <div><strong id="rb-title"></strong><span class="sub" id="rb-sub"></span></div>
+      <button type="button" class="rb-x" id="rb-close" aria-label="Close">&times;</button>
+    </div>
+    <p class="rb-hand" id="rb-hand"></p>
+    <div class="rb-legend" id="rb-legend"></div>
+    <div class="rb-wrap">
+      <div class="axis" id="rb-axis" aria-hidden="true"></div>
+      <div class="grid" id="rb-grid"></div>
+    </div>
+  </div>
+</dialog>
 
 <script src="/study/bigante-ranges.js"></script>
 <script src="/study/fe-parse.js"></script>
@@ -377,16 +440,77 @@ function analyzeInto(res, text, seen) {
 
 /* ---- rendering ---------------------------------------------------------- */
 
-/** Where a flagged row goes. The drill replays the decision as it was dealt;
-    a hand that is never in our range at all never reaches the spot, so the
-    drill cannot ask it, and those open the range in the explorer instead. */
-function linkFor(f) {
-  const q = new URLSearchParams({ stack: f.spot.stack, fam: f.spot.fam, hero: f.spot.hero,
-    vs: f.spot.vs, face: f.size.face, hand: f.hc.code });
-  if (f.oor) return '/study/big-ante-explorer?' + q;
-  q.set('suits', f.hc.suits);
-  return '/study/big-ante-drill?' + q;
+/** Hand codes in the order the charts are stored: pairs on the diagonal,
+    suited above it, offsuit below. */
+const CODES = [];
+for (let i = 0; i < 13; i++) {
+  for (let j = 0; j < 13; j++) {
+    CODES.push(i === j ? RANKS[i] + RANKS[i]
+      : i < j ? RANKS[i] + RANKS[j] + 's' : RANKS[j] + RANKS[i] + 'o');
+  }
 }
+
+/** One bar per cell, the same fill the explorer uses: raise, jam, call, fold. */
+function paint(c) {
+  if (!c) return 'var(--oor)';
+  const r = c.raise, j = r + c.jam, k = j + c.call;
+  const stops = [];
+  if (c.raise > 0) stops.push(`var(--raise) 0 ${r}%`);
+  if (c.jam > 0) stops.push(`var(--jam) ${r}% ${j}%`);
+  if (c.call > 0) stops.push(`var(--call) ${j}% ${k}%`);
+  if (c.fold > 0) stops.push(`var(--fold) ${k}% 100%`);
+  if (stops.length <= 1) {
+    return c.fold >= 99.5 ? 'var(--fold)' : c.call >= 99.5 ? 'var(--call)'
+      : c.jam >= 99.5 ? 'var(--jam)' : c.raise > 0 ? 'var(--raise)' : 'var(--fold)';
+  }
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+}
+
+const plainFreqs = (c) => ['raise', 'jam', 'call', 'fold']
+  .filter((k) => c[k] > 0).map((k) => `${c[k]}% ${k}`).join(', ');
+
+(function axis() {
+  RANKS.split('').forEach((r) => {
+    const sp = document.createElement('span');
+    sp.textContent = r;
+    $('rb-axis').appendChild(sp);
+  });
+})();
+
+/** The whole chart the decision was judged against, with our hand outlined. */
+function openRange(f) {
+  const clampNote = f.clamped
+    ? ` · faced ${f.unit === 'x' ? +f.faced.toFixed(2) + 'x' : Math.round(f.faced) + 'bb'}` : '';
+  $('rb-title').textContent = `${f.spot.title} · ${f.size.face} · ${f.stack}bb`;
+  $('rb-sub').textContent = f.size.sub + clampNote;
+  $('rb-hand').innerHTML =
+    `<span class="code">${f.hc.code}</span>` +
+    `<span class="did ${f.cat}">You ${DID[f.cat].toLowerCase()}</span>` +
+    `<span class="freqs">${f.oor ? 'never in our range here' : 'Chart: ' + freqBits(f.cell)}</span>`;
+
+  const grid = $('rb-grid');
+  grid.innerHTML = '';
+  const seen = { raise: 0, jam: 0, call: 0, fold: 0 };
+  CODES.forEach((code, i) => {
+    const c = cellAt(f.size.g, i);
+    const el = document.createElement('div');
+    el.className = 'cell' + (c ? '' : ' oor') + (i === f.hc.idx ? ' mine' : '');
+    el.style.background = paint(c);
+    el.title = c ? `${code}: ${plainFreqs(c)}` : `${code}: not in our range here`;
+    el.innerHTML = `<span>${code}</span>`;
+    grid.appendChild(el);
+    if (c) Object.keys(seen).forEach((k) => { seen[k] += c[k]; });
+  });
+  const leg = [['raise', 'r'], ['jam', 'j'], ['call', 'c'], ['fold', 'f']]
+    .filter(([k]) => seen[k] > 0)
+    .map(([k, cls]) => `<span><span class="k ${cls}"></span>${k[0].toUpperCase() + k.slice(1)}</span>`);
+  $('rb-legend').innerHTML = leg.join('');
+  $('rangebox').showModal();
+}
+
+$('rb-close').addEventListener('click', () => $('rangebox').close());
+// A click on the dimmed backdrop lands on the dialog itself, not its contents.
+$('rangebox').addEventListener('click', (e) => { if (e.target === $('rangebox')) $('rangebox').close(); });
 
 function freqBits(c) {
   const bits = [];
@@ -410,17 +534,13 @@ function show(res) {
   tb.innerHTML = '';
   res.flags.forEach((f) => {
     const tr = document.createElement('tr');
-    const href = linkFor(f);
     tr.className = 'go';
-    tr.title = f.oor ? 'Open this range in the explorer' : 'Replay this hand in the drill';
-    tr.addEventListener('click', (e) => {
-      if (e.target.closest('a')) return;           // the link handles its own click
-      window.open(href, '_blank', 'noopener');
-    });
+    tr.title = 'See the range';
+    tr.addEventListener('click', () => openRange(f));
     const faced = f.unit === 'x' ? `${+f.faced.toFixed(2)}x` : `${Math.round(f.faced)}bb`;
     const sizeNote = f.clamped ? ` <span class="why">(faced ${faced}, judged on ${f.size.face})</span>` : '';
     tr.innerHTML =
-      `<td class="h"><a href="${href}" target="_blank" rel="noopener">${f.hc.code}</a>` +
+      `<td class="h"><button type="button" class="hbtn">${f.hc.code}</button>` +
         `<div class="why">${f.hand.handId || ''}</div></td>` +
       `<td>${f.spot.title} · ${f.size.face}${sizeNote}<div class="why">${f.size.sub}</div></td>` +
       `<td class="hide">${f.stack}bb${Math.round(f.eff) === f.stack ? ''
