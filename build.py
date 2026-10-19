@@ -313,7 +313,6 @@ clubs = f"""
      information and rakeback arrangements.</p>
   <div class="cta">
     <a class="btn p" href="{TG}" target="_blank" rel="noopener">Request club info</a>
-    <a class="btn s" href="/staking">Looking for a stake instead?</a>
   </div>
 </div>
 
@@ -327,6 +326,9 @@ clubs = f"""
     <li><b>Getting set up</b> &ndash; downloading the app, joining, and anything else you need to start
         playing.</li>
   </ul>
+  <div class="cta" style="margin-top:30px">
+    <a class="btn s" href="/staking">Looking for a stake instead?</a>
+  </div>
 </div>
 """
 
