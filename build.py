@@ -111,7 +111,7 @@ home = f"""
          alt="The Felt Experience hand replayer showing a turn bet labeled b75, or 75% of the pot" />
   </a>
   <div class="after">
-    <span>Shared links unfurl into a picture of the hand, so you can post spots anywhere.</span>
+    <span>Shared links show a picture of the hand, so you can post spots anywhere.</span>
     <a class="btn s" href="{REPLAY}" target="_blank" rel="noopener">Open the replayer &rarr;</a>
   </div>
 </div></div>
