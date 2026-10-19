@@ -293,8 +293,7 @@ staking = f"""
   <ul class="ticks">
     <li><b>A solid baseline</b> &ndash; you have a basic understanding of the game and your preflop frequencies are in
         reasonable shape.</li>
-    <li><b>Consistent volume</b> &ndash; I'd rather back someone who plays every week than someone who
-        binges once a month.</li>
+    <li><b>Consistency</b> &ndash; you keep a regular playing and studying schedule.</li>
     <li><b>A growth mindset</b> &ndash; poker is complex, and reaching the top levels takes a commitment
         to keep improving.</li>
   </ul>
