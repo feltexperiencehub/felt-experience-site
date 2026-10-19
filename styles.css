@@ -147,11 +147,20 @@ h2[id]{scroll-margin-top:124px}
 
 /* ---------- about ---------- */
 .about{border-top:1px solid var(--line);margin-top:66px;padding-top:42px;
-  display:grid;grid-template-columns:.6fr auto 1.4fr;gap:40px;align-items:start}
+  display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center}
+.about .colhead{margin-bottom:12px}
 /* the flyer photo is a circle with a ring baked in, so the source is cropped
    inside that ring and the round edge comes from here instead */
 .about-photo img{width:150px;height:150px;border-radius:50%;object-fit:cover;display:block}
-.about p{color:#c9d2cb;font-size:16.5px;line-height:1.65}
+.about p{color:#c9d2cb;font-size:16.5px;line-height:1.65;max-width:680px}
+
+/* ---------- credentials line under a hero ---------- */
+.cred{margin-top:16px;font-size:15px;font-weight:600;color:var(--muted);letter-spacing:.01em}
+
+/* ---------- featured club ---------- */
+.club{display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;max-width:860px}
+.club img{width:200px;height:200px;border-radius:16px;display:block}
+.club h2{margin-top:10px}
 
 /* ---------- footer ---------- */
 footer{border-top:1px solid var(--line);margin-top:56px;padding:32px 0 48px;
@@ -172,7 +181,9 @@ footer .foot-meta .c + .c{margin-top:6px}
 }
 @media (max-width:900px){
   .wrap{padding:0 22px}
-  .doors,.fork,.cards,.cols,.grp,.about{grid-template-columns:1fr}
+  .doors,.fork,.cards,.cols,.grp,.about,.club{grid-template-columns:1fr}
+  .club{gap:24px}
+  .club img{width:160px;height:160px}
   .quotes{columns:1}
   .doors{padding-top:44px}
   .rule{margin:46px 0 24px}

@@ -124,7 +124,7 @@ home = f"""
   </div>
   <div class="door">
     <div class="k">Work with me</div><h3>Coaching</h3>
-    <p>One-on-one sessions built around your game, or a monthly coaching group.</p>
+    <p>A monthly coaching group, or one-on-one sessions built around your game.</p>
     <a href="/coaching">Coaching &rarr;</a>
   </div>
   <div class="door">
@@ -179,6 +179,7 @@ coaching = f"""
   <p class="lede">Both are built on the same thing: solver-informed heuristics crossed with what the
      player pool actually does. Pick whichever fits the level of individual attention you're
      looking for.</p>
+  <p class="cred">Pro since 2007 &middot; Mostly plays 2kNL &middot; Former PokerStrategy and Red Chip Poker coach</p>
 </div>
 
 <div class="wrap fork">
@@ -194,7 +195,7 @@ coaching = f"""
     <div class="who">Most direct</div>
     <h2>1-on-1 Coaching</h2>
     <div class="price">$300 to $340 per session</div>
-    <p>Your database, your hands, your leaks. For serious 100NL&ndash;1kNL players who want the spots
+    <p>Your database, your hands, your leaks. For serious 100NL&ndash;2kNL players who want the spots
        costing them money found and fixed rather than explained in general.</p>
     <a class="btn s" href="#one-on-one">See 1-on-1 details</a>
   </div>
@@ -265,10 +266,9 @@ coaching = f"""
   <div class="mid-note">Questions before you book? <a href="{TG}" target="_blank" rel="noopener">Message me on Telegram</a>.</div>
 
   <div class="about">
-    <div><div class="colhead">About me</div></div>
     <div class="about-photo"><img src="/assets/dustin.jpg" width="150" height="150"
       loading="lazy" alt="Dustin Goldklang" /></div>
-    <div><p>My name is Dustin. I've played online poker professionally since 2007, and these
+    <div><div class="colhead">About me</div><p>My name is Dustin. I've played online poker professionally since 2007, and these
       days I mostly play 2kNL. I was a video coach for PokerStrategy and Red Chip Poker, and I run the
       Felt Experience Poker YouTube channel, where I break down real hands and the theory behind
       them every week.</p></div>
@@ -315,6 +315,23 @@ clubs = f"""
   <div class="cta">
     <a class="btn p" href="{TG}" target="_blank" rel="noopener">Request club info</a>
     <a class="btn s" href="/staking">Looking for a stake instead?</a>
+  </div>
+</div>
+
+<div class="wrap">
+  {RULE}
+  <div class="club">
+    <img src="/assets/fair-fight-hu.jpg" width="200" height="200" loading="lazy"
+      alt="Fair Fight HU club logo" />
+    <div>
+      <div class="colhead">My club</div>
+      <h2>Fair Fight HU</h2>
+      <p class="sub">A heads-up club on ClubGG with the lowest fees you'll find anywhere:
+         1%, capped at 0.2bb, at every level.</p>
+      <div class="cta" style="margin-top:22px">
+        <a class="btn s" href="{TG}" target="_blank" rel="noopener">Get the club ID</a>
+      </div>
+    </div>
   </div>
 </div>
 """
@@ -399,7 +416,7 @@ PAGES = [
   ("index.html",   f"{SITE} – No-Limit Hold'em Cash Game Strategy",
    "Free weekly no-limit hold'em strategy, a free hand replayer, coaching, staking, and club access.", home),
   ("coaching.html", f"Poker Coaching – {SITE}",
-   "One-on-one NLHE cash coaching for 100NL-1kNL players, and a $149/month coaching group.", coaching),
+   "One-on-one NLHE cash coaching for 100NL-2kNL players, and a $149/month coaching group.", coaching),
   ("staking.html", f"Staking & Coaching for Profits – {SITE}",
    "Apply for staking or coaching for profits with Felt Experience Poker.", staking),
   ("clubs.html",   f"Club Access – {SITE}",
