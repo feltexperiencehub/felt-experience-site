@@ -316,6 +316,18 @@ clubs = f"""
     <a class="btn s" href="/staking">Looking for a stake instead?</a>
   </div>
 </div>
+
+<div class="wrap">
+  <div class="rule tight"><span>&#9824;</span><i></i></div>
+  <div class="colhead">What I can help with</div>
+  <ul class="ticks">
+    <li><b>Finding the right games</b> &ndash; clubs with active games at your stakes, during the hours
+        you play.</li>
+    <li><b>Rakeback deals</b> &ndash; arrangements for both players and agents.</li>
+    <li><b>Getting set up</b> &ndash; downloading the app, joining, and anything else you need to start
+        playing.</li>
+  </ul>
+</div>
 """
 
 # ---------------------------------------------------------------- tools
