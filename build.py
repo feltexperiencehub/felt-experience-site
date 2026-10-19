@@ -376,15 +376,15 @@ refunds = f"""
 
   {RULE}
   <h2>The Coaching Group</h2>
-  <p class="sub">$149 per month, cancel anytime. Cancelling stops the next payment, and you keep
+  <p class="sub">$149 per month, cancel anytime. Canceling stops the next payment, and you keep
      access for the rest of the month you have already paid for. Partial months aren't refunded.</p>
 
   {RULE}
   <h2>Scheduling</h2>
-  <p class="sub">I'll email you within one business day of your purchase to book your first session,
-     and we work the rest around your schedule.</p>
+  <p class="sub">I'll email you within one business day of your purchase with a link to schedule
+     your sessions at your convenience.</p>
   <p class="sub">Reschedule any time with at least 24 hours' notice. A session that's missed, or
-     cancelled with less than 24 hours' notice, counts as completed.</p>
+     canceled with less than 24 hours' notice, counts as completed.</p>
 
   {RULE}
   <h2>Questions</h2>
