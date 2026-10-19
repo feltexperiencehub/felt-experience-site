@@ -316,23 +316,6 @@ clubs = f"""
     <a class="btn s" href="/staking">Looking for a stake instead?</a>
   </div>
 </div>
-
-<div class="wrap">
-  {RULE}
-  <div class="club">
-    <img src="/assets/fair-fight-hu.jpg" width="200" height="200" loading="lazy"
-      alt="Fair Fight HU club logo" />
-    <div>
-      <div class="colhead">My club</div>
-      <h2>Fair Fight HU</h2>
-      <p class="sub">A heads-up club on ClubGG with the lowest fees you'll find anywhere:
-         1%, capped at 0.2bb, at every level.</p>
-      <div class="cta" style="margin-top:22px">
-        <a class="btn s" href="{TG}" target="_blank" rel="noopener">Get the club ID</a>
-      </div>
-    </div>
-  </div>
-</div>
 """
 
 # ---------------------------------------------------------------- tools

@@ -157,11 +157,6 @@ h2[id]{scroll-margin-top:124px}
 /* ---------- credentials line under a hero ---------- */
 .cred{margin-top:16px;font-size:15px;font-weight:600;color:var(--muted);letter-spacing:.01em}
 
-/* ---------- featured club ---------- */
-.club{display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:center;max-width:860px}
-.club img{width:200px;height:200px;border-radius:16px;display:block}
-.club h2{margin-top:10px}
-
 /* ---------- footer ---------- */
 footer{border-top:1px solid var(--line);margin-top:56px;padding:32px 0 48px;
   display:flex;flex-direction:column;align-items:flex-start;gap:26px;
@@ -181,9 +176,7 @@ footer .foot-meta .c + .c{margin-top:6px}
 }
 @media (max-width:900px){
   .wrap{padding:0 22px}
-  .doors,.fork,.cards,.cols,.grp,.about,.club{grid-template-columns:1fr}
-  .club{gap:24px}
-  .club img{width:160px;height:160px}
+  .doors,.fork,.cards,.cols,.grp,.about{grid-template-columns:1fr}
   .quotes{columns:1}
   .doors{padding-top:44px}
   .rule{margin:46px 0 24px}
