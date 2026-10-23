@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Low Rake HU Range Explorer – Felt Experience Poker</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+  :root {
+    --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
+    --ink: #171c18; --muted: #5c665e; --faint: #838d85;
+    --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7; --oor: #d3dad1;
+    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
+    --focus: #2f6d8f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+      --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
+      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+      --focus: #7fb6d4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+    --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
+    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+    --focus: #7fb6d4;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 1400px; margin: 0 auto; padding: 22px 20px 52px; }
+
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .top a { font-size: 13px; color: var(--muted); }
+  .gameseg { align-self: center; }
+  .gameseg button { font-size: 13px; padding: 6px 14px; }
+  .gameseg button[aria-pressed="true"] { color: var(--call); }
+  .card[hidden] { display: none; }
+  h1 {
+    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
+    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em;
+    margin: 0; color: var(--ink);
+  }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); padding: 16px;
+  }
+  .card > h2 {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 11px;
+  }
+
+  /* ---- picker: two groups per row, in one grid so the four boxes line up ----
+     The groups are display:contents so their label and their segment become
+     grid items in their own right, which is what lets a column be shared
+     between the row above and the row below. */
+  .picker { margin-bottom: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+  .prow {
+    display: grid; grid-template-columns: repeat(2, max-content minmax(0, max-content));
+    gap: 11px 26px; align-items: center; justify-content: start;
+  }
+  .grp { display: contents; }
+  /* Each box hugs its own buttons rather than filling the column: the raiser
+     list is one entry in some spots, and a lone button in a full-width box
+     reads like an empty field. The shared left edge carries the alignment. */
+  .picker .seg { justify-self: start; }
+  .lbl {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--faint); white-space: nowrap;
+  }
+  .seg { display: flex; flex-wrap: wrap; gap: 3px; background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px;
+    padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .seg button:hover:not([disabled]) { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.16); }
+  .seg button[disabled] { opacity: .3; cursor: not-allowed; }
+  .seg button:focus-visible, .cell:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  /* Drawn inside the cell: the grid scrolls sideways on small screens, and its
+     overflow clips anything outside the cell edge on the bottom row. */
+  .cell.linked { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 18px; align-items: start; }
+
+  /* ---- grid ---- */
+  .gridhead { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  .gridhead strong { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; }
+  .gridhead .sub { display: block; font-size: 13px; color: var(--muted); font-family: Montserrat, sans-serif; font-weight: 400; margin-top: 2px; }
+  .mix { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mix .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 6px 0 14px; }
+  .mix .k:first-child { margin-left: 0; }
+  .mix .k.r { background: var(--raise); }
+  .mix .k.j { background: var(--jam); }
+  .mix .k.c { background: var(--call); }
+  .mix .k.f { background: var(--fold); }
+
+  /* The grid is square, so at full column width it runs well below the fold on
+     a laptop. Cap it by the height actually available, and let the labels keep
+     a floor so shrinking the grid does not shrink them out of readability. */
+  .gridwrap {
+    overflow-x: auto; container-type: inline-size; margin-inline: auto;
+    max-width: min(100%, max(660px, 100vh - 250px));
+    max-width: min(100%, max(660px, 100dvh - 250px));
+  }
+  /* The heading and legend track the grid's width so they line up with its
+     edges rather than the full card. */
+  .gridhead {
+    margin-inline: auto;
+    max-width: min(100%, max(660px, 100vh - 250px));
+    max-width: min(100%, max(660px, 100dvh - 250px));
+  }
+  .axis, .grid { display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr)); gap: 2px; min-width: 500px; }
+  .axis { margin-bottom: 4px; }
+  .axis span { text-align: center; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 500; letter-spacing: .02em; font-size: clamp(10px, 1.35cqw, 14px); color: var(--faint); }
+
+  .cell {
+    appearance: none; border: 0; aspect-ratio: 1; border-radius: 4px;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(11px, 2.3cqw, 17px); font-weight: 500; letter-spacing: .02em;
+    /* Top left like Wizard. With the fills running left to right a centred
+       label often straddles a color boundary; this one sits on a single band. */
+    display: flex; align-items: flex-start; justify-content: flex-start;
+    padding: .35em 0 0 .45em;
+    cursor: pointer; position: relative; overflow: hidden;
+    color: #fff; transition: opacity .15s ease, transform .1s ease;
+  }
+  .cell:hover { transform: translateY(-1px); z-index: 4; }
+  .cell .t { position: relative; z-index: 2; text-shadow: 0 1px 1px rgba(0,0,0,.3); }
+  .cell.oor { color: var(--faint); }
+  .cell.oor .t { text-shadow: none; opacity: .55; }
+
+  /* ---- rail ---- */
+  .rail { display: flex; flex-direction: column; gap: 16px; }
+  .big { display: flex; align-items: baseline; gap: 8px; }
+  .big .n {
+    font-family: 'League Spartan', system-ui, sans-serif; font-size: 40px;
+    font-weight: 700; line-height: 1; letter-spacing: -.03em; color: var(--raise);
+    font-variant-numeric: tabular-nums;
+  }
+  .big .u { font-size: 14px; color: var(--muted); }
+  .bigsub { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+
+  .detail .hand { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 27px; font-weight: 600; margin: 0; line-height: 1.1; }
+  .detail .verdict { font-size: 14px; font-weight: 600; margin: 3px 0 0; color: var(--muted); }
+  .detail .nums { margin: 6px 0 8px; font-size: 14px; font-variant-numeric: tabular-nums;
+                  display: flex; flex-direction: column; gap: 2px; }
+  .detail .nums .a { font-weight: 600; }
+  .detail .nums .raise { color: var(--raise); }
+  .detail .nums .jam { color: var(--jam); }
+  .detail .nums .call { color: var(--call); }
+  .detail .nums .fold { color: var(--muted); }
+  .detail .why { margin: 0; font-size: 13px; color: var(--muted); }
+
+  #notes { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .foot { margin: 22px 0 0; font-size: 13px; color: var(--faint); }
+  .foot a { color: var(--muted); }
+
+  @media (max-width: 920px) {
+    .cols { grid-template-columns: minmax(0,1fr); }
+    /* one group per row, labels still sharing a column */
+    .prow { grid-template-columns: max-content minmax(0, 1fr); }
+  }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <h1>Low Rake HU Range Explorer</h1>
+    <div class="seg gameseg" role="group" aria-label="Effective stack" id="stack-seg"></div>
+  </div>
+
+  <div class="card picker">
+    <div class="prow">
+      <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
+      <div class="grp"><span class="lbl" id="l2">Spot</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <div class="gridhead">
+        <strong id="spot-title"><span class="sub" id="spot-sub"></span></strong>
+        <span class="mix" id="mix"></span>
+      </div>
+      <div class="gridwrap">
+        <div class="axis" id="axis" aria-hidden="true"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+
+    <div class="rail">
+      <div class="card" id="ours-card">
+        <h2 id="ours-label">Our bet</h2>
+        <div class="big"><span class="n" id="ours">–</span><span class="u">bb</span></div>
+        <p class="bigsub" id="ours-sub"></p>
+      </div>
+
+      <div class="card detail">
+        <h2>Hand</h2>
+        <p class="hand" id="d-hand">–</p>
+        <p class="verdict" id="d-verdict">Hover any hand</p>
+        <p class="nums" id="d-nums"></p>
+        <p class="why" id="d-why"></p>
+      </div>
+
+      <div class="card" id="notes-card">
+        <h2>Worth remembering</h2>
+        <p id="notes"></p>
+      </div>
+    </div>
+  </div>
+
+  <p class="foot"><a href="https://feltexperiencepoker.com" target="_blank" rel="noopener">Felt Experience Poker</a></p>
+</div>
+
+<script src="/hu/hu-ranges.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ===========================================================================
+   Low Rake HU range explorer. Same grid and colors as the big ante explorer,
+   with one stack toggle, two positions, and two spots per position.
+   =========================================================================== */
+
+const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+
+const HANDS = [];
+for (let i = 0; i < 13; i++) {
+  for (let j = 0; j < 13; j++) {
+    const pair = i === j, suited = i < j;
+    HANDS.push({
+      code: pair ? RANKS[i] + RANKS[i] : (suited ? RANKS[i] + RANKS[j] + 's' : RANKS[j] + RANKS[i] + 'o'),
+      combos: pair ? 6 : (suited ? 4 : 12),
+    });
+  }
+}
+
+function decode(sp) {
+  const reach = sp.w.split(',').map(Number);
+  return sp.g.split(',').map((tok, n) => {
+    const h = HANDS[n];
+    if (tok === 'X') return { h, oor: true, r: 0, j: 0, c: 0, f: 0, w: 0 };
+    const [r, j, c] = tok.split('.').map(Number);
+    return { h, r, j, c, f: Math.max(0, 100 - r - j - c), w: reach[n] / 100 };
+  });
+}
+
+/* One straight bar per cell: raise, then jam, then call, then fold. */
+function paint(c) {
+  if (c.oor) return 'var(--oor)';
+  const r = c.r, j = r + c.j, k = j + c.c;
+  const stops = [];
+  if (r > 0) stops.push(`var(--raise) 0 ${r}%`);
+  if (c.j > 0) stops.push(`var(--jam) ${r}% ${j}%`);
+  if (c.c > 0) stops.push(`var(--call) ${j}% ${k}%`);
+  if (c.f > 0) stops.push(`var(--fold) ${k}% 100%`);
+  if (!stops.length) return 'var(--fold)';
+  if (stops.length === 1) {
+    return c.f >= 99.5 ? 'var(--fold)' : c.c >= 99.5 ? 'var(--call)'
+      : c.j >= 99.5 ? 'var(--jam)' : 'var(--raise)';
+  }
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+}
+
+const FAMS = {
+  SB: [{ id: 'open', label: 'Open' }, { id: 'vs3b', label: 'vs 3-bet' }],
+  BB: [{ id: 'vsopen', label: 'vs Open' }, { id: 'vs4b', label: 'vs 4-bet' }],
+};
+/* A hand missing from a facing-a-raise grid was folded or never put in the
+   raise that got us here. */
+const OOR_TEXT = { vs3b: 'Never, or almost never, in our opening range', vs4b: 'Never, or almost never, in our 3-betting range' };
+const STACKS = [100, 200];
+const STACK_KEY = 'fe-hu-stack-v1';
+
+const state = { stack: 100, hero: 'SB', fam: 'open' };
+try { const v = Number(localStorage.getItem(STACK_KEY)); if (STACKS.includes(v)) state.stack = v; }
+catch (e) { /* storage can be unavailable; the default stands */ }
+
+const $ = (id) => document.getElementById(id);
+const spot = () => HU_SPOTS.find((s) => s.stack === state.stack && s.hero === state.hero && s.fam === state.fam);
+
+const cells = [];
+(function build() {
+  RANKS.forEach((r) => {
+    const s = document.createElement('span');
+    s.textContent = r;
+    $('axis').appendChild(s);
+  });
+  HANDS.forEach((h) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cell';
+    b.innerHTML = '<span class="t"></span>';
+    b.querySelector('.t').textContent = h.code;
+    $('grid').appendChild(b);
+    cells.push(b);
+  });
+})();
+
+function seg(id, items, isOn, pick) {
+  const box = $(id);
+  box.innerHTML = '';
+  items.forEach((it) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = it.label;
+    b.setAttribute('aria-pressed', String(isOn(it)));
+    b.addEventListener('click', () => pick(it));
+    box.appendChild(b);
+  });
+}
+
+function clearDetail() {
+  $('d-hand').textContent = '–';
+  $('d-verdict').textContent = 'Hover any hand';
+  $('d-nums').innerHTML = '';
+  $('d-why').textContent = '';
+}
+
+function detail(c) {
+  $('d-hand').textContent = c.h.code;
+  if (c.oor) {
+    $('d-verdict').textContent = OOR_TEXT[state.fam] || 'Not in our range';
+    $('d-nums').innerHTML = '';
+    $('d-why').textContent = 'This hand never reaches the spot, so there is nothing to decide.';
+    return;
+  }
+  $('d-verdict').textContent = '';
+  const parts = [];
+  if (c.r) parts.push(`<span class="a raise">${c.r}% raise</span>`);
+  if (c.j) parts.push(`<span class="a jam">${c.j}% jam</span>`);
+  if (c.c) parts.push(`<span class="a call">${c.c}% call</span>`);
+  if (c.f) parts.push(`<span class="a fold">${c.f}% fold</span>`);
+  $('d-nums').innerHTML = parts.join('');
+  $('d-why').textContent = c.w < 0.995
+    ? `Only ${Math.round(c.w * 100)}% of ${c.h.code} gets to this spot.` : '';
+}
+
+function render() {
+  if (!FAMS[state.hero].some((f) => f.id === state.fam)) state.fam = FAMS[state.hero][0].id;
+  const sp = spot();
+  if (!sp) return;
+  const now = decode(sp);
+
+  seg('stack-seg', STACKS.map((n) => ({ label: n + 'bb', v: n })),
+    (it) => it.v === state.stack,
+    (it) => {
+      state.stack = it.v;
+      try { localStorage.setItem(STACK_KEY, String(it.v)); } catch (e) { /* ignore */ }
+      render();
+    });
+  seg('hero-seg', ['SB', 'BB'].map((h) => ({ label: h, v: h })),
+    (it) => it.v === state.hero, (it) => { state.hero = it.v; render(); });
+  seg('fam-seg', FAMS[state.hero].map((f) => ({ label: f.label, v: f.id })),
+    (it) => it.v === state.fam, (it) => { state.fam = it.v; render(); });
+
+  /* Overall frequencies count combos, and only the share of each hand that
+     actually reaches the spot, the way the solver reports them. */
+  let tot = 0, R = 0, J = 0, C = 0, F = 0;
+  cells.forEach((b, i) => {
+    const c = now[i];
+    b.style.background = paint(c);
+    b.classList.toggle('oor', !!c.oor);
+    b.setAttribute('aria-label', c.oor
+      ? `${c.h.code}: ${(OOR_TEXT[sp.fam] || 'not in our range').toLowerCase()}`
+      : `${c.h.code}: ${c.r}% raise, ${c.j ? c.j + '% jam, ' : ''}${c.c}% call, ${c.f}% fold`);
+    b.onmouseenter = () => detail(c);
+    b.onfocus = () => detail(c);
+    b.onblur = clearDetail;
+    if (!c.oor) {
+      const wt = c.h.combos * c.w;
+      tot += wt; R += wt * c.r; J += wt * c.j; C += wt * c.c; F += wt * c.f;
+    }
+  });
+
+  $('spot-title').innerHTML = `${sp.title}<span class="sub">${sp.sub}</span>`;
+  $('ours').textContent = sp.ours;
+  $('ours-label').textContent = sp.oursLabel;
+  $('ours-sub').textContent = sp.sub;
+
+  const d = tot || 1;
+  const bits = [];
+  if (R / d >= 0.05) bits.push(`<span class="k r"></span>${(R / d).toFixed(1)}% raise`);
+  if (J / d >= 0.05) bits.push(`<span class="k j"></span>${(J / d).toFixed(1)}% jam`);
+  if (C / d >= 0.05) bits.push(`<span class="k c"></span>${(C / d).toFixed(1)}% call`);
+  bits.push(`<span class="k f"></span>${(F / d).toFixed(1)}% fold`);
+  $('mix').innerHTML = bits.join('');
+
+  $('notes-card').hidden = !sp.note;
+  $('notes').textContent = sp.note || '';
+  clearDetail();
+}
+
+$('grid').addEventListener('mouseleave', clearDetail);
+render();
+
+})();
+</script>
+
+</body>
+</html>
