@@ -190,6 +190,7 @@
     <div class="prow">
       <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
       <div class="grp"><span class="lbl" id="l2">Spot</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
+      <div class="grp" id="size-grp"><span class="lbl" id="l3">3-bet size</span><div class="seg" role="group" aria-labelledby="l3" id="size-seg"></div></div>
     </div>
   </div>
 
@@ -290,12 +291,16 @@ const OOR_TEXT = { vs3b: 'Never, or almost never, in our opening range', vs4b: '
 const STACKS = [100, 200];
 const STACK_KEY = 'fe-hu-stack-v1';
 
-const state = { stack: 100, hero: 'SB', fam: 'open' };
+const state = { stack: 100, hero: 'SB', fam: 'open', face: null };
 try { const v = Number(localStorage.getItem(STACK_KEY)); if (STACKS.includes(v)) state.stack = v; }
 catch (e) { /* storage can be unavailable; the default stands */ }
 
 const $ = (id) => document.getElementById(id);
-const spot = () => HU_SPOTS.find((s) => s.stack === state.stack && s.hero === state.hero && s.fam === state.fam);
+/* Some spots were solved against more than one size, e.g. a 10bb and a 12.5bb
+   3-bet at 200bb. Those get a size toggle; the face is held across changes so
+   switching depth keeps you on the same size where it exists. */
+const options = () => HU_SPOTS.filter((s) => s.stack === state.stack && s.hero === state.hero && s.fam === state.fam);
+const spot = () => options().find((s) => s.face === state.face) || options()[0];
 
 const cells = [];
 (function build() {
@@ -371,6 +376,11 @@ function render() {
     (it) => it.v === state.hero, (it) => { state.hero = it.v; render(); });
   seg('fam-seg', FAMS[state.hero].map((f) => ({ label: f.label, v: f.id })),
     (it) => it.v === state.fam, (it) => { state.fam = it.v; render(); });
+
+  const opts = options();
+  $('size-grp').style.display = opts.length > 1 ? 'contents' : 'none';
+  seg('size-seg', opts.map((o) => ({ label: o.face, v: o.face })),
+    (it) => it.v === sp.face, (it) => { state.face = it.v; render(); });
 
   /* Overall frequencies count combos, and only the share of each hand that
      actually reaches the spot, the way the solver reports them. */
