@@ -1,5 +1,5 @@
 /* 3k 5-max big ante ranges, read from GTO Wizard captures in the
-   "3k 5max big ante" folder (10bb from the separate "10bb" folder). Behind the same password gate as /hu.
+   "3k 5max big ante" folder. Behind the same password gate as /hu.
 
    g: 169 cells of "jam.call"; fold is the remainder. The green action is a
       limp when we are first in, a check facing a limp, and a call facing a jam.
