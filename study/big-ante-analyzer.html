@@ -341,7 +341,9 @@ function decisions(hand, hero) {
     const nonFold = pre.slice(0, i).filter((x) => x.kind !== 'fold');
 
     if (seen === 1) {
-      if (nonFold.length === 0) { out.push({ act, skip: 'opening decision, no chart for it' }); continue; }
+      // Folded to us. Only UTG to BTN are charted, and only at 100bb; the SB
+      // limps every hand, so there is nothing there to check.
+      if (nonFold.length === 0) { out.push({ act, fam: 'first', vs: null, face: null }); continue; }
       if (nonFold.length === 1 && isRaise(nonFold[0])) {
         out.push({ act, fam: 'rfi', vs: nonFold[0].player, face: nonFold[0].to / hand.bb, unit: 'x' });
         continue;
@@ -377,6 +379,9 @@ function decisions(hand, hero) {
 
 const CATEGORY = (a) => (a.kind === 'fold' ? 'fold' : a.kind === 'call' ? 'call' : isRaise(a) ? 'raise' : null);
 const DID = { fold: 'Folded', call: 'Called', raise: 'Raised' };
+/* First in, a call is a limp and a raise an open. */
+const did = (f) => (f.spot.fam === 'first' && f.cat === 'call' ? 'Limped'
+  : f.spot.fam === 'first' && f.cat === 'raise' ? 'Opened' : DID[f.cat]);
 
 const freshResult = () => ({ hands: 0, dups: 0, dec: 0, cov: 0, flags: [], skips: {}, errs: {} });
 
@@ -421,21 +426,38 @@ function analyzeInto(res, text, seen) {
       if (d.skip) { bump(res.skips, d.skip); return; }
 
       const villain = hand.players.find((p) => p.name === d.vs);
+      /* First in there is no villain yet: the depth that matters is ours
+         against the deepest player still to act. */
+      const behind = d.fam === 'first'
+        ? Math.max(0, ...live.filter((p) => p !== hero && !hand.actions.some((a) =>
+            a.street === 'preflop' && a.player === p.name && a.kind === 'fold'
+            && hand.actions.indexOf(a) < hand.actions.indexOf(d.act))).map((p) => p.stack))
+        : null;
       // Rounded to a tenth so the depth cards on the page are exactly true:
       // 87.5 goes to 75bb, 87.6 to 100bb, and nothing falls between them.
-      const eff = Math.round(Math.min(hero.stack, villain ? villain.stack : hero.stack) / hand.bb * 10) / 10;
+      const eff = Math.round(Math.min(hero.stack,
+        d.fam === 'first' ? (behind || hero.stack) : villain ? villain.stack : hero.stack) / hand.bb * 10) / 10;
       if (eff < DEPTH_LO || eff > DEPTH_HI) {
         bump(res.skips, `${Math.round(eff)}bb effective, outside the charts`); return;
       }
       const stack = nearest(STACKS, eff);
-      const spot = findSpot(stack, d.fam, heroPos, pos[d.vs]);
-      if (!spot) { bump(res.skips, `${heroPos} vs ${pos[d.vs]} at ${stack}bb is not in the set`); return; }
-
-      const top = Math.max(...spot.sizes.map((z) => parseFloat(z.face)));
-      if (d.face >= top + SIZE_SLACK - 1e-9) {
-        bump(res.skips, `facing ${SIZE_SLACK}bb or more above the largest size charted`); return;
+      if (d.fam === 'first' && heroPos === 'SB') { bump(res.skips, 'SB first in, the SB limps every hand'); return; }
+      if (d.fam === 'first' && stack !== 100) { bump(res.skips, 'first in at a depth other than 100bb, charted at 100bb only'); return; }
+      const spot = findSpot(stack, d.fam, heroPos, d.fam === 'first' ? null : pos[d.vs]);
+      if (!spot) {
+        bump(res.skips, d.fam === 'first' ? `${heroPos} first in is not in the set`
+          : `${heroPos} vs ${pos[d.vs]} at ${stack}bb is not in the set`);
+        return;
       }
-      const { size, clamped } = chooseSize(spot.sizes, d.face);
+
+      let size = spot.sizes[0], clamped = false;
+      if (d.fam !== 'first') {
+        const top = Math.max(...spot.sizes.map((z) => parseFloat(z.face)));
+        if (d.face >= top + SIZE_SLACK - 1e-9) {
+          bump(res.skips, `facing ${SIZE_SLACK}bb or more above the largest size charted`); return;
+        }
+        ({ size, clamped } = chooseSize(spot.sizes, d.face));
+      }
       const cell = cellAt(size.g, hc.idx);
       const cat = CATEGORY(d.act);
       if (!cat) { bump(res.skips, 'could not tell what we did'); return; }
@@ -483,8 +505,8 @@ function paint(c) {
   return `linear-gradient(to right, ${stops.join(', ')})`;
 }
 
-const plainFreqs = (c) => ['raise', 'jam', 'call', 'fold']
-  .filter((k) => c[k] > 0).map((k) => `${c[k]}% ${k}`).join(', ');
+const plainFreqs = (c, sp) => ['raise', 'jam', 'call', 'fold']
+  .filter((k) => c[k] > 0).map((k) => `${c[k]}% ${(sp && sp.words && sp.words[k]) || k}`).join(', ');
 
 (function axis() {
   RANKS.split('').forEach((r) => {
@@ -502,8 +524,8 @@ function openRange(f) {
   $('rb-sub').textContent = f.size.sub + clampNote;
   $('rb-hand').innerHTML =
     `<span class="code">${f.hc.code}</span>` +
-    `<span class="did ${f.cat}">You ${DID[f.cat].toLowerCase()}</span>` +
-    `<span class="freqs">${f.oor ? 'never in our range here' : 'Chart: ' + freqBits(f.cell)}</span>`;
+    `<span class="did ${f.cat}">You ${did(f).toLowerCase()}</span>` +
+    `<span class="freqs">${f.oor ? 'never in our range here' : 'Chart: ' + freqBits(f.cell, f.spot)}</span>`;
 
   const grid = $('rb-grid');
   grid.innerHTML = '';
@@ -513,14 +535,15 @@ function openRange(f) {
     const el = document.createElement('div');
     el.className = 'cell' + (c ? '' : ' oor') + (i === f.hc.idx ? ' mine' : '');
     el.style.background = paint(c);
-    el.title = c ? `${code}: ${plainFreqs(c)}` : `${code}: not in our range here`;
+    el.title = c ? `${code}: ${plainFreqs(c, f.spot)}` : `${code}: not in our range here`;
     el.innerHTML = `<span>${code}</span>`;
     grid.appendChild(el);
     if (c) Object.keys(seen).forEach((k) => { seen[k] += c[k]; });
   });
   const leg = [['raise', 'r'], ['jam', 'j'], ['call', 'c'], ['fold', 'f']]
     .filter(([k]) => seen[k] > 0)
-    .map(([k, cls]) => `<span><span class="k ${cls}"></span>${k[0].toUpperCase() + k.slice(1)}</span>`);
+    .map(([k, cls]) => { const n = (f.spot.words && f.spot.words[k]) || k;
+      return `<span><span class="k ${cls}"></span>${n[0].toUpperCase() + n.slice(1)}</span>`; });
   $('rb-legend').innerHTML = leg.join('');
   $('rangebox').showModal();
 }
@@ -544,9 +567,10 @@ $('rb-close').addEventListener('click', () => $('rangebox').close());
 // A click on the dimmed backdrop lands on the dialog itself, not its contents.
 $('rangebox').addEventListener('click', (e) => { if (e.target === $('rangebox')) $('rangebox').close(); });
 
-function freqBits(c) {
+function freqBits(c, sp) {
   const bits = [];
-  const add = (k, cls, v) => { if (v > 0) bits.push(`<span class="k ${cls}"></span>${v}% ${k}`); };
+  const w = (sp && sp.words) || {};
+  const add = (k, cls, v) => { if (v > 0) bits.push(`<span class="k ${cls}"></span>${v}% ${w[k] || k}`); };
   add('raise', 'r', c.raise); add('jam', 'j', c.jam); add('call', 'c', c.call); add('fold', 'f', c.fold);
   return bits.join('  ');
 }
@@ -569,7 +593,7 @@ function show(res) {
     tr.className = 'go';
     tr.title = 'See the range';
     tr.addEventListener('click', () => openRange(f));
-    const faced = f.unit === 'x' ? `${+f.faced.toFixed(2)}x` : `${+f.faced.toFixed(1)}bb`;
+    const faced = f.faced == null ? '' : f.unit === 'x' ? `${+f.faced.toFixed(2)}x` : `${+f.faced.toFixed(1)}bb`;
     const sizeNote = f.clamped ? ` <span class="why">(faced ${faced}, judged on ${f.size.face})</span>` : '';
     tr.innerHTML =
       `<td class="h"><button type="button" class="hbtn">${f.hc.code}</button>` +
@@ -577,10 +601,10 @@ function show(res) {
       `<td>${f.spot.title} · ${f.size.face}${sizeNote}<div class="why">${f.size.sub}</div></td>` +
       `<td class="hide">${f.stack}bb${f.eff === f.stack ? ''
         : `<div class="why">${+f.eff.toFixed(1)}bb in play</div>`}</td>` +
-      `<td class="did ${f.cat}">${DID[f.cat]}</td>` +
+      `<td class="did ${f.cat}">${did(f)}</td>` +
       `<td class="freqs">${f.oor
         ? '<span class="muted">this hand is never in our range here at all</span>'
-        : freqBits(f.cell)}</td>`;
+        : freqBits(f.cell, f.spot)}</td>`;
     tb.appendChild(tr);
   });
   $('flagcard').hidden = res.flags.length === 0;

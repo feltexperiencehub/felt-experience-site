@@ -192,7 +192,7 @@
     <div class="prow">
       <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
       <div class="grp"><span class="lbl" id="l2">Facing</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
-      <div class="grp"><span class="lbl" id="l3">Raiser</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
+      <div class="grp" id="vs-grp"><span class="lbl" id="l3">Raiser</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
       <div class="grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
     </div>
   </div>
@@ -290,6 +290,7 @@ function paint(c) {
 }
 
 const FAM_ORDER = [
+  { id: 'first', label: 'First in' },
   { id: 'rfi',  label: 'vs RFI' },
   { id: 'vs3b', label: 'vs 3-bet' },
   { id: 'limp', label: 'Limp vs ISO' },
@@ -302,7 +303,7 @@ const HERO_ORDER = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 /* The size card names our own bet where we have one. Facing a jam there is no
    raise left, so that spot has nothing to put there and the card comes off. */
 const OURS_LABEL = {
-  rfi: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet',
+  first: 'Our open', rfi: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet',
   hurfi: 'Our 3-bet', huvs3b: 'Our jam', huvs4b: 'Our jam', huvsjam: null,
 };
 const GAME_LABEL = { '6max': '6-max', hu: 'Heads up' };
@@ -313,6 +314,9 @@ const OOR_LABEL = {
   huvs4b: '3-betting', huvsjam: '3-betting',
 };
 const oorText = (fam) => `Not in our ${OOR_LABEL[fam] || 'opening'} range`;
+/* A spot can rename an action: first in, the green action is a limp and the
+   red one an open. */
+const word = (sp, k) => (sp && sp.words && sp.words[k]) || k;
 const GAME_KEY = 'fe-bigante-game-v1';
 
 /* The size is held by its face rather than its index, so switching who
@@ -384,9 +388,10 @@ function detail(c) {
   $('d-verdict').textContent = '';
   // Each frequency wears the color it has on the grid.
   const parts = [];
-  if (c.r) parts.push(`<span class="a raise">${c.r}% raise</span>`);
+  const sp = spot();
+  if (c.r) parts.push(`<span class="a raise">${c.r}% ${word(sp, 'raise')}</span>`);
   if (c.j) parts.push(`<span class="a jam">${c.j}% jam</span>`);
-  if (c.c) parts.push(`<span class="a call">${c.c}% call</span>`);
+  if (c.c) parts.push(`<span class="a call">${c.c}% ${word(sp, 'call')}</span>`);
   if (c.f) parts.push(`<span class="a fold">${c.f}% fold</span>`);
   $('d-nums').innerHTML = parts.join('');
   $('d-why').textContent = c.est
@@ -451,6 +456,8 @@ function render() {
     })),
     (it) => it.v === state.fam, (it) => { state.fam = it.v; render(); });
 
+  // First in there is no raiser to pick.
+  $('vs-grp').style.display = sp.vs ? '' : 'none';
   seg('vs-seg', opts.map((o) => ({ label: o.vs, v: o.vs })),
     (it) => it.v === state.vs, (it) => { state.vs = it.v; render(); });
 
@@ -465,11 +472,16 @@ function render() {
     b.classList.toggle('oor', !!c.oor);
     b.setAttribute('aria-label', c.oor
       ? `${c.h.code}: ${oorText(sp.fam).toLowerCase()}`
-      : `${c.h.code}: ${c.r + c.j}% ${c.j > c.r ? 'jam' : 'raise'}, ${c.c}% call, ${c.f}% fold`);
+      : `${c.h.code}: ${c.r + c.j}% ${c.j > c.r ? 'jam' : word(sp, 'raise')}, ${c.c}% ${word(sp, 'call')}, ${c.f}% fold`);
     b.onmouseenter = () => detail(c);
     b.onfocus = () => detail(c);
     b.onblur = clearDetail;
-    if (!c.oor) { n++; raiseW += c.r; jamW += c.j; callW += c.c; foldW += c.f; }
+    // Weighted by combos, so the totals are real frequencies: a pair is 6
+    // combos, a suited hand 4 and an offsuit hand 12.
+    if (!c.oor) {
+      const k = c.h.kind === 'pair' ? 6 : c.h.kind === 's' ? 4 : 12;
+      n += k; raiseW += k * c.r; jamW += k * c.j; callW += k * c.c; foldW += k * c.f;
+    }
   });
 
   $('spot-title').innerHTML = `${sp.title}<span class="sub">${size.sub}</span>`;
@@ -485,9 +497,9 @@ function render() {
   // in the spots that actually have one.
   const d = n || 1;
   const bits = [];
-  if (raiseW / d >= 0.05) bits.push(`<span class="k r"></span>${(raiseW / d).toFixed(1)}% raise`);
+  if (raiseW / d >= 0.05) bits.push(`<span class="k r"></span>${(raiseW / d).toFixed(1)}% ${word(sp, 'raise')}`);
   if (jamW / d >= 0.05) bits.push(`<span class="k j"></span>${(jamW / d).toFixed(1)}% jam`);
-  bits.push(`<span class="k c"></span>${(callW / d).toFixed(1)}% call`);
+  if (callW / d >= 0.05 || sp.fam !== 'first') bits.push(`<span class="k c"></span>${(callW / d).toFixed(1)}% ${word(sp, 'call')}`);
   bits.push(`<span class="k f"></span>${(foldW / d).toFixed(1)}% fold`);
   $('mix').innerHTML = bits.join('');
 

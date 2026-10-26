@@ -512,10 +512,10 @@ HANDS.forEach((h) => {
 });
 
 const FAM_LABEL = {
-  rfi: 'vs RFI', vs3b: 'vs 3-bet', limp: 'Limp vs ISO',
+  first: 'First in', rfi: 'vs RFI', vs3b: 'vs 3-bet', limp: 'Limp vs ISO',
   hurfi: 'vs Open', huvs3b: 'vs 3-bet', huvs4b: 'vs 4-bet', huvsjam: 'vs Jam',
 };
-const FAM_ORDER = ['rfi','vs3b','limp','hurfi','huvs3b','huvs4b','huvsjam'];
+const FAM_ORDER = ['first','rfi','vs3b','limp','hurfi','huvs3b','huvs4b','huvsjam'];
 const HERO_ORDER = ['UTG','HJ','CO','BTN','SB','BB'];
 const POS_ORDER = ['UTG','EP','HJ','CO','BTN','SB','BB'];
 
@@ -532,6 +532,11 @@ const ACT_SET = {
   huvs4b:  [['fold','Fold'], ['call','Call'], ['jam','Jam']],
   huvsjam: [['fold','Fold'], ['call','Call']],
 };
+/* First in there is nothing to call or 3-bet: the early seats limp or fold,
+   and the cutoff and button open or fold. */
+const actsOf = (sp) => sp.fam !== 'first' ? ACT_SET[sp.fam]
+  : sp.words && sp.words.call ? [['fold','Fold'], ['call','Limp']]
+  : [['fold','Fold'], ['raise','Open']];
 
 /* Heads up is two seats and no dead antes from players who folded, so the ring
    and the pot are both built from however many seats the format has. */
@@ -576,6 +581,8 @@ function scenario(q) {
     else if (fam === 'huvs3b') { verb = '3-bets to'; heroAction = 'we open 3.5bb'; }
     else if (fam === 'huvs4b') { verb = '4-bets to'; heroAction = 'we 3-bet to 13bb'; }
     else { verb = 'jams'; heroAction = 'we 3-bet to 13bb'; }
+  } else if (fam === 'first') {
+    verb = '';                                 // folded to us, nobody has bet
   } else if (fam === 'rfi') {
     wager[vsSeat] = face;
   } else if (fam === 'vs3b') {
@@ -591,14 +598,15 @@ function scenario(q) {
   }
 
   const pot = RING.length * ANTE + RING.reduce((t, p) => t + wager[p], 0);
-  const toCall = wager[vsSeat] - wager[heroSeat];
+  // First in, completing to the big blind is the limp.
+  const toCall = fam === 'first' ? BB_POST - wager[heroSeat] : wager[vsSeat] - wager[heroSeat];
 
   /* Only facing an open is anyone still to come: the seats after us have not
      acted yet. Once we have opened or limped, the action has already passed
      everyone else and come back to us, so they have all folded. Heads up there
      is never anyone else. */
   const heroIdx = RING.indexOf(heroSeat);
-  const yetToAct = (p) => (fam === 'rfi') && RING.indexOf(p) > heroIdx;
+  const yetToAct = (p) => (fam === 'rfi' || fam === 'first') && RING.indexOf(p) > heroIdx;
   const seats = RING.map((p) => ({
     seat: p,
     label: (p === 'UTG' && (q.sp.vs === 'EP' || q.sp.hero === 'EP')) ? 'EP' : p,
@@ -609,7 +617,8 @@ function scenario(q) {
 
   return {
     seats, pot, toCall, heroSeat, vsSeat, heroWager: wager[heroSeat],
-    line: fam === 'huvsjam' ? `${q.sp.vs} jams` : `${q.sp.vs} ${verb} ${bb(wager[vsSeat])}bb`,
+    line: fam === 'first' ? 'Folded to us'
+      : fam === 'huvsjam' ? `${q.sp.vs} jams` : `${q.sp.vs} ${verb} ${bb(wager[vsSeat])}bb`,
     heroAction,
   };
 }
@@ -717,7 +726,7 @@ SPOT_DATA.forEach((sp) => {
       if (tok === 'X') return;                       // never reaches the spot
       const [r, j, c] = tok.replace('!', '').split('.').map(Number);
       const f = Math.max(0, 100 - r - j - c);
-      const acts = ACT_SET[sp.fam].map(([id, name]) => ({
+      const acts = actsOf(sp).map(([id, name]) => ({
         id, name, pct: id === 'fold' ? f : id === 'call' ? c : r + j,
       }));
       POOL.push({ sp, si, z, n, h: HANDS[n], acts });
@@ -1166,9 +1175,10 @@ function openRange() {
 
   $('range-title').textContent = `${q.sp.title} · ${q.z.face} · ${startOf(q)}bb`;
   const bits = [];
-  if (mine.r) bits.push(`${mine.r}% ${q.sp.fam === 'vs3b' ? 'jam' : '3-bet'}`);
+  const w = q.sp.words || {};
+  if (mine.r) bits.push(`${mine.r}% ${w.raise || (q.sp.fam === 'vs3b' ? 'jam' : '3-bet')}`);
   if (mine.j) bits.push(`${mine.j}% jam`);
-  if (mine.c) bits.push(`${mine.c}% call`);
+  if (mine.c) bits.push(`${mine.c}% ${w.call || 'call'}`);
   if (mine.f) bits.push(`${mine.f}% fold`);
   $('range-sub').innerHTML = `${q.z.sub} · <b>${q.h.code}</b> ${bits.join(', ')}`;
 
@@ -1181,9 +1191,13 @@ function openRange() {
     if (c.j > 0) hasJam = true;
   });
 
-  const keys = [['--raise', q.sp.fam === 'vs3b' ? 'Raise' : '3-bet']];
+  const keys = q.sp.fam === 'first'
+    ? [w.call ? ['--call', 'Limp'] : ['--raise', 'Open']]
+    : [['--raise', q.sp.fam === 'vs3b' ? 'Raise' : '3-bet']];
   if (hasJam) keys.push(['--jam', 'Jam']);
-  keys.push(['--call', 'Call'], ['--fold', 'Fold'], ['--sunk', 'Not in our range']);
+  if (q.sp.fam !== 'first') keys.push(['--call', 'Call']);
+  keys.push(['--fold', 'Fold']);
+  if (q.sp.fam !== 'first') keys.push(['--sunk', 'Not in our range']);
   $('range-legend').innerHTML = keys
     .map(([v, n]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join('') +
     '<span><i style="background:#fff"></i>Our hand</span>';
