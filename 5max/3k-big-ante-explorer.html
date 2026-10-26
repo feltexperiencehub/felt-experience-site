@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>3k 5-Max Big Ante Range Explorer – Felt Experience Poker</title>
+<title>Explorer – Felt Experience Poker</title>
 <meta name="robots" content="noindex, nofollow" />
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -182,15 +182,16 @@
 
 <div class="shell">
   <div class="top">
-    <h1>3k 5-Max Big Ante Range Explorer</h1>
+    <h1>Explorer</h1>
   </div>
 
   <div class="card picker">
     <div class="prow">
-      <div class="grp"><span class="lbl" id="l0">Depth</span><div class="seg" role="group" aria-labelledby="l0" id="stack-seg"></div></div>
-      <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
-      <div class="grp"><span class="lbl" id="l2">Spot</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
-      <div class="grp" id="vs-grp"><span class="lbl" id="l3">Jammer</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
+      <div class="grp"><span class="lbl" id="l0">Players</span><div class="seg" role="group" aria-labelledby="l0" id="players-seg"></div></div>
+      <div class="grp"><span class="lbl" id="l1">Depth</span><div class="seg" role="group" aria-labelledby="l1" id="stack-seg"></div></div>
+      <div class="grp"><span class="lbl" id="l2">Position</span><div class="seg" role="group" aria-labelledby="l2" id="hero-seg"></div></div>
+      <div class="grp"><span class="lbl" id="l3">Spot</span><div class="seg" role="group" aria-labelledby="l3" id="fam-seg"></div></div>
+      <div class="grp" id="vs-grp"><span class="lbl" id="l4">Jammer</span><div class="seg" role="group" aria-labelledby="l4" id="vs-seg"></div></div>
     </div>
   </div>
 
@@ -212,6 +213,7 @@
         <p class="hand" id="d-hand">–</p>
         <p class="verdict" id="d-verdict">Hover any hand</p>
         <p class="nums" id="d-nums"></p>
+        <p class="why" id="d-why"></p>
       </div>
 
       <div class="card" id="notes-card">
@@ -230,9 +232,9 @@
 "use strict";
 
 /* ===========================================================================
-   3k 5-max big ante explorer: push/fold and limp ranges at 10, 15, 20 and 30bb.
-   Same grid and colors as the other explorers. The green action changes name
-   with the spot: a limp first in, a check facing a limp, a call facing a jam.
+   3k big ante explorer: 5, 3 and 2 players, 10 to 30bb. Same grid and colors
+   as the other explorers: light red a raise that is not all in, purple a jam,
+   green the passive action (a limp, a check or a call, depending on the spot).
    =========================================================================== */
 
 const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
@@ -247,37 +249,66 @@ for (let i = 0; i < 13; i++) {
   }
 }
 
-const decode = (sp) => sp.g.split(',').map((tok, n) => {
-  const [j, c] = tok.split('.').map(Number);
-  return { h: HANDS[n], j, c, f: Math.max(0, 100 - j - c) };
-});
+function decode(sp) {
+  const reach = sp.w.split(',').map(Number);
+  return sp.g.split(',').map((tok, n) => {
+    const h = HANDS[n];
+    if (tok === 'X') return { h, oor: true, r: 0, j: 0, c: 0, f: 0, w: 0 };
+    const [r, j, c] = tok.split('.').map(Number);
+    return { h, r, j, c, f: Math.max(0, 100 - r - j - c), w: reach[n] / 100 };
+  });
+}
 
-/* One straight bar per cell: jam, then the green action, then fold. */
+/* One straight bar per cell: raise, jam, the green action, then fold. */
 function paint(c) {
+  if (c.oor) return 'var(--oor)';
+  const r = c.r, j = r + c.j, k = j + c.c;
   const stops = [];
-  if (c.j > 0) stops.push(`var(--jam) 0 ${c.j}%`);
-  if (c.c > 0) stops.push(`var(--call) ${c.j}% ${c.j + c.c}%`);
-  if (c.f > 0) stops.push(`var(--fold) ${c.j + c.c}% 100%`);
-  if (stops.length <= 1) return c.j >= 99.5 ? 'var(--jam)' : c.c >= 99.5 ? 'var(--call)' : 'var(--fold)';
+  if (c.r > 0) stops.push(`var(--raise) 0 ${r}%`);
+  if (c.j > 0) stops.push(`var(--jam) ${r}% ${j}%`);
+  if (c.c > 0) stops.push(`var(--call) ${j}% ${k}%`);
+  if (c.f > 0) stops.push(`var(--fold) ${k}% 100%`);
+  if (stops.length <= 1) {
+    return c.f >= 99.5 ? 'var(--fold)' : c.c >= 99.5 ? 'var(--call)' : c.j >= 99.5 ? 'var(--jam)' : 'var(--raise)';
+  }
   return `linear-gradient(to right, ${stops.join(', ')})`;
 }
 
-const POSITIONS = ['HJ', 'CO', 'BTN', 'SB', 'BB'];
+const PLAYERS = [
+  { n: 5, positions: ['HJ', 'CO', 'BTN', 'SB', 'BB'] },
+  { n: 3, positions: ['BTN', 'SB', 'BB'] },
+  { n: 2, positions: ['SB', 'BB'] },
+];
 const FAMS = [
   { id: 'rfi', label: 'First in' },
-  { id: 'vsjam', label: 'vs Jam' },
+  { id: 'vsopen', label: 'vs Open', row: 'Raiser' },
+  { id: 'vsjam', label: 'vs Jam', row: 'Jammer' },
   { id: 'vslimp', label: 'vs Limp' },
+  { id: 'afterlimp', label: 'After limping', row: 'Facing' },
+  { id: 'afteropen', label: 'After opening', row: 'Facing' },
 ];
-const GREEN = { rfi: 'limp', vsjam: 'call', vslimp: 'check' };
-const STACKS = [10, 15, 20, 30];
-const STACK_KEY = 'fe-5max-stack-v1';
+/* What the green action is called in each kind of spot; a spot can also
+   rename either action through its own `words`. */
+const GREEN = { rfi: 'limp', vsopen: 'call', vsjam: 'call', vslimp: 'check', afterlimp: 'call', afteropen: 'call' };
+const word = (sp, k) => (sp.words && sp.words[k]) || (k === 'call' ? GREEN[sp.fam] : k);
+const OOR_TEXT = {
+  afterlimp: 'Never, or almost never, limped', afteropen: 'Never, or almost never, opened 2x',
+};
 
-const state = { stack: 15, hero: 'BTN', fam: 'rfi', vs: null };
-try { const v = Number(localStorage.getItem(STACK_KEY)); if (STACKS.includes(v)) state.stack = v; }
-catch (e) { /* storage can be unavailable; the default stands */ }
+const KEY = 'fe-5max-v2';
+const state = { players: 5, stack: 15, hero: 'BTN', fam: 'rfi', vs: null };
+try {
+  const v = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if (v && PLAYERS.some((p) => p.n === v.players)) state.players = v.players;
+  if (v && Number.isFinite(v.stack)) state.stack = v.stack;
+} catch (e) { /* storage can be unavailable; the defaults stand */ }
+const save = () => {
+  try { localStorage.setItem(KEY, JSON.stringify({ players: state.players, stack: state.stack })); } catch (e) { /* ignore */ }
+};
 
 const $ = (id) => document.getElementById(id);
-const atStack = () => FIVEMAX_SPOTS.filter((s) => s.stack === state.stack);
+const atPlayers = () => FIVEMAX_SPOTS.filter((s) => s.players === state.players);
+const atStack = () => atPlayers().filter((s) => s.stack === state.stack);
 const branch = () => atStack().filter((s) => s.hero === state.hero && s.fam === state.fam);
 const spot = () => branch().find((s) => s.vs === state.vs) || branch()[0];
 
@@ -307,7 +338,7 @@ function seg(id, items, isOn, pick) {
     b.type = 'button';
     b.textContent = it.label;
     b.setAttribute('aria-pressed', String(isOn(it)));
-    if (it.off) { b.disabled = true; b.title = it.offText; }
+    if (it.off) { b.disabled = true; b.title = it.offText || 'No chart for this position'; }
     else b.addEventListener('click', () => pick(it));
     box.appendChild(b);
   });
@@ -317,21 +348,35 @@ function clearDetail() {
   $('d-hand').textContent = '–';
   $('d-verdict').textContent = 'Hover any hand';
   $('d-nums').innerHTML = '';
+  $('d-why').textContent = '';
 }
 
-function detail(c, fam) {
+function detail(c, sp) {
   $('d-hand').textContent = c.h.code;
+  if (c.oor) {
+    $('d-verdict').textContent = OOR_TEXT[sp.fam] || 'Not in our range';
+    $('d-nums').innerHTML = '';
+    $('d-why').textContent = 'This hand never, or almost never, reaches the spot.';
+    return;
+  }
   $('d-verdict').textContent = '';
   const parts = [];
+  if (c.r) parts.push(`<span class="a raise">${c.r}% ${word(sp, 'raise')}</span>`);
   if (c.j) parts.push(`<span class="a jam">${c.j}% jam</span>`);
-  if (c.c) parts.push(`<span class="a call">${c.c}% ${GREEN[fam]}</span>`);
+  if (c.c) parts.push(`<span class="a call">${c.c}% ${word(sp, 'call')}</span>`);
   if (c.f) parts.push(`<span class="a fold">${c.f}% fold</span>`);
   $('d-nums').innerHTML = parts.join('');
+  $('d-why').textContent = c.w < 0.995 ? `Only ${Math.round(c.w * 100)}% of ${c.h.code} gets to this spot.` : '';
 }
 
 function render() {
+  /* Settle each setting in order, falling back to the first that exists, so a
+     change higher up never leaves the picker on a chart that is not there. */
+  const stacks = [...new Set(atPlayers().map((s) => s.stack))].sort((a, b) => a - b);
+  if (!stacks.includes(state.stack)) state.stack = stacks.includes(15) ? 15 : stacks[0];
   const here = atStack();
-  const heroes = POSITIONS.filter((h) => here.some((s) => s.hero === h));
+  const positions = PLAYERS.find((p) => p.n === state.players).positions;
+  const heroes = positions.filter((h) => here.some((s) => s.hero === h));
   if (!heroes.includes(state.hero)) state.hero = heroes.includes('BTN') ? 'BTN' : heroes[0];
   const fams = FAMS.filter((f) => here.some((s) => s.hero === state.hero && s.fam === f.id));
   if (!fams.some((f) => f.id === state.fam)) state.fam = fams[0].id;
@@ -340,41 +385,47 @@ function render() {
   const sp = spot();
   const now = decode(sp);
 
-  seg('stack-seg', STACKS.map((n) => ({ label: n + 'bb', v: n })),
-    (it) => it.v === state.stack,
-    (it) => {
-      state.stack = it.v;
-      try { localStorage.setItem(STACK_KEY, String(it.v)); } catch (e) { /* ignore */ }
-      render();
-    });
-  seg('hero-seg', heroes.map((h) => ({ label: h, v: h })),
+  seg('players-seg', PLAYERS.map((p) => ({ label: String(p.n), v: p.n })),
+    (it) => it.v === state.players, (it) => { state.players = it.v; save(); render(); });
+  seg('stack-seg', stacks.map((n) => ({ label: n + 'bb', v: n })),
+    (it) => it.v === state.stack, (it) => { state.stack = it.v; save(); render(); });
+  seg('hero-seg', positions.map((h) => ({ label: h, v: h, off: !heroes.includes(h) })),
     (it) => it.v === state.hero, (it) => { state.hero = it.v; render(); });
   seg('fam-seg', FAMS.filter((f) => here.some((s) => s.fam === f.id)).map((f) => ({
-      label: f.label, v: f.id,
-      off: !fams.some((x) => x.id === f.id), offText: 'No chart for this position',
+      label: f.label, v: f.id, off: !fams.some((x) => x.id === f.id),
     })),
     (it) => it.v === state.fam, (it) => { state.fam = it.v; render(); });
-  $('vs-grp').style.display = sp.fam === 'vsjam' ? 'contents' : 'none';
-  seg('vs-seg', opts.map((o) => ({ label: o.vs, v: o.vs })),
+  const fam = FAMS.find((f) => f.id === sp.fam);
+  $('vs-grp').style.display = opts.length > 1 ? 'contents' : 'none';
+  $('l4').textContent = fam.row || 'Facing';
+  seg('vs-seg', opts.map((o) => ({ label: o.vsLabel, v: o.vs })),
     (it) => it.v === state.vs, (it) => { state.vs = it.v; render(); });
 
-  let tot = 0, J = 0, C = 0, F = 0;
+  /* Overall frequencies count combos, and only the share of each hand that
+     actually reaches the spot, the way the solver reports them. */
+  let tot = 0, R = 0, J = 0, C = 0, F = 0;
   cells.forEach((b, i) => {
     const c = now[i];
     b.style.background = paint(c);
-    b.setAttribute('aria-label', `${c.h.code}: ${c.j ? c.j + '% jam, ' : ''}${c.c ? c.c + '% ' + GREEN[sp.fam] + ', ' : ''}${c.f}% fold`);
-    b.onmouseenter = () => detail(c, sp.fam);
-    b.onfocus = () => detail(c, sp.fam);
+    b.classList.toggle('oor', !!c.oor);
+    b.setAttribute('aria-label', c.oor ? `${c.h.code}: not in our range`
+      : `${c.h.code}: ${[[c.r, word(sp, 'raise')], [c.j, 'jam'], [c.c, word(sp, 'call')], [c.f, 'fold']]
+          .filter(([v]) => v).map(([v, n]) => v + '% ' + n).join(', ')}`);
+    b.onmouseenter = () => detail(c, sp);
+    b.onfocus = () => detail(c, sp);
     b.onblur = clearDetail;
-    const wt = c.h.combos;
-    tot += wt; J += wt * c.j; C += wt * c.c; F += wt * c.f;
+    if (!c.oor) {
+      const wt = c.h.combos * c.w;
+      tot += wt; R += wt * c.r; J += wt * c.j; C += wt * c.c; F += wt * c.f;
+    }
   });
 
   $('spot-title').innerHTML = `${sp.title}<span class="sub">${sp.sub}</span>`;
-  const bits = [];
-  if (J / tot >= 0.05) bits.push(`<span class="k j"></span>${(J / tot).toFixed(1)}% jam`);
-  if (C / tot >= 0.05) bits.push(`<span class="k c"></span>${(C / tot).toFixed(1)}% ${GREEN[sp.fam]}`);
-  if (F / tot >= 0.05) bits.push(`<span class="k f"></span>${(F / tot).toFixed(1)}% fold`);
+  const d = tot || 1, bits = [];
+  if (R / d >= 0.05) bits.push(`<span class="k r"></span>${(R / d).toFixed(1)}% ${word(sp, 'raise')}`);
+  if (J / d >= 0.05) bits.push(`<span class="k j"></span>${(J / d).toFixed(1)}% jam`);
+  if (C / d >= 0.05) bits.push(`<span class="k c"></span>${(C / d).toFixed(1)}% ${word(sp, 'call')}`);
+  if (F / d >= 0.05) bits.push(`<span class="k f"></span>${(F / d).toFixed(1)}% fold`);
   $('mix').innerHTML = bits.join('');
 
   $('notes-card').hidden = !sp.note;
