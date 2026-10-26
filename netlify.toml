@@ -15,9 +15,13 @@
   path = "/study/*"
   function = "study-gate"
 
-# Separate gate for the heads-up study pages, with its own password
-# (HU_PASSWORD in the Netlify UI) so the two groups of pages can be shared
-# with different people.
+# Separate gate for the heads-up and 5-max study pages, with its own password
+# (HU_PASSWORD in the Netlify UI) so they can be shared with different people
+# than the big ante pages.
 [[edge_functions]]
   path = "/hu/*"
+  function = "hu-gate"
+
+[[edge_functions]]
+  path = "/5max/*"
   function = "hu-gate"

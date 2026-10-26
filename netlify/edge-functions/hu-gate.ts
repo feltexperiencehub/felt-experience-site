@@ -1,9 +1,10 @@
 import type { Context } from '@netlify/edge-functions';
 
 /**
- * Password gate for /hu/*, the heads-up study pages. Same mechanism as the
- * /study gate, but its own password and its own cookie, so access to one does
- * not open the other.
+ * Password gate for /hu/* and /5max/*, the pages shared under the HU
+ * password. Same mechanism as the /study gate, but its own password and its
+ * own cookie, so access to one does not open the other. The cookie is set for
+ * the whole site so one login covers both folders.
  *
  * This runs at the edge, before the file is served, so a visitor without the
  * password never receives the page at all — there is nothing to find in view
@@ -138,7 +139,7 @@ function loginPage(path: string, failed: boolean, status: number): Response {
 <body>
   <form class="card" method="POST" action="${esc(path)}">
     <p class="mark"><b>Felt</b> Experience</p>
-    <h1>Private HU study page</h1>
+    <h1>Private study page</h1>
     <p class="sub">Enter the password to continue.</p>
     ${failed ? '<p class="err">That password is not right. Try again.</p>' : ''}
     <label for="p">Password</label>
@@ -186,7 +187,7 @@ export default async function handler(request: Request, context: Context) {
           location: url.pathname,
           'cache-control': 'no-store',
           'set-cookie':
-            `${COOKIE}=${expected}; Path=/hu; Max-Age=${MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
+            `${COOKIE}=${expected}; Path=/; Max-Age=${MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
         },
       });
     }
