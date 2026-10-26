@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Drill – Felt Experience Poker</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+  /* Table styling follows the replayer's, so the two feel like one product. */
+  :root {
+    --bg: #121212; --panel: #1a1e1a; --sunk: #141815; --line: #2a312b;
+    --ink: #eef1ec; --muted: #97a29a; --faint: #6d766f;
+    --accent: #a7dca5; --accent-dim: #4d7a4c; --gold: #d6c08f;
+    --felt-hi: #2c4237; --felt-lo: #16241d;
+    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #43494a;
+    --good: #7cc776; --bad: #e0644f;
+    --font-head: 'League Spartan', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 1240px; margin: 0 auto; padding: 20px 20px 48px; }
+
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+  h1 {
+    font-family: var(--font-head); font-weight: 700;
+    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em;
+    margin: 0; color: var(--ink);
+  }
+  .gameseg { align-self: center; }
+  .gameseg button { font-size: 13px; padding: 6px 14px; }
+  .gameseg button[aria-pressed="true"] { color: var(--accent); }
+  .top a { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .top a:hover { color: var(--accent); }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 15px;
+  }
+  .card > h2 {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 10px;
+  }
+
+  /* ---- filters ---- */
+  .filters { margin-bottom: 12px; padding: 9px 14px; }
+  .filters > summary {
+    cursor: pointer; list-style: none; width: fit-content;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--faint);
+  }
+  .filters > summary::-webkit-details-marker { display: none; }
+  .filters > summary::before { content: "\25B8"; display: inline-block; margin-right: 7px; transition: transform .15s ease; }
+  .filters[open] > summary::before { transform: rotate(90deg); }
+  .filters > summary:hover { color: var(--muted); }
+  .filters.on > summary { color: var(--accent); }
+  .fbody { display: flex; flex-direction: column; gap: 9px; margin-top: 11px; }
+  .frow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .lbl {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--faint);
+    white-space: nowrap; min-width: 78px;
+  }
+  .seg { display: flex; flex-wrap: wrap; gap: 3px; background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+  .seg button {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px;
+    padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; }
+  .seg button:focus-visible, .act:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pool { margin: 3px 0 0; font-size: 12px; color: var(--faint); }
+
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 16px; align-items: start; }
+
+  /* ---- the table ---- */
+  .tablewrap {
+    /* Sized from the height actually left over once the header, the buttons and
+       the result panel have taken theirs, so a short laptop window still shows
+       the whole table without scrolling. 250px is that fixed furniture. */
+    position: relative; margin-inline: auto; container-type: inline-size;
+    width: min(100%, max(480px, (100vh - 250px) * 800 / 490));
+    width: min(100%, max(480px, (100dvh - 250px) * 800 / 490));
+    aspect-ratio: 800 / 490;
+    background: radial-gradient(ellipse 90% 70% at 50% 42%, #1a211c 0%, #111513 78%);
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  }
+  .stage { position: absolute; inset: 0; }
+  .rail {
+    position: absolute; left: 50%; top: 47%; width: 84%; height: 74%;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: linear-gradient(160deg, #2c3235 0%, #191d1f 55%, #23282b 100%);
+    box-shadow: 0 26px 60px rgba(0,0,0,.6), inset 0 2px 2px rgba(255,255,255,.12), inset 0 -6px 18px rgba(0,0,0,.55);
+  }
+  .rail::after { content: ''; position: absolute; inset: 7px; border-radius: 50%; border: 1px solid rgba(214,192,143,.22); }
+  .felt {
+    position: absolute; left: 50%; top: 47%; width: 78%; height: 64%;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(ellipse 75% 65% at 50% 38%, var(--felt-hi) 0%, #21332a 52%, var(--felt-lo) 100%);
+    box-shadow: inset 0 8px 30px rgba(0,0,0,.45), inset 0 -10px 36px rgba(0,0,0,.55), inset 0 0 90px rgba(0,0,0,.25);
+  }
+  .felt::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%; opacity: .05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .felt::after { content: ''; position: absolute; inset: 11px; border-radius: 50%; border: 2px solid rgba(167,220,165,.1); }
+  .line {
+    position: absolute; left: 50%; top: 43%; transform: translate(-50%,-50%);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 1.42cqw;
+    letter-spacing: .1em; text-transform: uppercase; color: rgba(238,241,236,.72);
+    white-space: nowrap; z-index: 3; text-shadow: 0 1px 6px rgba(0,0,0,.8);
+  }
+  .pot { position: absolute; left: 50%; top: 32%; transform: translate(-50%,-50%); text-align: center; z-index: 3; }
+  .pot .lb { font-family: var(--font-head); font-size: 1.3cqw; font-weight: 600; letter-spacing: .4em; color: var(--gold); padding-left: .4em; }
+  .pot .amt { font-size: 3.2cqw; font-weight: 700; color: #eef1ec; font-variant-numeric: tabular-nums; text-shadow: 0 2px 12px rgba(0,0,0,.7); line-height: 1.15; }
+
+  .seat { position: absolute; transform: translate(-50%,-50%); display: flex; flex-direction: column; align-items: center; z-index: 4; }
+  .seat .cards { display: flex; align-items: flex-end; margin-bottom: -1.4cqw; z-index: 1; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+  .seat .cards svg { width: 5.2cqw; height: 7.35cqw; display: block; }
+  .seat .cards .l { transform: rotate(-4deg) translateX(2px); }
+  .seat .cards .r { transform: rotate(4deg) translateX(-2px); }
+  .plate {
+    min-width: 12.3cqw; background: linear-gradient(180deg, rgba(32,39,34,.97), rgba(19,24,21,.97));
+    border: 1px solid rgba(255,255,255,.14); border-radius: 1.2cqw; padding: .7cqw 1.4cqw .8cqw;
+    text-align: center; box-shadow: 0 6px 16px rgba(0,0,0,.55); z-index: 2;
+  }
+  .seat.hero { transform: translate(-50%, -58%); }
+  .seat.hero .plate { border-color: var(--accent-dim); box-shadow: 0 6px 16px rgba(0,0,0,.55), 0 0 0 1px rgba(167,220,165,.25); }
+  .seat.aggro .plate { border-color: var(--gold); box-shadow: 0 6px 16px rgba(0,0,0,.55), 0 0 16px rgba(214,192,143,.3); }
+  .seat.out { opacity: .3; }
+  .pos { color: var(--gold); font-size: 1.55cqw; font-weight: 700; letter-spacing: .12em; line-height: 1.35; }
+  .stack { font-size: 1.55cqw; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.35; }
+  .seat.out .stack { color: var(--muted); font-weight: 500; }
+
+  .chip {
+    position: absolute; transform: translate(-50%,-50%); z-index: 3;
+    display: flex; align-items: center; gap: .6cqw;
+    background: rgba(13,18,15,.82); border: 1px solid rgba(214,192,143,.35);
+    border-radius: 999px; padding: .35cqw 1.05cqw .35cqw .6cqw;
+    font-size: 1.42cqw; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums;
+    white-space: nowrap; line-height: 1.4;
+  }
+  .chip i { width: 1.05cqw; height: 1.05cqw; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f2e7cd, #cdb87f 70%); display: block; }
+  .chip[hidden] { display: none; }   /* the display rule above outranks the hidden attribute */
+  .chip.mine { transition: background .18s ease, border-color .18s ease, color .18s ease; }
+  .chip.mine.committed {
+    background: rgba(21,34,25,.92); border-color: rgba(167,220,165,.55); color: var(--accent);
+  }
+  .chip.mine.committed i { background: radial-gradient(circle at 35% 30%, #dff3dd, #7cb87a 70%); }
+
+  .seat.hero .cards { transition: opacity .2s ease, filter .2s ease; }
+  .seat.hero.folded .cards { opacity: .2; filter: grayscale(1); }
+  .seat.hero.folded .plate { opacity: .5; }
+
+  .dealer {
+    position: absolute; transform: translate(-50%,-50%); z-index: 3;
+    width: 2.25cqw; height: 2.25cqw; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f2e7cd, #cdb87f 70%);
+    color: #2a2418; font-size: 1.2cqw; font-weight: 700; font-family: var(--font-head);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ---- action bar ---- */
+  .bar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+  .bar[hidden] { display: none; }   /* the display rule above outranks the hidden attribute */
+  .act {
+    appearance: none; border: 1px solid var(--line); border-radius: 12px;
+    background: linear-gradient(180deg, #232a24, #191e1a); color: var(--ink); cursor: pointer;
+    font-family: var(--font-head); font-weight: 600; font-size: 21px;
+    padding: 15px 34px; min-width: 168px; position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .act:hover:not([disabled]) { border-color: var(--muted); }
+  .act small {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 15px; font-weight: 500;
+    color: var(--muted); letter-spacing: .03em; font-variant-numeric: tabular-nums;
+  }
+  .act::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; }
+  .act.raise::before { background: var(--raise); }
+  .act.jam::before { background: var(--jam); }
+  .act.call::before { background: var(--call); }
+  .act.fold::before { background: var(--fold); }
+  .act[disabled] { cursor: default; opacity: .75; }
+  .act.picked { border-color: var(--ink); opacity: 1; }
+  .rng {
+    position: absolute; right: 1.7cqw; bottom: 1.4cqw; z-index: 5;
+    appearance: none; cursor: pointer; font-family: inherit;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 1.42cqw;
+    letter-spacing: .12em; color: var(--muted); background: rgba(13,18,15,.8);
+    border: 1px solid rgba(255,255,255,.2); border-radius: 1cqw; padding: .7cqw 1.3cqw;
+    font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.35;
+  }
+  .rng b { font-size: 1.8cqw; font-weight: 600; letter-spacing: 0; margin-left: .6cqw; color: #fff; }
+  .rng:hover { border-color: rgba(255,255,255,.45); }
+  .rng:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rng i { font-style: normal; color: var(--faint); margin-left: .5cqw; font-size: 1.2cqw; }
+
+  .rngrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .rngrow .lbl { min-width: 74px; }
+  .rngnum {
+    width: 74px; background: var(--sunk); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13px;
+    padding: 6px 9px; text-align: center;
+  }
+  .rngnum:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .rngnote {
+    margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line);
+    font-size: 12.5px; color: var(--muted); line-height: 1.5;
+  }
+  .rngnote b { color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 600; }
+
+  /* ---- answer ---- */
+  .answer {
+    display: flex; align-items: center; justify-content: center;
+    gap: 24px; flex-wrap: wrap; margin-top: 16px;
+  }
+  .answer[hidden] { display: none; }   /* the display rule above outranks the hidden attribute */
+  .verdict { font-family: var(--font-head); font-weight: 700; font-size: 20px; margin: 0; text-align: left; }
+  .verdict.good { color: var(--good); }
+  .verdict.bad { color: var(--bad); }
+  .verdict small { display: block; font-family: Montserrat, sans-serif; font-weight: 400; font-size: 12.5px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+  .bars { display: flex; flex-direction: column; gap: 4px; width: 290px; margin: 0; }
+  .b { display: grid; grid-template-columns: 52px 1fr 42px; align-items: center; gap: 8px; font-size: 12.5px; }
+  .b .nm { text-align: right; color: var(--muted); font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; }
+  .b .tr { height: 11px; border-radius: 3px; background: var(--sunk); overflow: hidden; position: relative; }
+  .b .fl { display: block; height: 100%; }
+  .b .pin { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); border-radius: 1px; }
+  .b .pc { text-align: left; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .b.raise .fl { background: var(--raise); }
+  .b.jam .fl { background: var(--jam); }
+  .b.call .fl { background: var(--call); }
+  .b.fold .fl { background: var(--fold); }
+  .b.chosen .nm { color: var(--ink); font-weight: 600; }
+  .btn {
+    appearance: none; border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--accent-dim); color: #eef1ec;
+    font-family: var(--font-head); font-weight: 600; font-size: 16px;
+    padding: 13px 26px; margin: 0; display: block; white-space: nowrap;
+  }
+  .btn:hover { filter: brightness(1.12); }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); font-size: 12.5px; padding: 6px 13px; margin: 10px 0 0; }
+  .btn.range {
+    background: transparent; color: var(--ink); border: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+  }
+  .btn.range:hover { border-color: var(--muted); filter: none; }
+  .btn.range small { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 10px; font-weight: 400; color: var(--faint); }
+  .hint { margin: 10px 0 0; font-size: 11.5px; color: var(--faint); text-align: center; }
+
+  /* ---- stats ---- */
+  /* ---- range overlay ---- */
+  .modal {
+    position: fixed; inset: 0; z-index: 60; display: flex;
+    align-items: center; justify-content: center; padding: 18px;
+    background: rgba(7,10,8,.84); backdrop-filter: blur(3px);
+  }
+  .modal[hidden] { display: none; }
+  .sheet.narrow { width: min(430px, 94vw) !important; }
+  .sheet {
+    position: relative; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px 18px 18px;
+    /* The grid is square, so cap the width by the height available too and the
+       whole range fits on screen without scrolling inside the overlay. */
+    width: min(720px, 96vw, 94vh - 110px);
+    width: min(720px, 96vw, 94dvh - 110px);
+    max-height: 94vh; overflow: auto;
+    box-shadow: 0 30px 80px rgba(0,0,0,.7);
+  }
+  .x {
+    position: absolute; top: 10px; right: 10px; appearance: none; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 8px; line-height: 1;
+    background: var(--sunk); border: 1px solid var(--line); color: var(--muted);
+    font-size: 21px; font-family: var(--font-head);
+  }
+  .x:hover { color: var(--ink); border-color: var(--muted); }
+  .x:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rtitle {
+    font-family: var(--font-head); font-weight: 700; font-size: 19px;
+    margin: 0 40px 1px 0; letter-spacing: -.01em;
+  }
+  .rsub { margin: 0 40px 12px 0; font-size: 12.5px; color: var(--muted); }
+  .rsub b { color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 600; }
+  /* Same treatment as the explorer's grid: sized off the grid rather than the
+     viewport, set in Inter, and in the top left so the label sits on one band
+     of the fill instead of straddling two. */
+  .raxis, .rgrid {
+    display: grid; grid-template-columns: repeat(13, 1fr); gap: 2px;
+    container-type: inline-size;
+  }
+  .raxis { margin-bottom: 3px; }
+  .raxis span {
+    text-align: center; font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 500; letter-spacing: .02em;
+    font-size: clamp(9px, 1.35cqw, 13px); color: var(--faint);
+  }
+  .rcell {
+    aspect-ratio: 1; border-radius: 3px; position: relative; overflow: hidden;
+    display: flex; align-items: flex-start; justify-content: flex-start;
+    padding: .3em 0 0 .4em;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: clamp(10px, 2.3cqw, 16px);
+    font-weight: 500; letter-spacing: .02em; color: #fff;
+  }
+  .rcell span { position: relative; z-index: 2; text-shadow: 0 1px 1px rgba(0,0,0,.4); }
+  .rcell.oor { background: var(--sunk); color: var(--faint); }
+  .rcell.oor span { text-shadow: none; opacity: .5; }
+  .rcell.you {
+    outline: 2px solid #fff; outline-offset: -2px; overflow: visible;
+    box-shadow: 0 0 0 2px rgba(0,0,0,.75), 0 0 16px rgba(255,255,255,.55); z-index: 3;
+  }
+  .rcell.you span { font-weight: 700; }
+  .rlegend {
+    display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 12px;
+    font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .rlegend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+
+  .rail2 { display: flex; flex-direction: column; gap: 14px; }
+  .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; padding: 2px 0; }
+  .stat b { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); }
+  .big2 { font-family: var(--font-head); font-size: 31px; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .foot { margin: 20px 0 0; font-size: 12.5px; color: var(--faint); }
+  .foot a { color: var(--muted); }
+
+  @media (max-width: 940px) {
+    .cols { grid-template-columns: minmax(0,1fr); }
+    .lbl { min-width: 0; }
+  }
+  /* Keep the result on one row down to a narrow two-column layout, so it stays
+     the same height as the buttons it replaces. */
+  @media (max-width: 1180px) {
+    .answer { gap: 16px; }
+    .bars { width: 232px; }
+    .btn.range { padding: 13px 18px; }
+  }
+  /* Keep fold, call and raise on one line however narrow it gets, since the
+     order is what tells you which band is which. */
+  @media (max-width: 620px) {
+    #acts { width: 100%; gap: 7px !important; }
+    .act { min-width: 0; flex: 1 1 0; padding: 13px 6px; font-size: 18px; }
+    .act small { font-size: 13px; }
+  }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <h1>Drill</h1>
+    <div class="seg gameseg" role="group" aria-label="Players" id="game-seg"></div>
+    <a href="/5max/3k-big-ante-explorer">Back to the explorer</a>
+  </div>
+
+  <details class="card filters" id="filters">
+    <summary><span id="filters-summary">Filters</span></summary>
+    <div class="fbody">
+      <div class="frow"><span class="lbl" id="f0">Depth</span><div class="seg" role="group" aria-labelledby="f0" id="f-stack"></div></div>
+      <div class="frow"><span class="lbl" id="f1">Position</span><div class="seg" role="group" aria-labelledby="f1" id="f-hero"></div></div>
+      <div class="frow"><span class="lbl" id="f2">Spot</span><div class="seg" role="group" aria-labelledby="f2" id="f-fam"></div></div>
+      <div class="frow"><span class="lbl" id="f3">Opponent</span><div class="seg" role="group" aria-labelledby="f3" id="f-vs"></div></div>
+      <div class="frow"><span class="lbl" id="f5">Bucket</span><div class="seg" role="group" aria-labelledby="f5" id="f-bucket"></div></div>
+      <div class="frow"><span class="lbl" id="f6">Hands</span><div class="seg" role="group" aria-labelledby="f6" id="f-mode"></div></div>
+      <p class="pool" id="pool"></p>
+    </div>
+  </details>
+
+  <div class="cols">
+    <div>
+      <div class="tablewrap">
+        <div class="stage" id="stage">
+          <div class="rail"></div>
+          <div class="felt"></div>
+          <div class="pot"><div class="lb">POT</div><div class="amt" id="pot">–</div></div>
+        </div>
+        <button type="button" class="rng" id="rng" hidden
+                aria-label="RNG settings">RNG<b id="rnum">–</b><i id="rngrange"></i></button>
+      </div>
+
+      <div class="bar" id="bar">
+        <div class="acts" id="acts" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"></div>
+      </div>
+
+      <div class="answer" id="answer" hidden>
+        <p class="verdict" id="verdict"></p>
+        <div class="bars" id="bars"></div>
+        <button class="btn range" id="show-range">Range<small>R</small></button>
+        <button class="btn" id="next">Next hand</button>
+      </div>
+      <p class="hint" id="hint"></p>
+    </div>
+
+    <div class="rail2">
+      <div class="card">
+        <h2>This session</h2>
+        <div class="big2" id="s-acc">–</div>
+        <p class="pool" style="margin:3px 0 11px">average match</p>
+        <div class="stat"><span>Hands</span><b id="s-n">0</b></div>
+        <div class="stat"><span>Correct</span><b id="s-good">0</b></div>
+        <div class="stat"><span>Streak</span><b id="s-streak">0</b></div>
+        <div class="stat"><span>Best streak</span><b id="s-best">0</b></div>
+        <button class="btn ghost" id="reset-session">Reset session</button>
+      </div>
+
+      <div class="card">
+        <h2>Lifetime</h2>
+        <div class="stat"><span>Hands</span><b id="l-n">0</b></div>
+        <div class="stat"><span>Average match</span><b id="l-acc">–</b></div>
+        <div class="stat"><span>Correct</span><b id="l-good">–</b></div>
+        <div class="stat"><span>Best streak</span><b id="l-best">0</b></div>
+        <button class="btn ghost" id="reset-life">Clear lifetime</button>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="foot"><a href="https://feltexperiencepoker.com" target="_blank" rel="noopener">Felt Experience Poker</a></p>
+</div>
+
+<div class="modal" id="rng-modal" hidden role="dialog" aria-modal="true" aria-labelledby="rng-title">
+  <div class="sheet narrow">
+    <button class="x" id="rng-close" aria-label="Close">&times;</button>
+    <h2 class="rtitle" id="rng-title">RNG Settings</h2>
+    <p class="rsub">How the number is rolled, and which end of it is aggressive.</p>
+    <div class="rngrow">
+      <span class="lbl" id="rl1">1 up to</span>
+      <div class="seg" role="group" aria-labelledby="rl1" id="rng-max"></div>
+      <input class="rngnum" id="rng-custom" type="number" min="2" max="100" step="1"
+             aria-label="Custom highest number">
+    </div>
+    <div class="rngrow">
+      <span class="lbl" id="rl2">Aggressive</span>
+      <div class="seg" role="group" aria-labelledby="rl2" id="rng-dir"></div>
+    </div>
+    <p class="rngnote" id="rng-note"></p>
+  </div>
+</div>
+
+<div class="modal" id="range-modal" hidden role="dialog" aria-modal="true" aria-labelledby="range-title">
+  <div class="sheet">
+    <button class="x" id="range-close" aria-label="Close">&times;</button>
+    <h2 class="rtitle" id="range-title">–</h2>
+    <p class="rsub" id="range-sub"></p>
+    <div class="raxis" id="range-axis" aria-hidden="true"></div>
+    <div class="rgrid" id="range-grid"></div>
+    <div class="rlegend" id="range-legend"></div>
+  </div>
+</div>
+
+<script src="/5max/3k-ranges.js"></script>
+<script>
+(function(){
+"use strict";
+
+
+/* ===========================================================================
+   Drill for the 3k big ante charts at 5, 3 and 2 players. Built from the
+   big ante drill: same table, grading and stats, different spots.
+
+   Grading follows how you would actually run a mixed strategy at the table:
+   you roll a number, the actions are laid out in bands, and the right play is
+   whichever band the number lands in. By default the roll is 1 to 100 and the
+   aggressive action sits at the TOP of the range, so a hand that raises 8%
+   raises on 93-100. Both the size of the range and which end is aggressive are
+   settings, since people randomize off all sorts of things at the table.
+
+   A roll is mapped to a percentile at the midpoint of its slice, so the same
+   band edges work whether the roll is 1 to 100 or 1 to 12.
+   =========================================================================== */
+
+const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+const VAL = { A:14,K:13,Q:12,J:11,T:10,9:9,8:8,7:7,6:6,5:5,4:4,3:3,2:2 };
+
+const HANDS = [];
+for (let i = 0; i < 13; i++) {
+  for (let j = 0; j < 13; j++) {
+    const a = VAL[RANKS[i]], b = VAL[RANKS[j]];
+    const hi = Math.max(a, b), lo = Math.min(a, b);
+    HANDS.push({
+      code: i === j ? RANKS[i] + RANKS[i]
+        : (i < j ? RANKS[i] + RANKS[j] + 's' : RANKS[j] + RANKS[i] + 'o'),
+      hiR: i < j ? RANKS[i] : RANKS[j],
+      loR: i < j ? RANKS[j] : RANKS[i],
+      kind: i === j ? 'pair' : (i < j ? 's' : 'o'),
+      hi, lo, gap: i === j ? 0 : hi - lo - 1,
+    });
+  }
+}
+const BUCKETS = [
+  { id: 'pairs',  name: 'Pairs',               test: (h) => h.kind === 'pair' },
+  { id: 'sbway',  name: 'Suited Broadways',    test: (h) => h.kind === 's' && h.lo >= 10 },
+  { id: 'sblock', name: 'Suited Blockers',     test: (h) => h.kind === 's' && h.hi >= 12 && h.lo <= 9 },
+  { id: 'sconn',  name: 'Suited Connectivity', test: (h) => h.kind === 's' && h.hi <= 11 && h.lo <= 9 && h.gap <= 2 },
+  { id: 'sdis',   name: 'Disconnected Suited', test: (h) => h.kind === 's' && h.hi <= 11 && h.lo <= 9 && h.gap > 2 },
+  { id: 'obway',  name: 'Offsuit Broadways',   test: (h) => h.kind === 'o' && h.lo >= 10 },
+  { id: 'oblock', name: 'Offsuit Blockers',    test: (h) => h.kind === 'o' && h.hi >= 12 && h.lo <= 9 },
+  { id: 'oconn',  name: 'Offsuit Ladders',     test: (h) => h.kind === 'o' && h.hi <= 11 && h.lo <= 9 },
+];
+HANDS.forEach((h) => {
+  const b = BUCKETS.find((x) => x.test(h));
+  h.bucket = b ? b.id : 'other';
+});
+
+/* The spots, one per chart. `game` is the player count as a string, so the
+   per-format stats and the toggle work the same way as in the big ante drill. */
+const SPOT_DATA = FIVEMAX_SPOTS.map((s) => ({ ...s, game: String(s.players) }));
+
+const FAM_LABEL = {
+  rfi: 'First in', vsopen: 'vs Open', vsjam: 'vs Jam', vslimp: 'vs Limp',
+  afterlimp: 'After limping', afteropen: 'After opening',
+};
+const FAM_ORDER = ['rfi', 'vsopen', 'vsjam', 'vslimp', 'afterlimp', 'afteropen'];
+const HERO_ORDER = ['HJ', 'CO', 'BTN', 'SB', 'BB'];
+const GREEN = { rfi: 'Limp', vsopen: 'Call', vsjam: 'Call', vslimp: 'Check', afterlimp: 'Call', afteropen: 'Call' };
+const cap = (t) => t[0].toUpperCase() + t.slice(1);
+
+/* The buttons a spot offers, passive first: only the actions the chart uses
+   anywhere, so facing a limp there is no Fold and facing a jam no Raise. */
+function actsOf(sp) {
+  const used = { fold: false, call: false, raise: false, jam: false };
+  sp.g.split(',').forEach((tok) => {
+    if (tok === 'X') return;
+    const [r, j, c] = tok.split('.').map(Number);
+    if (r) used.raise = true;
+    if (j) used.jam = true;
+    if (c) used.call = true;
+    if (100 - r - j - c > 0) used.fold = true;
+  });
+  const all = [['fold', 'Fold'], ['call', GREEN[sp.fam]],
+    ['raise', sp.words && sp.words.raise ? cap(sp.words.raise) : 'Raise'], ['jam', 'Jam']];
+  return all.filter(([id]) => used[id]);
+}
+
+const GAME = {
+  '5': { seats: ['HJ', 'CO', 'BTN', 'SB', 'BB'], label: '5 players' },
+  '3': { seats: ['BTN', 'SB', 'BB'], label: '3 players' },
+  '2': { seats: ['SB', 'BB'], label: 'Heads up' },
+};
+
+/* ---- the table ---------------------------------------------------------- */
+/* Every seat posts a half-blind ante, which along with the effective stack is
+   what the stacks and the pot are built from. */
+const ANTE = 0.5, SB_POST = 0.5, BB_POST = 1;
+const startOf = (q) => q.sp.stack;
+const jamTo = (q) => startOf(q) - ANTE;
+const SUITS = ['s','h','d','c'];
+const GLYPH = { s: '♠', h: '♥', d: '♦', c: '♣' };
+const SUIT_COLOR = { s: '#23262a', h: '#b02f38', d: '#2b62b8', c: '#2e7d46' };
+
+const bb = (n) => (Math.round(n * 10) / 10).toString();
+/** Our non-all-in raise, read from its name: "open 2.5x", "raise to 7bb". */
+const raiseTo = (sp) => { const m = ((sp.words && sp.words.raise) || '').match(/([\d.]+)/); return m ? +m[1] : null; };
+const openOf = (sp) => { const m = sp.sub.match(/opens ([\d.]+)x/); return m ? +m[1] : null; };
+
+/** What everyone has in front of them, and what the pot is, in this spot. */
+function scenario(q) {
+  const sp = q.sp;
+  const RING = GAME[sp.game].seats;
+  const hero = sp.hero;
+  const jam = jamTo(q);
+  const wager = {};
+  RING.forEach((p) => { wager[p] = p === 'SB' ? SB_POST : p === 'BB' ? BB_POST : 0; });
+  const aggro = new Set();
+  let line = '', heroAction = '';
+
+  if (sp.fam === 'rfi') {
+    line = sp.players === 2 ? 'We act first' : 'Folded to us';
+  } else if (sp.fam === 'vsjam') {
+    if (sp.vs === 'BTN+SB') { wager.BTN = jam; wager.SB = jam; line = 'BTN jams · SB calls'; }
+    else if (sp.vs === 'SB+BTN') { wager.BTN = 2; wager.SB = jam; line = 'BTN opens 2bb · SB jams'; }
+    else { wager[sp.vs] = jam; line = `${sp.vs} jams`; }
+    sp.vs.split('+').forEach((p) => aggro.add(p));
+  } else if (sp.fam === 'vsopen') {
+    wager[sp.vs] = openOf(sp);
+    aggro.add(sp.vs);
+    line = `${sp.vs} opens ${bb(wager[sp.vs])}bb`;
+  } else if (sp.fam === 'vslimp') {
+    wager.SB = 1;
+    aggro.add('SB');
+    line = 'SB limps';
+  } else if (sp.fam === 'afterlimp') {
+    wager[hero] = 1;
+    heroAction = 'we limp';
+    wager.BB = sp.vs === 'iso' ? 3.5 : jam;
+    aggro.add('BB');
+    line = sp.vs === 'iso' ? 'BB raises to 3.5bb' : 'BB jams';
+  } else {                                     // afteropen: the chart covers a jam from either blind
+    wager[hero] = 2;
+    heroAction = 'we open 2bb';
+    wager.BB = jam;
+    aggro.add('BB');
+    line = 'SB or BB jams';
+  }
+
+  const pot = RING.length * ANTE + RING.reduce((t, p) => t + wager[p], 0);
+  const toCall = Math.max(...RING.map((p) => wager[p])) - wager[hero];
+
+  /* Facing an open or a jam, or first in, the seats after us have not acted
+     yet. Once we have limped or opened the action has come back round, so the
+     others have all folded. */
+  const heroIdx = RING.indexOf(hero);
+  const behind = ['rfi', 'vsopen', 'vsjam'].includes(sp.fam);
+  const seats = RING.map((p) => ({
+    seat: p, label: p,
+    role: p === hero ? 'hero' : aggro.has(p) ? 'aggro' : (behind && RING.indexOf(p) > heroIdx) ? 'live' : 'out',
+    wager: wager[p],
+    stack: startOf(q) - ANTE - wager[p],
+  }));
+  return { seats, pot, toCall, heroSeat: hero, heroWager: wager[hero], line, heroAction };
+}
+
+/** Two cards that agree with the hand code: same suit for s, different for o. */
+function dealSuits(h) {
+  const a = SUITS[Math.floor(Math.random() * 4)];
+  if (h.kind === 's') return [a, a];
+  let b = SUITS[Math.floor(Math.random() * 3)];
+  if (b === a) b = SUITS[3];
+  return [a, b];
+}
+
+function cardSVG(rank, suit) {
+  const face = rank === 'T' ? '10' : rank;
+  const size = face.length > 1 ? 52 : 62;
+  return `<svg class="pc" viewBox="0 0 100 140" width="44" height="62" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="97" height="137" rx="9"
+      fill="#f5f2e7" stroke="rgba(10,14,12,.55)" stroke-width="3"/>
+    <text x="50" y="72" text-anchor="middle" font-family="'League Spartan',sans-serif"
+      font-weight="700" font-size="${size}" fill="${SUIT_COLOR[suit]}">${face}</text>
+    <text x="50" y="122" text-anchor="middle" font-size="48"
+      fill="${SUIT_COLOR[suit]}">${GLYPH[suit]}</text>
+  </svg>`;
+}
+
+/* Hero sits at the bottom and the rest follow clockwise, the way the action
+   actually moves: the button is one seat clockwise from the cutoff, then the
+   small blind, then the big blind. */
+const ring = (deg, rx, ry) => {
+  const t = deg * Math.PI / 180;
+  return { x: 50 + rx * Math.cos(t), y: 47 + ry * Math.sin(t) };
+};
+function place(i, heroIdx, n) {
+  const step = ((i - heroIdx) % n + n) % n;
+  const deg = 90 + (360 / n) * step;
+  return { ...ring(deg, 39, 36), deg, step, n };
+}
+const pullIn = (p, k) => ({ x: 50 + (p.x - 50) * k, y: 47 + (p.y - 47) * k });
+
+function drawTable(q, cards) {
+  const sc = scenario(q);
+  const RING = GAME[q.sp.game].seats;
+  const heroIdx = RING.indexOf(sc.heroSeat);   // seat ring position, for layout
+  const stage = $('stage');
+  [...stage.querySelectorAll('.seat,.chip,.dealer,.line')].forEach((n) => n.remove());
+
+  sc.seats.forEach((s, i) => {
+    const p = place(i, heroIdx, RING.length);
+    const el = document.createElement('div');
+    el.className = 'seat ' + s.role;
+    el.style.left = p.x + '%';
+    el.style.top = p.y + '%';
+    const hole = s.role === 'hero'
+      ? `<div class="cards"><span class="l">${cardSVG(q.h.hiR, cards[0])}</span>` +
+        `<span class="r">${cardSVG(q.h.loR, cards[1])}</span></div>`
+      : '';
+    el.innerHTML = hole +
+      `<div class="plate"><div class="pos">${s.label}</div>` +
+      `<div class="stack">${bb(s.stack)}</div></div>`;
+    stage.appendChild(el);
+
+    const isHero = s.role === 'hero';
+    if (s.wager > 0 || isHero) {
+      const opposite = p.step === Math.round(p.n / 2);
+      const c = pullIn(p, p.step === 0 ? 0.50 : opposite ? 0.72 : 0.62);
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (isHero ? ' mine' : '');
+      chip.style.left = c.x + '%';
+      chip.style.top = c.y + '%';
+      chip.innerHTML = `<i></i>${bb(s.wager)}`;
+      if (s.wager <= 0) chip.hidden = true;
+      stage.appendChild(chip);
+    }
+
+    // Heads up the small blind is the button.
+    if (s.seat === (q.sp.players === 2 ? 'SB' : 'BTN')) {
+      const d = p.n === 2 ? pullIn(ring(p.deg + 26, 39, 36), 0.84)
+                          : pullIn(ring(p.deg + 20, 39, 36), 0.66);
+      const btn = document.createElement('div');
+      btn.className = 'dealer';
+      btn.style.left = d.x + '%';
+      btn.style.top = d.y + '%';
+      btn.textContent = 'D';
+      stage.appendChild(btn);
+    }
+  });
+
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.textContent = sc.heroAction ? `${sc.heroAction} · ${sc.line}` : sc.line;
+  stage.appendChild(line);
+
+  $('pot').textContent = bb(sc.pot);
+  return sc;
+}
+
+/* ---- pool --------------------------------------------------------------- */
+/* Actions are stored passive-first so the bands and the buttons agree: fold,
+   then call, then the aggressive action at the top of the roll. */
+const POOL = [];
+SPOT_DATA.forEach((sp) => {
+  const set = actsOf(sp);
+  const reach = sp.w.split(',').map(Number);
+  const z = { g: sp.g, sub: sp.sub };
+  sp.g.split(',').forEach((tok, n) => {
+    if (tok === 'X') return;                       // never reaches the spot
+    const [r, j, c] = tok.split('.').map(Number);
+    const f = Math.max(0, 100 - r - j - c);
+    const pct = { fold: f, call: c, raise: r, jam: j };
+    const acts = set.map(([id, name]) => ({ id, name, pct: pct[id] }));
+    POOL.push({ sp, z, n, h: HANDS[n], acts, reach: reach[n] / 100 });
+  });
+});
+
+const $ = (id) => document.getElementById(id);
+const LIFE_KEY = 'fe-3k-drill-v1';
+const RNG_KEY = 'fe-bigante-rng-v1';
+
+/* ---- the randomizer ----------------------------------------------------- */
+const rng = { max: 100, highAgg: true };
+(function loadRng() {
+  try {
+    const v = JSON.parse(localStorage.getItem(RNG_KEY) || 'null');
+    if (v && Number.isFinite(v.max)) rng.max = Math.min(100, Math.max(2, Math.round(v.max)));
+    if (v && typeof v.highAgg === 'boolean') rng.highAgg = v.highAgg;
+  } catch (e) { /* storage can be unavailable; the defaults stand */ }
+})();
+const saveRng = () => {
+  try { localStorage.setItem(RNG_KEY, JSON.stringify(rng)); } catch (e) { /* ignore */ }
+};
+
+const rollOnce = () => 1 + Math.floor(Math.random() * rng.max);
+/** Where a roll sits on the 0-100 scale: the middle of the slice it owns. */
+const pctOf = (roll) => ((roll - 0.5) / rng.max) * 100;
+/** Bands run from the passive end to the aggressive end, or the reverse. */
+const bandOrder = (acts) => (rng.highAgg ? acts : [...acts].reverse());
+/** How far along the 0-100 scale a given action's band begins. */
+function bandStart(acts, id) {
+  let edge = 0;
+  for (const a of bandOrder(acts)) { if (a.id === id) return edge; edge += a.pct; }
+  return edge;
+}
+
+const GAME_KEY = 'fe-3k-drill-players-v1';
+let game = '5';
+try { const v = localStorage.getItem(GAME_KEY); if (v && GAME[v]) game = v; } catch (e) { /* ignore */ }
+
+const filters = { stack: new Set(), hero: new Set(), fam: new Set(), vs: new Set(),
+                  bucket: new Set(), mode: 'all' };
+
+/* Stats are kept per player count. A heads-up session would only blur the
+   five-handed average, and the reverse. */
+const blank = () => ({ n: 0, sum: 0, good: 0, streak: 0, best: 0 });
+const sessions = { '5': blank(), '3': blank(), '2': blank() };
+const lives = load();
+let session = sessions[game];
+let life = lives[game];
+let current = null, answered = false;
+
+function load() {
+  const rec = (v) => ({ n: (v && v.n) || 0, sum: (v && v.sum) || 0,
+                        good: (v && v.good) || 0, best: (v && v.best) || 0 });
+  try {
+    const v = JSON.parse(localStorage.getItem(LIFE_KEY) || 'null');
+    if (v) return { '5': rec(v['5']), '3': rec(v['3']), '2': rec(v['2']) };
+  } catch (e) { /* storage can be unavailable; carry on in memory */ }
+  return { '5': rec(null), '3': rec(null), '2': rec(null) };
+}
+function save() {
+  try { localStorage.setItem(LIFE_KEY, JSON.stringify(lives)); } catch (e) { /* ignore */ }
+}
+
+function setGame(v) {
+  if (!GAME[v] || v === game) return;
+  game = v;
+  try { localStorage.setItem(GAME_KEY, v); } catch (e) { /* ignore */ }
+  session = sessions[game];
+  life = lives[game];
+  ['stack','hero','fam','vs','bucket'].forEach((k) => filters[k].clear());
+  buildGameToggle();
+  buildFilters();
+  paintStats();
+  nextHand();
+}
+
+function buildGameToggle() {
+  single('game-seg', ['5', '3', '2'].map((v) => ({ label: v === '2' ? '2 (HU)' : v, v, title: GAME[v].label })),
+    () => game, setGame);
+}
+
+/* ---- filters ------------------------------------------------------------ */
+function multi(id, items, set, after) {
+  const box = $(id);
+  box.innerHTML = '';
+  const all = document.createElement('button');
+  all.type = 'button';
+  all.textContent = 'All';
+  all.setAttribute('aria-pressed', String(set.size === 0));
+  all.addEventListener('click', () => { set.clear(); after(); });
+  box.appendChild(all);
+  items.forEach((it) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = it.label;
+    b.setAttribute('aria-pressed', String(set.has(it.v)));
+    b.addEventListener('click', () => {
+      if (set.has(it.v)) set.delete(it.v); else set.add(it.v);
+      after();
+    });
+    box.appendChild(b);
+  });
+}
+function single(id, items, get, set) {
+  const box = $(id);
+  box.innerHTML = '';
+  items.forEach((it) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = it.label;
+    b.title = it.title || '';
+    b.setAttribute('aria-pressed', String(get() === it.v));
+    b.addEventListener('click', () => set(it.v));
+    box.appendChild(b);
+  });
+}
+
+/** A hand the solver plays more than one way. The rest have a single 100%
+    action, and most of those are pure folds. */
+const isDecision = (q) => q.acts.filter((a) => a.pct > 0).length > 1;
+
+function pool() {
+  return POOL.filter((q) => {
+    if (q.sp.game !== game) return false;
+    if (filters.stack.size && !filters.stack.has(q.sp.stack)) return false;
+    if (filters.hero.size && !filters.hero.has(q.sp.hero)) return false;
+    if (filters.fam.size && !filters.fam.has(q.sp.fam)) return false;
+    if (filters.vs.size && !filters.vs.has(q.sp.vs)) return false;
+    if (filters.bucket.size && !filters.bucket.has(q.h.bucket)) return false;
+    if (filters.mode === 'decisions' && !isDecision(q)) return false;
+    return true;
+  });
+}
+
+function buildFilters() {
+  const here = SPOT_DATA.filter((s) => s.game === game);
+  const stacks = [10, 15, 20, 30].filter((n) => here.some((s) => s.stack === n));
+  const heroes = HERO_ORDER.filter((h) => here.some((s) => s.hero === h));
+  const fams = FAM_ORDER.filter((f) => here.some((s) => s.fam === f));
+  const vss = [];
+  here.forEach((s) => { if (s.vs && !vss.some((x) => x.v === s.vs)) vss.push({ v: s.vs, label: s.vsLabel }); });
+
+  const redraw = () => { buildFilters(); nextHand(); };
+  multi('f-stack', stacks.map((n) => ({ label: n + 'bb', v: n })), filters.stack, redraw);
+  multi('f-hero', heroes.map((h) => ({ label: h, v: h })), filters.hero, redraw);
+  multi('f-fam', fams.map((f) => ({ label: FAM_LABEL[f], v: f })), filters.fam, redraw);
+  multi('f-vs', vss, filters.vs, redraw);
+  multi('f-bucket', BUCKETS.map((b) => ({ label: b.name, v: b.id })), filters.bucket, redraw);
+  single('f-mode', [
+      { label: 'Every hand', v: 'all', title: 'Every hand that reaches the spot, pure folds included' },
+      { label: 'Mixes only', v: 'decisions', title: 'Only hands the solver splits between two or more actions' }],
+    () => filters.mode, (v) => { filters.mode = v; redraw(); });
+  const active = filters.stack.size + filters.hero.size + filters.fam.size + filters.vs.size
+    + filters.bucket.size;
+  $('filters').classList.toggle('on', active > 0);
+  $('filters-summary').textContent = active ? `Filters (${active} active)` : 'Filters';
+  const n = pool().length.toLocaleString();
+  $('pool').textContent = filters.mode === 'decisions'
+    ? `${n} hands in the pool · only the ones the solver splits between actions`
+    : `${n} hands in the pool`;
+}
+
+/* ---- a question --------------------------------------------------------- */
+/** Bring the table back into frame if a previous answer pushed it off the top.
+    Leaves the page alone when the table is simply further down, so changing a
+    filter does not yank you away from the filters. */
+function frameTable() {
+  const r = $('stage').parentElement.getBoundingClientRect();
+  if (r.top < 12) window.scrollTo(0, window.scrollY + r.top - 12);
+}
+
+/* A hand sent over from the analyzer, as
+   ?stack=100&fam=rfi&hero=BB&vs=BTN&face=3x&hand=72o&suits=dc
+   It is asked first, with the suits it was actually dealt, and the drill then
+   carries on from the filters as usual. */
+function linkedHand() { return null; }
+
+function nextHand(forced) {
+  // The Next button passes its click event in here, so check for a real hand.
+  const f = forced && forced.q ? forced : null;
+  const p = f ? [f.q] : pool();
+  answered = false;
+  closeRange();
+  $('answer').hidden = true;
+  $('bar').hidden = false;
+  if (!p.length) {
+    current = null;
+    [...$('stage').querySelectorAll('.seat,.chip,.dealer,.line')].forEach((n) => n.remove());
+    $('pot').textContent = '–';
+    $('rng').hidden = true;
+    $('acts').innerHTML = '';
+    $('hint').textContent = 'No hands match these filters.';
+    return;
+  }
+  const q = f ? f.q : p[Math.floor(Math.random() * p.length)];
+  const roll = rollOnce();
+  const cards = f && f.suits ? f.suits : dealSuits(q.h);
+  current = { q, roll };
+  current.sc = drawTable(q, cards);
+  const sc = current.sc;
+
+  $('rng').hidden = false;
+  showRoll(roll);
+
+  const acts = $('acts');
+  acts.innerHTML = '';
+  q.acts.forEach((a, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'act ' + a.id;
+    const sub = a.id === 'fold' || (a.id === 'call' && sc.toCall <= 0) ? '&nbsp;'
+      : a.id === 'call' ? (sc.toCall >= jamTo(q) - sc.heroWager ? 'all in' : `${bb(sc.toCall)}bb`)
+      : a.id === 'jam' ? `${bb(jamTo(q))}bb`
+      : `${bb(raiseTo(q.sp))}bb`;
+    b.innerHTML = `${a.name}<small>${sub}</small>`;
+    b.addEventListener('click', () => answer(a.id));
+    acts.appendChild(b);
+  });
+  $('hint').textContent = f ? 'The hand from your history. Keys Q, W, E left to right.'
+    : 'Keys Q, W, E left to right.';
+  frameTable();
+}
+
+/** Put our action on the felt the way a client would: chips out in front for
+    a call or a raise, cards dead for a fold. */
+function showOnTable(pick) {
+  const stage = $('stage');
+  const hero = stage.querySelector('.seat.hero');
+  const mine = stage.querySelector('.chip.mine');
+  if (!hero || !mine) return;
+  if (pick === 'fold') { hero.classList.add('folded'); return; }
+  const { sc, q } = current;
+  const total = pick === 'call' ? sc.heroWager + sc.toCall
+    : pick === 'jam' ? jamTo(q)
+    : raiseTo(q.sp);
+  const allIn = total >= startOf(q) - ANTE - 0.001;
+  mine.hidden = false;
+  mine.classList.add('committed');
+  mine.innerHTML = `<i></i>${allIn ? 'ALL IN' : bb(total)}`;
+  hero.querySelector('.stack').textContent = bb(startOf(q) - ANTE - total);
+}
+
+/** Which action the roll lands in, reading the bands from the passive end. */
+function bandFor(q, roll) {
+  const p = pctOf(roll);
+  const order = bandOrder(q.acts);
+  let edge = 0;
+  for (const a of order) {
+    edge += a.pct;
+    if (p <= edge) return a.id;
+  }
+  return order[order.length - 1].id;
+}
+
+function answer(pick) {
+  if (answered || !current) return;
+  answered = true;
+  const { q, roll } = current;
+  const chosen = q.acts.find((a) => a.id === pick);
+  const right = pick === bandFor(q, roll);
+
+  session.n++;
+  session.sum += chosen.pct;
+  if (right) { session.good++; session.streak++; session.best = Math.max(session.best, session.streak); }
+  else session.streak = 0;
+
+  life.n++;
+  life.sum += chosen.pct;
+  if (right) life.good++;
+  life.best = Math.max(life.best, session.streak);
+  save();
+
+  [...$('acts').children].forEach((b, i) => {
+    b.disabled = true;
+    if (q.acts[i].id === pick) b.classList.add('picked');
+  });
+  showOnTable(pick);
+
+  const v = $('verdict');
+  v.className = 'verdict ' + (right ? 'good' : 'bad');
+  v.innerHTML = (right ? 'Correct' : 'Not this time') +
+    `<small>${q.h.code} · ${q.sp.title} · ${startOf(q)}bb</small>`;
+
+  const bars = $('bars');
+  bars.innerHTML = '';
+  const p100 = pctOf(roll);
+  q.acts.forEach((a) => {
+    const start = bandStart(q.acts, a.id), edge = start + a.pct;
+    const row = document.createElement('div');
+    row.className = 'b ' + a.id + (a.id === pick ? ' chosen' : '');
+    // The band spans a.pct points of the 0-100 scale and its fill is a.pct% of
+    // the track, so one point is one percent of the track. Scaling to the band
+    // instead pushed the mark past the end of the fill on anything short of pure.
+    const pin = (p100 > start && p100 <= edge)
+      ? `<span class="pin" style="left:${p100 - start}%"></span>` : '';
+    row.innerHTML = `<span class="nm">${a.name}</span>` +
+      `<span class="tr"><span class="fl" style="width:${a.pct}%"></span>${pin}</span>` +
+      `<span class="pc">${a.pct}%</span>`;
+    bars.appendChild(row);
+  });
+
+  $('bar').hidden = true;
+  $('answer').hidden = false;
+  $('next').focus({ preventScroll: true });
+  paintStats();
+}
+
+/* ---- the whole range for this spot -------------------------------------- */
+/* Same painting as the explorer: one straight bar per cell, raise then jam
+   then call then fold, so a glance shows where the frontier sits. */
+function decodeRow(g) {
+  return g.split(',').map((tok) => {
+    if (tok === 'X') return { oor: true, r: 0, j: 0, c: 0, f: 0 };
+    const [r, j, c] = tok.replace('!', '').split('.').map(Number);
+    return { r, j, c, f: Math.max(0, 100 - r - j - c) };
+  });
+}
+function paintCell(c) {
+  if (c.oor) return '';
+  const r = c.r, j = r + c.j, k = j + c.c;
+  if (c.f >= 99.5) return 'var(--fold)';
+  if (c.c >= 99.5) return 'var(--call)';
+  if (c.j >= 99.5) return 'var(--jam)';
+  if (c.r >= 99.5) return 'var(--raise)';
+  const stops = [];
+  if (c.r > 0) stops.push(`var(--raise) 0 ${r}%`);
+  if (c.j > 0) stops.push(`var(--jam) ${r}% ${j}%`);
+  if (c.c > 0) stops.push(`var(--call) ${j}% ${k}%`);
+  if (c.f > 0) stops.push(`var(--fold) ${k}% 100%`);
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+}
+
+const rcells = [];
+(function buildRangeGrid() {
+  const axis = $('range-axis');
+  RANKS.forEach((r) => {
+    const sp = document.createElement('span');
+    sp.textContent = r;
+    axis.appendChild(sp);
+  });
+  const grid = $('range-grid');
+  HANDS.forEach((h) => {
+    const d = document.createElement('div');
+    d.className = 'rcell';
+    d.innerHTML = `<span>${h.code}</span>`;
+    grid.appendChild(d);
+    rcells.push(d);
+  });
+})();
+
+/* ---- randomizer settings ------------------------------------------------ */
+/** The compact readout: the raw roll, plus its range when it is not the 1-100
+    default, so the number is never ambiguous. */
+function showRoll(roll) {
+  $('rnum').textContent = roll;
+  $('rngrange').textContent = rng.max === 100 ? '' : '/ ' + rng.max;
+}
+
+/** Which rolls send a hand with this much aggression to the aggressive action.
+    Used to state the current setting in plain numbers rather than describing it. */
+function aggRolls(pct) {
+  const probe = [{ id: 'fold', pct: 100 - pct }, { id: 'call', pct: 0 }, { id: 'agg', pct }];
+  const hits = [];
+  for (let r = 1; r <= rng.max; r++) {
+    const p = pctOf(r);
+    let edge = 0, id = null;
+    for (const a of bandOrder(probe)) { edge += a.pct; if (p <= edge) { id = a.id; break; } }
+    if ((id || 'agg') === 'agg') hits.push(r);
+  }
+  return hits;
+}
+
+function paintRngNote() {
+  const hits = aggRolls(8);
+  const span = !hits.length ? 'never'
+    : hits.length === 1 ? `only on <b>${hits[0]}</b>`
+    : `on <b>${hits[0]} to ${hits[hits.length - 1]}</b>`;
+  $('rng-note').innerHTML =
+    `Rolling <b>1 to ${rng.max}</b>, ${rng.highAgg ? 'high' : 'low'} is aggressive. ` +
+    `A hand the solver raises 8% of the time raises ${span}` +
+    (hits.length ? `, which is ${Math.round(1000 * hits.length / rng.max) / 10}% of the rolls.` : '.');
+}
+
+function buildRngPanel() {
+  single('rng-max', [10, 20, 50, 100].map((v) => ({ label: String(v), v })),
+    () => rng.max, (v) => setRng({ max: v }));
+  single('rng-dir', [
+      { label: 'High', v: true, title: 'The aggressive action sits at the top of the range' },
+      { label: 'Low', v: false, title: 'The aggressive action sits at the bottom of the range' }],
+    () => rng.highAgg, (v) => setRng({ highAgg: v }));
+  const box = $('rng-custom');
+  if (document.activeElement !== box) box.value = rng.max;
+  paintRngNote();
+}
+
+function setRng(patch) {
+  Object.assign(rng, patch);
+  rng.max = Math.min(100, Math.max(2, Math.round(rng.max)));
+  saveRng();
+  buildRngPanel();
+  // A live question may be holding a roll from the old range, so take a new one.
+  if (current && !answered) { current.roll = rollOnce(); showRoll(current.roll); }
+}
+
+function openRngSettings() {
+  buildRngPanel();
+  lastFocus = document.activeElement;
+  $('rng-modal').hidden = false;
+  $('rng-close').focus();
+}
+function closeRngSettings() {
+  if ($('rng-modal').hidden) return;
+  $('rng-modal').hidden = true;
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+}
+
+let lastFocus = null;
+
+function openRange() {
+  if (!answered || !current) return;
+  const { q } = current;
+  const row = decodeRow(q.z.g);
+  const mine = row[q.n];
+  const name = Object.fromEntries(q.acts.map((a) => [a.id, a.name.toLowerCase()]));
+
+  $('range-title').textContent = `${q.sp.title} · ${startOf(q)}bb`;
+  const bits = [];
+  if (mine.r) bits.push(`${mine.r}% ${name.raise || 'raise'}`);
+  if (mine.j) bits.push(`${mine.j}% jam`);
+  if (mine.c) bits.push(`${mine.c}% ${name.call || 'call'}`);
+  if (mine.f) bits.push(`${mine.f}% fold`);
+  $('range-sub').innerHTML = `${q.z.sub} · <b>${q.h.code}</b> ${bits.join(', ')}`;
+
+  let oor = false;
+  rcells.forEach((d, i) => {
+    const c = row[i];
+    d.style.background = paintCell(c);
+    d.classList.toggle('oor', !!c.oor);
+    d.classList.toggle('you', i === q.n);
+    if (c.oor) oor = true;
+  });
+
+  const VAR = { raise: '--raise', jam: '--jam', call: '--call', fold: '--fold' };
+  const keys = [...q.acts].reverse().map((a) => [VAR[a.id], a.name]);
+  if (oor) keys.push(['--sunk', 'Not in our range']);
+  $('range-legend').innerHTML = keys
+    .map(([v, n]) => `<span><i style="background:var(${v})"></i>${n}</span>`).join('') +
+    '<span><i style="background:#fff"></i>Our hand</span>';
+
+  lastFocus = document.activeElement;
+  $('range-modal').hidden = false;
+  $('range-close').focus();
+}
+
+function closeRange() {
+  if ($('range-modal').hidden) return;
+  $('range-modal').hidden = true;
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  else if (!$('answer').hidden) $('next').focus();
+}
+const rangeOpen = () => !$('range-modal').hidden;
+const modalOpen = () => rangeOpen() || !$('rng-modal').hidden;
+
+/* ---- stats -------------------------------------------------------------- */
+function paintStats() {
+  $('s-acc').textContent = session.n ? Math.round(session.sum / session.n) + '%' : '–';
+  $('s-n').textContent = session.n;
+  $('s-good').textContent = session.n ? `${session.good} (${Math.round(100 * session.good / session.n)}%)` : '0';
+  $('s-streak').textContent = session.streak;
+  $('s-best').textContent = session.best;
+
+  $('l-n').textContent = life.n.toLocaleString();
+  $('l-acc').textContent = life.n ? Math.round(life.sum / life.n) + '%' : '–';
+  $('l-good').textContent = life.n ? Math.round(100 * life.good / life.n) + '%' : '–';
+  $('l-best').textContent = life.best;
+}
+
+/* ---- wiring ------------------------------------------------------------- */
+$('next').addEventListener('click', nextHand);
+$('reset-session').addEventListener('click', () => {
+  session.n = session.sum = session.good = session.streak = session.best = 0;
+  paintStats();
+});
+$('reset-life').addEventListener('click', () => {
+  if (!confirm(`Clear your lifetime ${GAME[game].label} stats? This cannot be undone.`)) return;
+  lives[game] = { n: 0, sum: 0, good: 0, best: 0 };
+  life = lives[game];
+  save();
+  paintStats();
+});
+
+$('rng').addEventListener('click', openRngSettings);
+$('rng-close').addEventListener('click', closeRngSettings);
+$('rng-modal').addEventListener('click', (e) => { if (e.target === $('rng-modal')) closeRngSettings(); });
+$('rng-custom').addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  if (Number.isFinite(v) && v >= 2 && v <= 100) setRng({ max: v });
+});
+$('rng-custom').addEventListener('blur', () => buildRngPanel());
+
+$('show-range').addEventListener('click', openRange);
+$('range-close').addEventListener('click', closeRange);
+$('range-modal').addEventListener('click', (e) => { if (e.target === $('range-modal')) closeRange(); });
+
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (modalOpen()) {
+    if (e.key === 'Escape') { e.preventDefault(); closeRange(); closeRngSettings(); }
+    return;                                    // nothing else while one is up
+  }
+  if (e.key === 'r' || e.key === 'R') { if (answered) { e.preventDefault(); openRange(); } return; }
+  if (!answered && current) {
+    const i = ['q','w','e'].indexOf(e.key.toLowerCase());
+    if (i >= 0 && current.q.acts[i]) { e.preventDefault(); answer(current.q.acts[i].id); return; }
+  }
+  if (answered && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); nextHand(); }
+});
+
+const linked = linkedHand();
+buildGameToggle();
+buildFilters();
+buildRngPanel();
+paintStats();
+nextHand(linked);
+
+})();
+</script>
+
+</body>
+</html>
