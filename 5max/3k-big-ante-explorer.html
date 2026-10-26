@@ -230,7 +230,7 @@
 "use strict";
 
 /* ===========================================================================
-   3k 5-max big ante explorer: push/fold and limp ranges at 15, 20 and 30bb.
+   3k 5-max big ante explorer: push/fold and limp ranges at 10, 15, 20 and 30bb.
    Same grid and colors as the other explorers. The green action changes name
    with the spot: a limp first in, a check facing a limp, a call facing a jam.
    =========================================================================== */
@@ -269,7 +269,7 @@ const FAMS = [
   { id: 'vslimp', label: 'vs Limp' },
 ];
 const GREEN = { rfi: 'limp', vsjam: 'call', vslimp: 'check' };
-const STACKS = [15, 20, 30];
+const STACKS = [10, 15, 20, 30];
 const STACK_KEY = 'fe-5max-stack-v1';
 
 const state = { stack: 15, hero: 'BTN', fam: 'rfi', vs: null };
