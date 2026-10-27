@@ -144,12 +144,7 @@
   .rb-hand .code { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 17px; font-weight: 600; }
   .rb-legend { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
   .rb-wrap { container-type: inline-size; }
-  .rb-wrap .axis, .rb-wrap .grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
-  .rb-wrap .axis { margin-bottom: 3px; }
-  .rb-wrap .axis span {
-    text-align: center; font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-    font-size: clamp(9px, 2cqw, 12px); color: var(--faint);
-  }
+  .rb-wrap .grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
   .rb-wrap .cell {
     aspect-ratio: 1; border-radius: 3px; overflow: hidden; color: #fff;
     font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 500;
@@ -243,7 +238,6 @@
     <p class="rb-hand" id="rb-hand"></p>
     <div class="rb-legend" id="rb-legend"></div>
     <div class="rb-wrap">
-      <div class="axis" id="rb-axis" aria-hidden="true"></div>
       <div class="grid" id="rb-grid"></div>
     </div>
   </div>
@@ -507,14 +501,6 @@ function paint(c) {
 
 const plainFreqs = (c, sp) => ['raise', 'jam', 'call', 'fold']
   .filter((k) => c[k] > 0).map((k) => `${c[k]}% ${(sp && sp.words && sp.words[k]) || k}`).join(', ');
-
-(function axis() {
-  RANKS.split('').forEach((r) => {
-    const sp = document.createElement('span');
-    sp.textContent = r;
-    $('rb-axis').appendChild(sp);
-  });
-})();
 
 /** The whole chart the decision was judged against, with our hand outlined. */
 function openRange(f) {

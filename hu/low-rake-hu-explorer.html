@@ -141,9 +141,7 @@
     max-width: min(100%, max(660px, 100vh - 250px));
     max-width: min(100%, max(660px, 100dvh - 250px));
   }
-  .axis, .grid { display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr)); gap: 2px; min-width: 500px; }
-  .axis { margin-bottom: 4px; }
-  .axis span { text-align: center; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 500; letter-spacing: .02em; font-size: clamp(10px, 1.35cqw, 14px); color: var(--faint); }
+  .grid { display: grid; grid-template-columns: repeat(13, minmax(36px, 1fr)); gap: 2px; min-width: 500px; }
 
   .cell {
     appearance: none; border: 0; aspect-ratio: 1; border-radius: 4px;
@@ -228,7 +226,6 @@
         <span class="sub" id="spot-sub"></span>
       </div>
       <div class="gridwrap">
-        <div class="axis" id="axis" aria-hidden="true"></div>
         <div class="grid" id="grid"></div>
       </div>
     </div>
@@ -336,11 +333,6 @@ const spot = () => options().find((s) => s.face === state.face) || options()[0];
 
 const cells = [];
 (function build() {
-  RANKS.forEach((r) => {
-    const s = document.createElement('span');
-    s.textContent = r;
-    $('axis').appendChild(s);
-  });
   HANDS.forEach((h) => {
     const b = document.createElement('button');
     b.type = 'button';
