@@ -12,8 +12,10 @@
 </head>
 <body>
 <script>
-  try { const t = localStorage.getItem('fe-theme-v1'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; }
-  catch (e) { /* storage can be unavailable; the system setting stands */ }
+  // Dark unless a light preference was saved.
+  let t = 'dark';
+  try { if (localStorage.getItem('fe-theme-v1') === 'light') t = 'light'; } catch (e) { /* storage can be unavailable */ }
+  document.documentElement.dataset.theme = t;
 </script>
 <style>
   /* Neutral charcoal in dark, cool gray in light: the grids carry the color,
@@ -467,12 +469,11 @@ function render() {
 
 $('grid').addEventListener('mouseleave', clearDetail);
 
-/* Light or dark. Until one is picked the system setting decides; the pick is
-   remembered and shared by the other explorers on this login. */
+/* Dark or light. Dark until light is picked; the pick is remembered and
+   shared by the other explorers on this login. */
 function paintTheme() {
-  const cur = document.documentElement.dataset.theme
-    || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  seg('theme-seg', [{ label: 'Light', v: 'light' }, { label: 'Dark', v: 'dark' }],
+  const cur = document.documentElement.dataset.theme || 'dark';
+  seg('theme-seg', [{ label: 'Dark', v: 'dark' }, { label: 'Light', v: 'light' }],
     (it) => it.v === cur,
     (it) => {
       document.documentElement.dataset.theme = it.v;
