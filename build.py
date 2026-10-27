@@ -184,7 +184,7 @@ coaching = f"""
 
 <div class="wrap fork">
   <div class="path hi">
-    <div class="who">Start here</div>
+    <div class="who">Best value</div>
     <h2>Coaching Group</h2>
     <div class="price">$149 / month &middot; cancel anytime</div>
     <p>Monthly live group coaching calls, an active Discord server to discuss hands with me and
