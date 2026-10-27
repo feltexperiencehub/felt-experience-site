@@ -80,9 +80,11 @@
      so the two read as one panel. */
   .picker { margin-top: -2px; margin-bottom: 18px; padding: 0 0 16px; border-bottom: 1px solid var(--line);
             display: flex; flex-direction: column; gap: 11px; }
-  /* Each setting is a label and its buttons, kept together: when the row runs
-     out of room a whole setting moves down a line rather than splitting. */
-  .prow { display: flex; flex-wrap: wrap; gap: 12px 30px; align-items: center; }
+  /* Each setting is a label and its buttons, kept together: when a line runs
+     out of room a whole setting moves down rather than splitting. The spot
+     always starts the second line, so it stays put as other settings come and go. */
+  .prow { display: flex; flex-direction: column; gap: 12px; }
+  .pline { display: flex; flex-wrap: wrap; gap: 12px 30px; align-items: center; }
   .grp { display: flex; align-items: center; gap: 12px; }
   /* Each box hugs its own buttons rather than filling the column: the raiser
      list is one entry in some spots, and a lone button in a full-width box
@@ -209,10 +211,14 @@
     <div class="card">
       <div class="picker">
         <div class="prow">
-          <div class="grp"><span class="lbl" id="l0">Depth</span><div class="seg" role="group" aria-labelledby="l0" id="stack-seg"></div></div>
-          <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
-          <div class="grp"><span class="lbl" id="l2">Spot</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
-          <div class="grp" id="size-grp"><span class="lbl" id="l3">3-bet size</span><div class="seg" role="group" aria-labelledby="l3" id="size-seg"></div></div>
+          <div class="pline">
+            <div class="grp"><span class="lbl" id="l0">Depth</span><div class="seg" role="group" aria-labelledby="l0" id="stack-seg"></div></div>
+            <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
+          </div>
+          <div class="pline">
+            <div class="grp"><span class="lbl" id="l2">Spot</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
+            <div class="grp" id="size-grp"><span class="lbl" id="l3">3-bet size</span><div class="seg" role="group" aria-labelledby="l3" id="size-seg"></div></div>
+          </div>
         </div>
       </div>
       <div class="gridhead">

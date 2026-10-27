@@ -11,27 +11,33 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
 </head>
 <body>
+<script>
+  try { const t = localStorage.getItem('fe-theme-v1'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; }
+  catch (e) { /* storage can be unavailable; the system setting stands */ }
+</script>
 <style>
+  /* Neutral charcoal in dark, cool gray in light: the grids carry the color,
+     so the page around them stays out of the way. */
   :root {
-    --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
-    --ink: #171c18; --muted: #5c665e; --faint: #838d85;
-    --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7; --oor: #d3dad1;
-    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
+    --bg: #f2f3f5; --panel: #ffffff; --sunk: #eceef1; --line: #dcdfe4;
+    --ink: #16191d; --muted: #4f5660; --faint: #737a84;
+    --raise: #e95858; --jam: #7c2d8a; --call: #4f9a52; --fold: #a7adb6; --oor: #e4e7eb;
+    --shadow: 0 1px 2px rgba(20,24,30,.06), 0 6px 18px rgba(20,24,30,.06);
     --focus: #2f6d8f;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-      --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
-      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+      --bg: #121418; --panel: #1a1d22; --sunk: #15181c; --line: #2a2f37;
+      --ink: #eceef1; --muted: #c2c7cf; --faint: #9aa1ab;
+      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2c3139; --oor: #1a1d22;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
       --focus: #7fb6d4;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-    --ink: #eaefe8; --muted: #a3ada5; --faint: #78827a;
-    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+    --bg: #121418; --panel: #1a1d22; --sunk: #15181c; --line: #2a2f37;
+    --ink: #eceef1; --muted: #c2c7cf; --faint: #9aa1ab;
+    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2c3139; --oor: #1a1d22;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
     --focus: #7fb6d4;
   }
@@ -61,28 +67,32 @@
     border-radius: 12px; box-shadow: var(--shadow); padding: 16px;
   }
   .card > h2 {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
-    font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
-    color: var(--faint); margin: 0 0 11px;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px;
+    font-weight: 600; letter-spacing: .11em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 12px;
   }
 
   /* ---- picker: two groups per row, in one grid so the four boxes line up ----
      The groups are display:contents so their label and their segment become
      grid items in their own right, which is what lets a column be shared
      between the row above and the row below. */
-  .picker { margin-bottom: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
-  .prow {
-    display: grid; grid-template-columns: repeat(2, max-content minmax(0, max-content));
-    gap: 11px 26px; align-items: center; justify-content: start;
-  }
-  .grp { display: contents; }
+  /* The settings sit at the top of the grid's own card, ruled off from it,
+     so the two read as one panel. */
+  .picker { margin-top: -2px; margin-bottom: 18px; padding: 0 0 16px; border-bottom: 1px solid var(--line);
+            display: flex; flex-direction: column; gap: 11px; }
+  /* Each setting is a label and its buttons, kept together: when a line runs
+     out of room a whole setting moves down rather than splitting. The spot
+     always starts the second line, so it stays put as other settings come and go. */
+  .prow { display: flex; flex-direction: column; gap: 12px; }
+  .pline { display: flex; flex-wrap: wrap; gap: 12px 30px; align-items: center; }
+  .grp { display: flex; align-items: center; gap: 12px; }
   /* Each box hugs its own buttons rather than filling the column: the raiser
      list is one entry in some spots, and a lone button in a full-width box
      reads like an empty field. The shared left edge carries the alignment. */
   .picker .seg { justify-self: start; }
   .lbl {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--faint); white-space: nowrap;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500;
+    letter-spacing: .09em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
   }
   .seg { display: flex; flex-wrap: wrap; gap: 3px; background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
   .seg button {
@@ -102,10 +112,12 @@
 
   /* ---- grid ---- */
   .gridhead { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
-  .gridhead strong { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; }
-  .gridhead .sub { display: block; font-size: 13px; color: var(--muted); font-family: Montserrat, sans-serif; font-weight: 400; margin-top: 2px; }
-  .mix { font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .mix .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 6px 0 14px; }
+  .gridhead strong { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 18px; font-weight: 600; }
+  /* Title on the left, what happened on the right, one line: the Strategy
+     card carries the frequencies, so the grid can start higher. */
+  .gridhead .sub { font-size: 15px; color: var(--muted); font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 400; }
+  .mix { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mix .k { display: inline-block; width: 11px; height: 11px; border-radius: 2px; margin: 0 7px 0 16px; }
   .mix .k:first-child { margin-left: 0; }
   .mix .k.r { background: var(--raise); }
   .mix .k.j { background: var(--jam); }
@@ -136,7 +148,7 @@
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
     font-size: clamp(11px, 2.3cqw, 17px); font-weight: 500; letter-spacing: .02em;
     /* Top left like Wizard. With the fills running left to right a centred
-       label often straddles a colour boundary; this one sits on a single band. */
+       label often straddles a color boundary; this one sits on a single band. */
     display: flex; align-items: flex-start; justify-content: flex-start;
     padding: .35em 0 0 .45em;
     cursor: pointer; position: relative; overflow: hidden;
@@ -169,39 +181,52 @@
   .detail .nums .fold { color: var(--muted); }
   .detail .why { margin: 0; font-size: 13px; color: var(--muted); }
 
-  #notes { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  #notes { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  /* ---- strategy: one row per action, the number in its grid color ---- */
+  .ov { display: flex; flex-direction: column; gap: 7px; }
+  .ov-row { display: flex; justify-content: space-between; gap: 10px;
+            font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 15px; }
+  .ov-row { font-weight: 600; }
+  .ov-row .pc { font-variant-numeric: tabular-nums; }
+  .ov-row.r .pc { color: var(--raise); } .ov-row.j .pc { color: var(--jam); }
+  .ov-row.c .pc { color: var(--call); } .ov-row.f .pc { color: var(--muted); }
+
+  .theme button { font-size: 13px; padding: 5px 12px; }
   .foot { margin: 22px 0 0; font-size: 13px; color: var(--faint); }
   .foot a { color: var(--muted); }
 
   @media (max-width: 920px) {
     .cols { grid-template-columns: minmax(0,1fr); }
-    /* one group per row, labels still sharing a column */
-    .prow { grid-template-columns: max-content minmax(0, 1fr); }
   }
 </style>
 
 <div class="shell">
   <div class="top">
     <h1>Big Ante Range Explorer</h1>
-    <div class="seg gameseg" role="group" aria-label="Game format" id="game-seg"></div>
-    <div class="seg gameseg" role="group" aria-label="Effective stack" id="stack-seg"></div>
+    <div class="seg theme" role="group" aria-label="Color theme" id="theme-seg"></div>
     <a href="/study/big-ante-drill">Drill these ranges</a>
-  </div>
-
-  <div class="card picker">
-    <div class="prow">
-      <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
-      <div class="grp"><span class="lbl" id="l2">Facing</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
-      <div class="grp" id="vs-grp"><span class="lbl" id="l3">Raiser</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
-      <div class="grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
-    </div>
   </div>
 
   <div class="cols">
     <div class="card">
+      <div class="picker">
+        <div class="prow">
+          <div class="pline">
+            <div class="grp"><span class="lbl" id="l5">Game</span><div class="seg" role="group" aria-labelledby="l5" id="game-seg"></div></div>
+            <div class="grp"><span class="lbl" id="l6">Depth</span><div class="seg" role="group" aria-labelledby="l6" id="stack-seg"></div></div>
+            <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
+          </div>
+          <div class="pline">
+            <div class="grp"><span class="lbl" id="l2">Facing</span><div class="seg" role="group" aria-labelledby="l2" id="fam-seg"></div></div>
+            <div class="grp" id="vs-grp"><span class="lbl" id="l3">Raiser</span><div class="seg" role="group" aria-labelledby="l3" id="vs-seg"></div></div>
+            <div class="grp" id="size-grp"><span class="lbl" id="l4">Size</span><div class="seg" role="group" aria-labelledby="l4" id="size-seg"></div></div>
+          </div>
+        </div>
+      </div>
       <div class="gridhead">
-        <strong id="spot-title"><span class="sub" id="spot-sub"></span></strong>
-        <span class="mix" id="mix"></span>
+        <strong id="spot-title"></strong>
+        <span class="sub" id="spot-sub"></span>
       </div>
       <div class="gridwrap">
         <div class="axis" id="axis" aria-hidden="true"></div>
@@ -212,13 +237,18 @@
     <div class="rail">
       <div class="card" id="ours-card">
         <h2 id="ours-label">Our 3-bet</h2>
-        <div class="big"><span class="n" id="ours">—</span><span class="u">bb</span></div>
+        <div class="big"><span class="n" id="ours">–</span><span class="u">bb</span></div>
         <p class="bigsub" id="ours-sub"></p>
+      </div>
+
+      <div class="card">
+        <h2>Strategy</h2>
+        <div class="ov" id="overall"></div>
       </div>
 
       <div class="card detail">
         <h2>Hand</h2>
-        <p class="hand" id="d-hand">—</p>
+        <p class="hand" id="d-hand">–</p>
         <p class="verdict" id="d-verdict">Hover any cell</p>
         <p class="nums" id="d-nums"></p>
         <p class="why" id="d-why">Every number is read off the solver grid.</p>
@@ -371,7 +401,7 @@ function seg(id, items, isOn, pick) {
 }
 
 function clearDetail() {
-  $('d-hand').textContent = '—';
+  $('d-hand').textContent = '–';
   $('d-verdict').textContent = 'Hover any hand';
   $('d-nums').innerHTML = '';
   $('d-why').textContent = '';
@@ -461,6 +491,8 @@ function render() {
   seg('vs-seg', opts.map((o) => ({ label: o.vs, v: o.vs })),
     (it) => it.v === state.vs, (it) => { state.vs = it.v; render(); });
 
+  // One chart, nothing to choose: first in there is a single size.
+  $('size-grp').style.display = sp.sizes.length > 1 ? '' : 'none';
   seg('size-seg', sp.sizes.map((z) => ({ label: z.face, v: z.face })),
     (it) => it.v === state.face, (it) => { state.face = it.v; render(); });
 
@@ -484,7 +516,8 @@ function render() {
     }
   });
 
-  $('spot-title').innerHTML = `${sp.title}<span class="sub">${size.sub}</span>`;
+  $('spot-title').textContent = sp.title;
+  $('spot-sub').textContent = size.sub;
   const oursLabel = OURS_LABEL[sp.fam];
   $('ours-card').hidden = !oursLabel || size.ours == null;
   if (!$('ours-card').hidden) {
@@ -496,12 +529,9 @@ function render() {
   // The jam entry doubles as the legend for the purple, so it only shows up
   // in the spots that actually have one.
   const d = n || 1;
-  const bits = [];
-  if (raiseW / d >= 0.05) bits.push(`<span class="k r"></span>${(raiseW / d).toFixed(1)}% ${word(sp, 'raise')}`);
-  if (jamW / d >= 0.05) bits.push(`<span class="k j"></span>${(jamW / d).toFixed(1)}% jam`);
-  if (callW / d >= 0.05 || sp.fam !== 'first') bits.push(`<span class="k c"></span>${(callW / d).toFixed(1)}% ${word(sp, 'call')}`);
-  bits.push(`<span class="k f"></span>${(foldW / d).toFixed(1)}% fold`);
-  $('mix').innerHTML = bits.join('');
+  $('overall').innerHTML = [['r', raiseW, word(sp, 'raise')], ['j', jamW, 'jam'], ['c', callW, word(sp, 'call')], ['f', foldW, 'fold']]
+    .filter(([, v]) => v / d >= 0.05)
+    .map(([k, v, nm]) => `<div class="ov-row ${k}"><span>${nm[0].toUpperCase() + nm.slice(1)}</span><span class="pc">${(v / d).toFixed(1)}%</span></div>`).join('');
 
   $('notes').textContent = sp.note || '';
 
@@ -526,6 +556,20 @@ if (link.get('hero')) {
   }
 }
 
+/* Light or dark. Until one is picked the system setting decides; the pick is
+   remembered and shared by the other explorers on this login. */
+function paintTheme() {
+  const cur = document.documentElement.dataset.theme
+    || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  seg('theme-seg', [{ label: 'Light', v: 'light' }, { label: 'Dark', v: 'dark' }],
+    (it) => it.v === cur,
+    (it) => {
+      document.documentElement.dataset.theme = it.v;
+      try { localStorage.setItem('fe-theme-v1', it.v); } catch (e) { /* ignore */ }
+      paintTheme();
+    });
+}
+paintTheme();
 render();
 clearDetail();
 if (link.get('hand')) {
