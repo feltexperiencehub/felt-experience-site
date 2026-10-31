@@ -305,9 +305,9 @@ function paint(c) {
 }
 
 const PLAYERS = [
-  { n: 5, positions: ['HJ', 'CO', 'BTN', 'SB', 'BB'] },
-  { n: 3, positions: ['BTN', 'SB', 'BB'] },
-  { n: 2, positions: ['SB', 'BB'] },
+  { n: 5, positions: ['BB', 'SB', 'BTN', 'CO', 'HJ'] },
+  { n: 3, positions: ['BB', 'SB', 'BTN'] },
+  { n: 2, positions: ['BB', 'SB'] },
 ];
 const FAMS = [
   { id: 'rfi', label: 'First in' },
@@ -415,11 +415,11 @@ function render() {
     (it) => it.v === state.players, (it) => { state.players = it.v; save(); render(); });
   seg('stack-seg', stacks.map((n) => ({ label: n + 'bb', v: n })),
     (it) => it.v === state.stack, (it) => { state.stack = it.v; save(); render(); });
+  // A new position starts on its first-in chart, or its first spot when it has none.
   seg('hero-seg', positions.map((h) => ({ label: h, v: h, off: !heroes.includes(h) })),
-    (it) => it.v === state.hero, (it) => { state.hero = it.v; render(); });
-  seg('fam-seg', FAMS.filter((f) => here.some((s) => s.fam === f.id)).map((f) => ({
-      label: f.label, v: f.id, off: !fams.some((x) => x.id === f.id),
-    })),
+    (it) => it.v === state.hero, (it) => { state.hero = it.v; state.fam = 'rfi'; state.vs = null; render(); });
+  // Only the spots this position can actually be in.
+  seg('fam-seg', fams.map((f) => ({ label: f.label, v: f.id })),
     (it) => it.v === state.fam, (it) => { state.fam = it.v; render(); });
   const fam = FAMS.find((f) => f.id === sp.fam);
   $('vs-grp').style.display = opts.length > 1 ? '' : 'none';
