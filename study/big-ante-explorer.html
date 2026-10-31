@@ -321,14 +321,19 @@ function paint(c) {
 const FAM_ORDER = [
   { id: 'first', label: 'First in' },
   { id: 'rfi',  label: 'vs RFI' },
-  { id: 'vs3b', label: 'vs 3-bet' },
   { id: 'limp', label: 'Limp vs ISO' },
+  { id: 'vs3b', label: 'vs 3-bet' },
   { id: 'hurfi',   label: 'vs Open' },
   { id: 'huvs3b',  label: 'vs 3-bet' },
   { id: 'huvs4b',  label: 'vs 4-bet' },
   { id: 'huvsjam', label: 'vs Jam' },
 ];
-const HERO_ORDER = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+const HERO_ORDER = ['BB', 'SB', 'BTN', 'CO', 'HJ', 'UTG'];
+/* The players we face are listed nearest seat first, counted along the
+   preflop action. EP is UTG and HJ together, so it takes UTG's seat. */
+const ACTION = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
+const seat = (p) => ACTION.indexOf(p === 'EP' ? 'UTG' : p);
+const away = (sp) => (sp.vs ? Math.abs(seat(sp.hero) - seat(sp.vs)) : 0);
 /* The size card names our own bet where we have one. Facing a jam there is no
    raise left, so that spot has nothing to put there and the card comes off. */
 const OURS_LABEL = {
@@ -362,7 +367,8 @@ catch (e) { /* ditto */ }
 const $ = (id) => document.getElementById(id);
 const inStack = () => SPOT_DATA.filter((s) => s.stack === state.stack);
 const inGame = () => inStack().filter((s) => s.game === state.game);
-const branch = () => inGame().filter((s) => s.hero === state.hero && s.fam === state.fam);
+const branch = () => inGame().filter((s) => s.hero === state.hero && s.fam === state.fam)
+  .sort((a, b) => away(a) - away(b));
 const spot = () => branch().find((s) => s.vs === state.vs) || branch()[0] || null;
 
 const cells = [];
@@ -470,13 +476,12 @@ function render() {
       render();
     });
 
+  // A new position starts on its first-in chart, or its first spot when it has none.
   seg('hero-seg', heroes.map((h) => ({ label: h, v: h })),
-    (it) => it.v === state.hero, (it) => { state.hero = it.v; render(); });
+    (it) => it.v === state.hero, (it) => { state.hero = it.v; state.fam = 'first'; state.vs = null; render(); });
 
-  seg('fam-seg', FAM_ORDER.filter((f) => here.some((s) => s.fam === f.id)).map((f) => ({
-      label: f.label, v: f.id,
-      off: !here.some((s) => s.hero === state.hero && s.fam === f.id),
-    })),
+  // Only the spots this position can actually be in.
+  seg('fam-seg', fams.map((f) => ({ label: f.label, v: f.id })),
     (it) => it.v === state.fam, (it) => { state.fam = it.v; render(); });
 
   // First in there is no raiser to pick.
