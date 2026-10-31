@@ -311,9 +311,9 @@ const PLAYERS = [
 ];
 const FAMS = [
   { id: 'rfi', label: 'First in' },
+  { id: 'vslimp', label: 'vs Limp' },
   { id: 'vsopen', label: 'vs Open', row: 'Raiser' },
   { id: 'vsjam', label: 'vs Jam', row: 'Jammer' },
-  { id: 'vslimp', label: 'vs Limp' },
   { id: 'afterlimp', label: 'After limping', row: 'Facing' },
   { id: 'afteropen', label: 'After opening', row: 'Facing' },
 ];
@@ -340,7 +340,16 @@ const save = () => {
 const $ = (id) => document.getElementById(id);
 const atPlayers = () => FIVEMAX_SPOTS.filter((s) => s.players === state.players);
 const atStack = () => atPlayers().filter((s) => s.stack === state.stack);
-const branch = () => atStack().filter((s) => s.hero === state.hero && s.fam === state.fam);
+/* The players we face are listed nearest first: the seat just before ours,
+   then on back around the table. A spot with more than one player in it goes
+   by the one who put the money in, after the plain spot from that seat. */
+const ACTION = ['HJ', 'CO', 'BTN', 'SB', 'BB'];
+const back = (sp) => {
+  const at = ACTION.indexOf(sp.vs && sp.vs.split('+')[0]);
+  return at < 0 ? 99 : (ACTION.indexOf(sp.hero) - at + ACTION.length) % ACTION.length;
+};
+const branch = () => atStack().filter((s) => s.hero === state.hero && s.fam === state.fam)
+  .sort((a, b) => back(a) - back(b));
 const spot = () => branch().find((s) => s.vs === state.vs) || branch()[0];
 
 const cells = [];
