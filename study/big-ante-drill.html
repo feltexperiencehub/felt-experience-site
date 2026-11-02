@@ -132,6 +132,10 @@
   .seat .cards svg { width: 5.2cqw; height: 7.35cqw; display: block; }
   .seat .cards .l { transform: rotate(-4deg) translateX(2px); }
   .seat .cards .r { transform: rotate(4deg) translateX(-2px); }
+  /* Face-down cards sit above the plate without taking up room in the seat, so
+     the plate and its chips stay exactly where they were without them. */
+  .seat .cards.back { position: absolute; left: 50%; bottom: calc(100% - 1.1cqw); transform: translateX(-50%); margin: 0; z-index: 0; }
+  .seat .cards.back svg { width: 4.2cqw; height: 5.9cqw; }
   .plate {
     min-width: 12.3cqw; background: linear-gradient(180deg, rgba(32,39,34,.97), rgba(19,24,21,.97));
     border: 1px solid rgba(255,255,255,.14); border-radius: 1.2cqw; padding: .7cqw 1.4cqw .8cqw;
@@ -626,6 +630,15 @@ function dealSuits(h) {
   return [a, b];
 }
 
+/* The replayer's card back, so a live seat looks the same in both. */
+const BACK_SVG = `<svg class="pc" viewBox="0 0 100 140" width="44" height="62" aria-hidden="true">
+    <rect x="1.5" y="1.5" width="97" height="137" rx="11" fill="#20302a" stroke="#0b100d" stroke-width="3"/>
+    <rect x="8" y="8" width="84" height="124" rx="7" fill="none" stroke="rgba(167,220,165,0.35)" stroke-width="2"/>
+    <rect x="15" y="15" width="70" height="110" rx="5" fill="rgba(167,220,165,0.06)"/>
+    <text x="50" y="80" text-anchor="middle" font-family="'League Spartan',sans-serif" font-weight="700"
+      font-size="30" fill="rgba(167,220,165,0.45)" letter-spacing="2">FE</text>
+  </svg>`;
+
 function cardSVG(rank, suit) {
   const face = rank === 'T' ? '10' : rank;
   const size = face.length > 1 ? 52 : 62;
@@ -666,10 +679,12 @@ function drawTable(q, cards) {
     el.className = 'seat ' + s.role;
     el.style.left = p.x + '%';
     el.style.top = p.y + '%';
+    // Everyone still in the hand holds two cards; only ours are face up.
     const hole = s.role === 'hero'
       ? `<div class="cards"><span class="l">${cardSVG(q.h.hiR, cards[0])}</span>` +
         `<span class="r">${cardSVG(q.h.loR, cards[1])}</span></div>`
-      : '';
+      : s.role === 'out' ? ''
+      : `<div class="cards back"><span class="l">${BACK_SVG}</span><span class="r">${BACK_SVG}</span></div>`;
     el.innerHTML = hole +
       `<div class="plate"><div class="pos">${s.label}</div>` +
       `<div class="stack">${bb(s.stack)}</div></div>`;
