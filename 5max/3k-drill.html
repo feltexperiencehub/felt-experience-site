@@ -554,6 +554,8 @@ const bb = (n) => (Math.round(n * 10) / 10).toString();
 /** Our non-all-in raise, read from its name: "open 2.5x", "raise to 7bb". */
 const raiseTo = (sp) => { const m = ((sp.words && sp.words.raise) || '').match(/([\d.]+)/); return m ? +m[1] : null; };
 const openOf = (sp) => { const m = sp.sub.match(/opens ([\d.]+)x/); return m ? +m[1] : null; };
+/** The BB's raise over our limp, from its label: "BB raises 4.5x". */
+const isoOf = (sp) => { const m = sp.vsLabel.match(/([\d.]+)x/); return m ? +m[1] : null; };
 
 /** What everyone has in front of them, and what the pot is, in this spot. */
 function scenario(q) {
@@ -569,10 +571,16 @@ function scenario(q) {
   if (sp.fam === 'rfi') {
     line = sp.players === 2 ? 'We act first' : 'Folded to us';
   } else if (sp.fam === 'vsjam') {
-    if (sp.vs === 'BTN+SB') { wager.BTN = jam; wager.SB = jam; line = 'BTN jams · SB calls'; }
-    else if (sp.vs === 'SB+BTN') { wager.BTN = 2; wager.SB = jam; line = 'BTN opens 2bb · SB jams'; }
+    let who = sp.vs.split('+');
+    if (sp.vs === 'CO+BTN/SB') {
+      // One chart covers either caller, so deal one of them in and keep it for the hand.
+      q.caller = q.caller || (Math.random() < 0.5 ? 'BTN' : 'SB');
+      who = ['CO', q.caller];
+    }
+    if (sp.vs === 'SB+BTN') { wager.BTN = 2; wager.SB = jam; line = 'BTN opens 2bb · SB jams'; }
+    else if (who.length === 2) { wager[who[0]] = jam; wager[who[1]] = jam; line = `${who[0]} jams · ${who[1]} calls`; }
     else { wager[sp.vs] = jam; line = `${sp.vs} jams`; }
-    sp.vs.split('+').forEach((p) => aggro.add(p));
+    who.forEach((p) => aggro.add(p));
   } else if (sp.fam === 'vsopen') {
     wager[sp.vs] = openOf(sp);
     aggro.add(sp.vs);
@@ -584,9 +592,9 @@ function scenario(q) {
   } else if (sp.fam === 'afterlimp') {
     wager[hero] = 1;
     heroAction = 'we limp';
-    wager.BB = sp.vs === 'iso' ? 3.5 : jam;
+    wager.BB = sp.vs === 'iso' ? isoOf(sp) : jam;
     aggro.add('BB');
-    line = sp.vs === 'iso' ? 'BB raises to 3.5bb' : 'BB jams';
+    line = sp.vs === 'iso' ? `BB raises to ${bb(wager.BB)}bb` : 'BB jams';
   } else {                                     // afteropen: the chart covers a jam from either blind
     wager[hero] = 2;
     heroAction = 'we open 2bb';
@@ -858,7 +866,13 @@ function buildFilters() {
   const heroes = HERO_ORDER.filter((h) => here.some((s) => s.hero === h));
   const fams = FAM_ORDER.filter((f) => here.some((s) => s.fam === f));
   const vss = [];
-  here.forEach((s) => { if (s.vs && !vss.some((x) => x.v === s.vs)) vss.push({ v: s.vs, label: s.vsLabel }); });
+  here.forEach((s) => {
+    if (!s.vs) return;
+    const seen = vss.find((x) => x.v === s.vs);
+    if (!seen) vss.push({ v: s.vs, label: s.vsLabel });
+    // The BB's raise over a limp is a different size at each depth: name it without one.
+    else if (seen.label !== s.vsLabel) seen.label = seen.label.replace(/ [\d.]+x$/, '');
+  });
 
   const redraw = () => { buildFilters(); nextHand(); };
   multi('f-stack', stacks.map((n) => ({ label: n + 'bb', v: n })), filters.stack, redraw);
