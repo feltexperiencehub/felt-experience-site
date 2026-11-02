@@ -974,11 +974,11 @@ function nextHand(forced) {
     $('hint').textContent = 'No hands match these filters.';
     return;
   }
-  let q = f ? f.q : null, again = false;
+  let q = f ? f.q : null;
   if (!f) {
     dealt++;
     const due = retry.findIndex((r) => r.due <= dealt && p.includes(r.q));
-    if (due >= 0) { q = retry[due].q; retry.splice(due, 1); again = true; }
+    if (due >= 0) { q = retry[due].q; retry.splice(due, 1); }
     else q = p[Math.floor(Math.random() * p.length)];
   }
   const roll = f && f.roll != null ? f.roll : rollOnce();
@@ -1005,7 +1005,6 @@ function nextHand(forced) {
     acts.appendChild(b);
   });
   $('hint').textContent = f && !f.restore ? 'The hand from your history. Keys Q, W, E left to right.'
-    : again ? 'You missed this one a few hands ago. Keys Q, W, E left to right.'
     : 'Keys Q, W, E left to right.';
   $('prev').hidden = history.length === 0;
   frameTable();
