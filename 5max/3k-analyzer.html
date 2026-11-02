@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Analyzer – Felt Experience Poker</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+  :root {
+    --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
+    --ink: #171c18; --soft: #3a433c; --muted: #5c665e; --faint: #838d85;
+    --did-fold: #2a72ad; --did-call: #97750c; --did-raise: #c45f1c;
+    --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7; --oor: #d3dad1;
+    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
+    --focus: #2f6d8f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+      --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
+      --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
+      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+      --focus: #7fb6d4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
+    --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
+    --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
+    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
+    --focus: #7fb6d4;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 1100px; margin: 0 auto; padding: 22px 20px 52px; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .top a { font-size: 13px; color: var(--muted); }
+  h1 {
+    font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
+    font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em; margin: 0;
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); padding: 16px; margin-bottom: 16px;
+  }
+  .card > h2 {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 11px;
+  }
+  .card[hidden] { display: none; }
+
+  button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .status { font-size: 13px; color: var(--muted); margin: 11px 0 0; font-variant-numeric: tabular-nums; }
+  .status:empty { display: none; }
+  body.dragging .card.drop { border-color: var(--call); }
+  .depths { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .depths .who { grid-column: 1 / -1; background: none; border: 0; padding: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+  .depths div { background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; }
+  .depths b { display: block; font-family: 'League Spartan', system-ui, sans-serif; font-size: 19px; font-weight: 700; line-height: 1.1; }
+  .depths span { font-size: 13px; color: var(--soft); font-variant-numeric: tabular-nums; }
+  @media (max-width: 620px) { .depths { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--sunk); color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 600;
+    padding: 9px 18px; border-radius: 8px; cursor: pointer;
+  }
+  .btn:hover:not([disabled]) { border-color: var(--faint); }
+  .btn.go { background: var(--call); border-color: var(--call); color: #fff; }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; }
+  .hint { font-size: 12.5px; color: var(--faint); }
+
+  .tot { display: flex; gap: 26px; flex-wrap: wrap; }
+  .tot div { min-width: 92px; }
+  .tot .n { font-family: 'League Spartan', system-ui, sans-serif; font-size: 27px; font-weight: 700; line-height: 1.1; }
+  .tot .n.bad { color: var(--raise); }
+  .tot .k {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th {
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 10.5px;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
+    text-align: left; font-weight: 600; padding: 0 10px 7px 0; white-space: nowrap;
+  }
+  td { padding: 8px 10px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  td.h { font-family: Inter, sans-serif; font-weight: 600; white-space: nowrap; }
+  .did { font-weight: 600; white-space: nowrap; }
+  .did.fold { color: var(--did-fold); }
+  .did.call { color: var(--did-call); }
+  .did.raise { color: var(--did-raise); }
+  .freqs { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+  .freqs b { color: var(--ink); font-weight: 600; }
+  .k { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .k.r { background: var(--raise); } .k.j { background: var(--jam); }
+  .k.c { background: var(--call); } .k.f { background: var(--fold); }
+  .muted { color: var(--muted); }
+  .why { font-size: 12.5px; color: var(--muted); }
+  .note { font-size: 14px; line-height: 1.55; color: var(--soft); margin: 12px 0 0; }
+  .err { color: var(--raise); font-size: 13px; }
+  ul.reasons { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
+  ul.reasons b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  tr.go { cursor: pointer; }
+  tr.go:hover td { background: var(--sunk); }
+  .hbtn {
+    appearance: none; border: 0; background: none; padding: 0; margin: 0;
+    font: inherit; font-weight: 600; color: var(--ink); cursor: pointer;
+  }
+  tr.go:hover .hbtn, .hbtn:focus-visible { text-decoration: underline; }
+
+  /* ---- the range popup ---- */
+  #rangebox {
+    width: min(94vw, 620px); max-height: 94vh; padding: 0;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--panel); color: var(--ink);
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  #rangebox::backdrop { background: rgba(6,9,7,.62); }
+  .rb-in { padding: 16px 18px 18px; }
+  .rb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .rb-head strong { display: block; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; }
+  .rb-head .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .rb-x {
+    appearance: none; border: 0; background: transparent; color: var(--muted);
+    font-size: 24px; line-height: 1; cursor: pointer; padding: 2px 7px; border-radius: 6px;
+  }
+  .rb-x:hover { color: var(--ink); background: var(--sunk); }
+  .rb-hand { margin: 11px 0 9px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+  .rb-hand .code { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 17px; font-weight: 600; }
+  .rb-legend { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .rb-wrap { container-type: inline-size; }
+  .rb-wrap .grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
+  .rb-wrap .cell {
+    aspect-ratio: 1; border-radius: 3px; overflow: hidden; color: #fff;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 500;
+    font-size: clamp(7px, 2.05cqw, 12.5px); padding: .3em 0 0 .35em;
+  }
+  .rb-wrap .cell span { text-shadow: 0 1px 1px rgba(0,0,0,.3); }
+  .rb-wrap .cell.oor { color: var(--faint); }
+  .rb-wrap .cell.oor span { text-shadow: none; opacity: .55; }
+  /* The hand we played. Drawn inside the cell so the grid edge never clips it. */
+  .rb-wrap .cell.mine { outline: 2.5px solid var(--ink); outline-offset: -2.5px; }
+  /* A wide table must scroll inside its card, not widen the page: a page wider
+     than the phone also pushes the range popup off to one side. */
+  .tablewrap { overflow-x: auto; }
+  @media (max-width: 620px) {
+    th.hide, td.hide { display: none; }
+    .freqs { white-space: normal; }
+  }
+</style>
+
+<div class="shell">
+  <div class="top">
+    <h1>Analyzer</h1>
+    <a href="/5max/3k-big-ante-explorer">Back to the explorer</a>
+  </div>
+
+  <div class="card drop">
+    <h2>Your hands</h2>
+    <div class="row">
+      <button type="button" class="btn go" id="pickFiles">Upload files</button>
+      <button type="button" class="btn go" id="pickDir">Upload folder</button>
+      <button type="button" class="btn" id="clear" hidden>Clear</button>
+      <input type="file" id="files" accept=".txt" multiple hidden />
+      <input type="file" id="dir" webkitdirectory multiple hidden />
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <p class="note">
+      A folder is read with everything inside it, subfolders included, and only
+      its .txt files are used. You can also drop files or a folder onto the page.
+      Nothing leaves your computer: the hands are read here in your browser.
+    </p>
+    <p class="note">
+      Judged against the 3k charts, so a hand is only read when it matches what
+      was solved: five, three, or two players dealt in, with a half-blind ante,
+      at one of the depths below.
+    </p>
+    <p class="note">Each decision is judged on the chart nearest its effective stack:</p>
+    <div class="depths" id="depths"></div>
+    <p class="note" id="depthnote"></p>
+  </div>
+
+  <div class="card" id="sum" hidden>
+    <h2>Summary</h2>
+    <div class="tot">
+      <div><div class="n" id="t-hands">0</div><div class="k">Hands read</div></div>
+      <div><div class="n" id="t-dec">0</div><div class="k">Your decisions</div></div>
+      <div><div class="n" id="t-cov">0</div><div class="k">On a chart</div></div>
+      <div><div class="n bad" id="t-flag">0</div><div class="k">Never do this</div></div>
+    </div>
+    <p class="note" id="precision"></p>
+  </div>
+
+  <div class="card" id="flagcard" hidden>
+    <h2>Flagged</h2>
+    <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th>Hand</th><th>Spot</th><th class="hide">Depth</th>
+        <th>You</th><th>The chart</th>
+      </tr></thead>
+      <tbody id="flags"></tbody>
+    </table>
+    </div>
+    <p class="note">
+      Only decisions the charts never make are listed. Anything the solver does
+      even occasionally is left alone, and bet sizing is not judged. Click a
+      hand to see the whole range, with your hand outlined.
+    </p>
+  </div>
+
+  <div class="card" id="skipcard" hidden>
+    <h2>Not judged</h2>
+    <ul class="reasons" id="skips"></ul>
+  </div>
+
+  <div class="card" id="errcard" hidden>
+    <h2>Could not read</h2>
+    <ul class="reasons" id="errs"></ul>
+  </div>
+</div>
+
+<dialog id="rangebox" aria-labelledby="rb-title">
+  <div class="rb-in">
+    <div class="rb-head">
+      <div><strong id="rb-title"></strong><span class="sub" id="rb-sub"></span></div>
+      <button type="button" class="rb-x" id="rb-close" aria-label="Close">&times;</button>
+    </div>
+    <p class="rb-hand" id="rb-hand"></p>
+    <div class="rb-legend" id="rb-legend"></div>
+    <div class="rb-wrap">
+      <div class="grid" id="rb-grid"></div>
+    </div>
+  </div>
+</dialog>
+
+<script src="/5max/3k-ranges.js"></script>
+<script src="/5max/fe-parse.js"></script>
+<script>
+(function () {
+"use strict";
+
+/* 3k preflop analyzer.
+
+   Reads hand histories with the same parsers the replayer uses, finds the
+   preflop decisions that match a solved 3k spot, and reports the ones the
+   charts never make. Mixes are deliberately left alone: the question is not
+   whether we picked the solver's favourite branch, it is whether we did
+   something it never does at all. Sizing is not judged either: a raise is a
+   raise whether it was the chart's size or all in. */
+
+const RANKS = 'AKQJT98765432';
+const PLAYERS = { 5: '5 players', 3: '3 players', 2: 'Heads up' };
+/* Solved with everyone posting half a blind. Judging a no-ante hand against
+   these would flag folds that are perfectly correct without the dead money. */
+const ANTE_LO = 0.35, ANTE_HI = 0.65;
+/* How far a raise we faced can be from the chart's size and still be judged on it. */
+const SIZE_SLACK = 1;
+
+const $ = (id) => document.getElementById(id);
+const isRaise = (a) => a.kind === 'raise' || a.kind === 'bet';
+
+/** The depths charted at each player count, and the band of effective stacks
+    each one covers: halfway to its neighbours, and a quarter of the last gap
+    beyond the ends. A stack exactly halfway goes to the shallower chart. */
+function bands(players) {
+  const st = [...new Set(FIVEMAX_SPOTS.filter((s) => s.players === players).map((s) => s.stack))].sort((a, b) => a - b);
+  return st.map((n, i) => ({
+    n,
+    lo: i === 0 ? n - (st[1] - n) / 2 : (st[i - 1] + n) / 2 + 0.1,
+    hi: i === st.length - 1 ? n + (n - st[i - 1]) / 2 : (n + st[i + 1]) / 2,
+  }));
+}
+const depthFor = (players, eff) => (bands(players).find((b) => eff >= b.lo - 1e-9 && eff <= b.hi + 1e-9) || {}).n;
+
+/** Grid index for a hand, matching the row-major order the charts are stored in. */
+function handCode(cards) {
+  if (!cards || cards.length < 2) return null;
+  const a = RANKS.indexOf(String(cards[0][0]).toUpperCase());
+  const b = RANKS.indexOf(String(cards[1][0]).toUpperCase());
+  if (a < 0 || b < 0) return null;
+  const suits = (a <= b ? cards[0][1] + cards[1][1] : cards[1][1] + cards[0][1]).toLowerCase();
+  if (a === b) return { code: RANKS[a] + RANKS[a], idx: a * 13 + a, suits };
+  const hi = Math.min(a, b), lo = Math.max(a, b);
+  const suited = cards[0][1] === cards[1][1];
+  return suited
+    ? { code: RANKS[hi] + RANKS[lo] + 's', idx: hi * 13 + lo, suits }
+    : { code: RANKS[hi] + RANKS[lo] + 'o', idx: lo * 13 + hi, suits };
+}
+
+function cellAt(row, idx) {
+  const tok = row.split(',')[idx];
+  if (tok === undefined || tok === 'X') return null;
+  const p = tok.split('.').map(Number);
+  return { raise: p[0], jam: p[1], call: p[2], fold: Math.max(0, 100 - p[0] - p[1] - p[2]) };
+}
+
+/** The charts name seats the way the table does at that player count: the
+    first seat five handed is the HJ, and heads up the button is the SB. */
+function seatNames(hand) {
+  const pos = FEParse.positionMap(hand);
+  const n = hand.players.filter((p) => !p.sittingOut).length;
+  Object.keys(pos).forEach((k) => {
+    if (n === 5 && pos[k] === 'UTG') pos[k] = 'HJ';
+    if (n === 2 && pos[k] === 'BTN') pos[k] = 'SB';
+  });
+  return pos;
+}
+
+/** Hero's preflop decisions, each tagged with the spot it belongs to or why not.
+
+    Only the shapes the charts actually solve are picked up, and anything the
+    least bit unusual is left alone rather than forced onto the nearest node. */
+function decisions(hand, hero, pos, jammed) {
+  const pre = hand.actions.filter((a) => a.street === 'preflop' && a.kind !== 'return');
+  const out = [];
+  let seen = 0;
+  for (let i = 0; i < pre.length; i++) {
+    const act = pre[i];
+    if (act.player !== hero.name) continue;
+    seen++;
+    const before = pre.slice(0, i).filter((x) => x.kind !== 'fold');
+    const others = before.filter((x) => x.player !== hero.name);
+
+    if (seen === 1) {
+      if (before.length === 0) { out.push({ act, fam: 'rfi', vs: null, with: [] }); continue; }
+      if (before.length === 1) {
+        const a = before[0];
+        if (a.kind === 'call') {
+          out.push(pos[a.player] === 'SB' && pos[hero.name] === 'BB'
+            ? { act, fam: 'vslimp', vs: 'SB', with: [a.player] }
+            : { act, skip: 'facing a limp, only the BB against an SB limp is charted' });
+        } else if (isRaise(a)) {
+          out.push(jammed(a)
+            ? { act, fam: 'vsjam', vs: pos[a.player], with: [a.player] }
+            : { act, fam: 'vsopen', vs: pos[a.player], with: [a.player], face: a.to / hand.bb });
+        } else {
+          out.push({ act, skip: 'could not tell what we were facing' });
+        }
+        continue;
+      }
+      if (before.length === 2) {
+        const [a, b] = before;
+        if (isRaise(a) && jammed(a) && b.kind === 'call') {
+          // A jam and a call. The CO chart holds either caller behind it.
+          const vs = pos[a.player] === 'CO' && ['BTN', 'SB'].includes(pos[b.player])
+            ? 'CO+BTN/SB' : `${pos[a.player]}+${pos[b.player]}`;
+          out.push({ act, fam: 'vsjam', vs, with: [a.player, b.player] });
+          continue;
+        }
+        if (isRaise(a) && !jammed(a) && isRaise(b) && jammed(b)) {
+          out.push({ act, fam: 'vsjam', vs: `${pos[b.player]}+${pos[a.player]}`, with: [a.player, b.player],
+            face: a.to / hand.bb });
+          continue;
+        }
+      }
+      out.push({ act, skip: 'multiway before us, not charted' });
+      continue;
+    }
+
+    // Back to us. Charted only after we limped or opened and one player went over the top.
+    const mine = before.find((x) => x.player === hero.name);
+    const firstIn = mine && before.indexOf(mine) === 0;
+    if (seen === 2 && firstIn && others.length === 1 && isRaise(others[0])) {
+      const b = others[0];
+      if (mine.kind === 'call') {
+        out.push({ act, fam: 'afterlimp', vs: jammed(b) ? 'jam' : 'iso', with: [b.player], face: b.to / hand.bb });
+        continue;
+      }
+      if (isRaise(mine) && !jammed(mine) && jammed(b)) {
+        out.push({ act, fam: 'afteropen', vs: 'jam', with: [b.player], mine: mine.to / hand.bb });
+        continue;
+      }
+    }
+    out.push({ act, skip: 'later in the hand than the charts go' });
+  }
+  return out;
+}
+
+/* The size a chart was solved at, read from its description, for the checks
+   that a raise we faced, or our own open, was the one solved. */
+const sizeIn = (text, re) => { const m = (text || '').match(re); return m ? +m[1] : null; };
+
+const CATEGORY = (a) => (a.kind === 'fold' ? 'fold' : a.kind === 'call' || a.kind === 'check' ? 'call' : isRaise(a) ? 'raise' : null);
+/* What we did, in the spot's own words: first in a call is a limp, facing a
+   limp it is a check, and a raise that put us all in is a jam. */
+function did(f) {
+  if (f.cat === 'fold') return 'Folded';
+  if (f.cat === 'call') return f.spot.fam === 'rfi' ? 'Limped' : f.spot.fam === 'vslimp' ? 'Checked' : 'Called';
+  if (f.allIn) return 'Jammed';
+  return f.spot.fam === 'rfi' ? 'Opened' : 'Raised';
+}
+
+const freshResult = () => ({ hands: 0, dups: 0, dec: 0, cov: 0, flags: [], skips: {}, errs: {} });
+
+/** Adds one file's hands to a running result. A whole database is read a file
+    at a time rather than joined into one string, which would stall the tab.
+
+    `seen` holds the hands already counted: the same hand turns up twice when a
+    session was exported twice, and it should only be judged once. */
+function analyzeInto(res, text, seen) {
+  const chunks = FEParse.splitHands(text);
+  const bump = (bag, k) => { bag[k] = (bag[k] || 0) + 1; };
+
+  chunks.forEach((chunk) => {
+    let hand;
+    try {
+      hand = FEParse.parseHandHistory(chunk).hand;
+    } catch (e) {
+      bump(res.errs, (e && e.message) ? e.message.split('\n')[0] : 'could not be parsed');
+      return;
+    }
+    if (hand.handId) {
+      const key = hand.site + ':' + hand.handId;
+      if (seen.has(key)) { res.dups++; return; }
+      seen.add(key);
+    }
+    res.hands++;
+
+    const live = hand.players.filter((p) => !p.sittingOut);
+    const hero = hand.players.find((p) => p.isHero);
+    const ante = hand.bb ? hand.ante / hand.bb : 0;
+    if (!PLAYERS[live.length]) { bump(res.skips, `${live.length} players dealt in, the charts are for 5, 3, or 2`); return; }
+    if (ante < ANTE_LO || ante > ANTE_HI) { bump(res.skips, 'not a half-blind ante game'); return; }
+    if (!hero) { bump(res.skips, 'no hero in the hand, nothing of ours to check'); return; }
+    const hc = handCode(hero.cards);
+    if (!hc) { bump(res.skips, 'our cards are not in the history'); return; }
+
+    const pos = seatNames(hand);
+    const heroPos = pos[hero.name];
+    const stackOf = (name) => hand.players.find((p) => p.name === name).stack;
+    /* All in: the history says so, or the raise took the whole stack. */
+    const jammed = (a) => !!a.allIn || a.to + hand.ante >= stackOf(a.player) - 1e-6;
+
+    decisions(hand, hero, pos, jammed).forEach((d) => {
+      res.dec++;
+      if (d.skip) { bump(res.skips, d.skip); return; }
+
+      /* First in there is no villain yet: the depth that matters is ours
+         against the deepest player still to act. Otherwise it is ours against
+         the deepest of the players we face. */
+      const idx = hand.actions.indexOf(d.act);
+      const folded = (p) => hand.actions.some((a, k) => k < idx && a.street === 'preflop'
+        && a.player === p.name && a.kind === 'fold');
+      const against = d.fam === 'rfi'
+        ? live.filter((p) => p !== hero && !folded(p)).map((p) => p.stack)
+        : d.with.map(stackOf);
+      const eff = Math.round(Math.min(hero.stack, Math.max(0, ...against)) / hand.bb * 10) / 10;
+      const stack = depthFor(live.length, eff);
+      if (!stack) { bump(res.skips, `${Math.round(eff)}bb effective, outside the ${PLAYERS[live.length].toLowerCase()} charts`); return; }
+
+      const spot = FIVEMAX_SPOTS.find((s) => s.players === live.length && s.stack === stack
+        && s.hero === heroPos && s.fam === d.fam && (d.fam === 'rfi' || s.vs === d.vs));
+      if (!spot) {
+        const what = d.fam === 'rfi' ? 'first in' : d.fam === 'afterlimp' ? 'after limping'
+          : d.fam === 'afteropen' ? 'after opening' : `vs ${d.vs.replace('+', ' and ')}`
+            + (d.fam === 'vsjam' ? ' jam' : d.fam === 'vsopen' ? ' open' : ' limp');
+        bump(res.skips, `${heroPos} ${what} at ${stack}bb ${PLAYERS[live.length].toLowerCase()} is not charted`);
+        return;
+      }
+
+      // The raise we faced, or our own open, has to be near the one solved.
+      const solved = d.fam === 'vsopen' ? sizeIn(spot.sub, /opens ([\d.]+)x/)
+        : d.fam === 'afterlimp' && d.vs === 'iso' ? sizeIn(spot.vsLabel, /([\d.]+)x/)
+        : d.fam === 'afteropen' ? sizeIn(spot.sub, /opened ([\d.]+)x/)
+        : d.fam === 'vsjam' && d.face != null ? sizeIn(spot.sub, /opens ([\d.]+)x/) : null;
+      const actual = d.fam === 'afteropen' ? d.mine : d.face;
+      if (solved != null && actual != null && Math.abs(actual - solved) > SIZE_SLACK + 1e-9) {
+        bump(res.skips, `a ${+actual.toFixed(1)}bb raise where the chart has ${solved}bb`);
+        return;
+      }
+
+      const cell = cellAt(spot.g, hc.idx);
+      const cat = CATEGORY(d.act);
+      if (!cat) { bump(res.skips, 'could not tell what we did'); return; }
+      res.cov++;
+
+      const flag = { hand, hc, spot, stack, eff, cat, allIn: cat === 'raise' && jammed(d.act) };
+      if (!cell) { res.flags.push({ ...flag, oor: true, cell: null }); return; }
+      const freq = cat === 'raise' ? cell.raise + cell.jam : cell[cat];
+      if (freq === 0) res.flags.push({ ...flag, oor: false, cell });
+    });
+  });
+}
+
+/* ---- rendering ---------------------------------------------------------- */
+
+/** Hand codes in the order the charts are stored: pairs on the diagonal,
+    suited above it, offsuit below. */
+const CODES = [];
+for (let i = 0; i < 13; i++) {
+  for (let j = 0; j < 13; j++) {
+    CODES.push(i === j ? RANKS[i] + RANKS[i]
+      : i < j ? RANKS[i] + RANKS[j] + 's' : RANKS[j] + RANKS[i] + 'o');
+  }
+}
+
+/** One bar per cell, the same fill the explorer uses: raise, jam, call, fold. */
+function paint(c) {
+  if (!c) return 'var(--oor)';
+  const r = c.raise, j = r + c.jam, k = j + c.call;
+  const stops = [];
+  if (c.raise > 0) stops.push(`var(--raise) 0 ${r}%`);
+  if (c.jam > 0) stops.push(`var(--jam) ${r}% ${j}%`);
+  if (c.call > 0) stops.push(`var(--call) ${j}% ${k}%`);
+  if (c.fold > 0) stops.push(`var(--fold) ${k}% 100%`);
+  if (stops.length <= 1) {
+    return c.fold >= 99.5 ? 'var(--fold)' : c.call >= 99.5 ? 'var(--call)'
+      : c.jam >= 99.5 ? 'var(--jam)' : c.raise > 0 ? 'var(--raise)' : 'var(--fold)';
+  }
+  return `linear-gradient(to right, ${stops.join(', ')})`;
+}
+
+const plainFreqs = (c, sp) => ['raise', 'jam', 'call', 'fold']
+  .filter((k) => c[k] > 0).map((k) => `${c[k]}% ${(sp && sp.words && sp.words[k]) || k}`).join(', ');
+
+/** The whole chart the decision was judged against, with our hand outlined. */
+function openRange(f) {
+  $('rb-title').textContent = `${f.spot.title} · ${f.stack}bb · ${PLAYERS[f.spot.players]}`;
+  $('rb-sub').textContent = f.spot.sub;
+  $('rb-hand').innerHTML =
+    `<span class="code">${f.hc.code}</span>` +
+    `<span class="did ${f.cat}">You ${did(f).toLowerCase()}</span>` +
+    `<span class="freqs">${f.oor ? 'never in our range here' : 'Chart: ' + freqBits(f.cell, f.spot)}</span>`;
+
+  const grid = $('rb-grid');
+  grid.innerHTML = '';
+  const seen = { raise: 0, jam: 0, call: 0, fold: 0 };
+  CODES.forEach((code, i) => {
+    const c = cellAt(f.spot.g, i);
+    const el = document.createElement('div');
+    el.className = 'cell' + (c ? '' : ' oor') + (i === f.hc.idx ? ' mine' : '');
+    el.style.background = paint(c);
+    el.title = c ? `${code}: ${plainFreqs(c, f.spot)}` : `${code}: not in our range here`;
+    el.innerHTML = `<span>${code}</span>`;
+    grid.appendChild(el);
+    if (c) Object.keys(seen).forEach((k) => { seen[k] += c[k]; });
+  });
+  const leg = [['raise', 'r'], ['jam', 'j'], ['call', 'c'], ['fold', 'f']]
+    .filter(([k]) => seen[k] > 0)
+    .map(([k, cls]) => { const n = (f.spot.words && f.spot.words[k]) || k;
+      return `<span><span class="k ${cls}"></span>${n[0].toUpperCase() + n.slice(1)}</span>`; });
+  $('rb-legend').innerHTML = leg.join('');
+  $('rangebox').showModal();
+}
+
+/* The depth table under the upload buttons, built from the same numbers the
+   matching uses so the two cannot drift apart. A hand exactly halfway between
+   two charts goes to the shallower one, so each band after the first starts a
+   tenth above the midpoint. */
+(function depthTable() {
+  const fmt = (n) => (Number.isInteger(n) ? n : n.toFixed(1));
+  $('depths').innerHTML = [5, 3, 2].map((p) => `<div class="who">${PLAYERS[p]}</div>` + bands(p).map((b) =>
+    `<div><b>${b.n}bb</b><span>${fmt(b.lo)} to ${fmt(b.hi)}bb</span></div>`).join('')).join('');
+  $('depthnote').textContent = 'Outside these, or facing a raise more than'
+    + ` ${SIZE_SLACK}bb away from the size on the chart, a decision isn't judged.`;
+})();
+
+$('rb-close').addEventListener('click', () => $('rangebox').close());
+// A click on the dimmed backdrop lands on the dialog itself, not its contents.
+$('rangebox').addEventListener('click', (e) => { if (e.target === $('rangebox')) $('rangebox').close(); });
+
+function freqBits(c, sp) {
+  const bits = [];
+  const w = (sp && sp.words) || {};
+  const add = (k, cls, v) => { if (v > 0) bits.push(`<span class="k ${cls}"></span>${v}% ${w[k] || k}`); };
+  add('raise', 'r', c.raise); add('jam', 'j', c.jam); add('call', 'c', c.call); add('fold', 'f', c.fold);
+  return bits.join('  ');
+}
+
+function show(res) {
+  $('t-hands').textContent = res.hands.toLocaleString();
+  $('t-dec').textContent = res.dec.toLocaleString();
+  $('t-cov').textContent = res.cov.toLocaleString();
+  $('t-flag').textContent = res.flags.length.toLocaleString();
+  $('precision').textContent = res.cov
+    ? 'A chart frequency under about 3% was stored as zero when these were read off the'
+      + ' solver, so "never" means at most a 3% action, not strictly none.'
+    : 'Nothing matched a chart. The note above the box says what has to line up.';
+  $('sum').hidden = false;
+
+  const tb = $('flags');
+  tb.innerHTML = '';
+  res.flags.forEach((f) => {
+    const tr = document.createElement('tr');
+    tr.className = 'go';
+    tr.title = 'See the range';
+    tr.addEventListener('click', () => openRange(f));
+    tr.innerHTML =
+      `<td class="h"><button type="button" class="hbtn">${f.hc.code}</button>` +
+        `<div class="why">${f.hand.handId || ''}</div></td>` +
+      `<td>${f.spot.title}<div class="why">${PLAYERS[f.spot.players]} · ${f.spot.sub}</div></td>` +
+      `<td class="hide">${f.stack}bb${f.eff === f.stack ? ''
+        : `<div class="why">${+f.eff.toFixed(1)}bb in play</div>`}</td>` +
+      `<td class="did ${f.cat}">${did(f)}</td>` +
+      `<td class="freqs">${f.oor
+        ? '<span class="muted">this hand is never in our range here at all</span>'
+        : freqBits(f.cell, f.spot)}</td>`;
+    tb.appendChild(tr);
+  });
+  $('flagcard').hidden = res.flags.length === 0;
+
+  const list = (bag, el) => {
+    const rows = Object.entries(bag).sort((a, b) => b[1] - a[1]);
+    el.innerHTML = rows.map(([k, n]) => `<li><b>${n}</b> · ${k}</li>`).join('');
+    return rows.length > 0;
+  };
+  $('skipcard').hidden = !list(res.skips, $('skips'));
+  $('errcard').hidden = !list(res.errs, $('errs'));
+}
+
+/* ---- wiring ------------------------------------------------------------- */
+
+/** Some clients write their histories as UTF-16. The byte order mark says so. */
+async function readText(file) {
+  const buf = await file.arrayBuffer();
+  const b = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+  const enc = b[0] === 0xFF && b[1] === 0xFE ? 'utf-16le'
+    : b[0] === 0xFE && b[1] === 0xFF ? 'utf-16be' : 'utf-8';
+  return new TextDecoder(enc).decode(buf);
+}
+
+const isHistory = (f) => /\.txt$/i.test(f.name) && !f.name.startsWith('.');
+const tick = () => new Promise((r) => setTimeout(r, 0));
+const plural = (n, word) => `${n.toLocaleString()} ${word}${n === 1 ? '' : 's'}`;
+let busy = false;
+
+async function run(all) {
+  if (busy) return;
+  const files = all.filter(isHistory);
+  if (!files.length) {
+    $('status').textContent = all.length
+      ? 'No .txt hand history files in that selection.' : '';
+    return;
+  }
+  busy = true;
+  ['pickFiles', 'pickDir', 'clear'].forEach((id) => { $(id).disabled = true; });
+  const res = freshResult(), seen = new Set();
+  try {
+    for (let i = 0; i < files.length; i++) {
+      try {
+        analyzeInto(res, await readText(files[i]), seen);
+      } catch (e) {
+        res.errs[`${files[i].name}: could not be read`] = 1;
+      }
+      // Hand the page back to the browser now and then so the count moves.
+      if (i % 5 === 4 || i === files.length - 1) {
+        $('status').textContent = `Reading ${(i + 1).toLocaleString()} of ${plural(files.length, 'file')}…`;
+        await tick();
+      }
+    }
+    show(res);
+    const extra = all.length - files.length;
+    $('status').textContent = plural(files.length, 'file') + ' read'
+      + (res.dups ? `, ${plural(res.dups, 'duplicate hand')} skipped` : '')
+      + (extra ? `, ${plural(extra, 'other file')} ignored` : '') + '.';
+  } finally {
+    busy = false;
+    ['pickFiles', 'pickDir', 'clear'].forEach((id) => { $(id).disabled = false; });
+    $('clear').hidden = false;
+  }
+}
+
+$('pickFiles').addEventListener('click', () => $('files').click());
+$('pickDir').addEventListener('click', () => $('dir').click());
+['files', 'dir'].forEach((id) => {
+  $(id).addEventListener('change', (e) => {
+    const picked = [...e.target.files];
+    e.target.value = '';                    // so choosing the same thing again still fires
+    run(picked);
+  });
+});
+
+$('clear').addEventListener('click', () => {
+  $('status').textContent = '';
+  $('clear').hidden = true;
+  ['sum', 'flagcard', 'skipcard', 'errcard'].forEach((id) => { $(id).hidden = true; });
+});
+
+/* Dropping files or a folder anywhere on the page does the same as choosing
+   them. A dropped folder only arrives as an entry to walk, not as files. */
+async function walk(entry, out) {
+  if (!entry) return;
+  if (entry.isFile) {
+    out.push(await new Promise((ok, no) => entry.file(ok, no)));
+  } else if (entry.isDirectory) {
+    const reader = entry.createReader();
+    for (;;) {                               // entries come back in batches
+      const batch = await new Promise((ok, no) => reader.readEntries(ok, no));
+      if (!batch.length) break;
+      for (const e of batch) await walk(e, out);
+    }
+  }
+}
+
+document.addEventListener('dragover', (e) => { e.preventDefault(); document.body.classList.add('dragging'); });
+document.addEventListener('dragleave', (e) => { if (!e.relatedTarget) document.body.classList.remove('dragging'); });
+document.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  document.body.classList.remove('dragging');
+  const dt = e.dataTransfer;
+  if (!dt) return;
+  // Entries have to be taken before the first await; the list empties after.
+  const entries = [...(dt.items || [])].map((it) => (it.webkitGetAsEntry ? it.webkitGetAsEntry() : null));
+  const plain = [...dt.files];
+  let files = [];
+  if (entries.some(Boolean)) {
+    try {
+      for (const en of entries) await walk(en, files);
+    } catch (err) {
+      files = plain;
+    }
+  } else {
+    files = plain;
+  }
+  run(files);
+});
+})();
+</script>
+</body>
+</html>
