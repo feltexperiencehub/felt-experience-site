@@ -177,13 +177,13 @@
       <button type="button" class="btn go" id="pickFiles">Upload files</button>
       <button type="button" class="btn go" id="pickDir">Upload folder</button>
       <button type="button" class="btn" id="clear" hidden>Clear</button>
-      <input type="file" id="files" accept=".txt" multiple hidden />
+      <input type="file" id="files" accept=".txt,.xml" multiple hidden />
       <input type="file" id="dir" webkitdirectory multiple hidden />
     </div>
     <p class="status" id="status" aria-live="polite"></p>
     <p class="note">
       A folder is read with everything inside it, subfolders included, and only
-      its .txt files are used. You can also drop files or a folder onto the page.
+      its .txt files and DriveHUD .xml exports are used. You can also drop files or a folder onto the page.
       Nothing leaves your computer: the hands are read here in your browser.
     </p>
     <p class="note">
@@ -252,6 +252,7 @@
 
 <script src="/5max/3k-ranges.js"></script>
 <script src="/5max/fe-parse.js"></script>
+<script src="/5max/fe-xml.js"></script>
 <script>
 (function () {
 "use strict";
@@ -339,17 +340,18 @@ function decisions(hand, hero, pos, jammed) {
     const others = before.filter((x) => x.player !== hero.name);
 
     if (seen === 1) {
-      if (before.length === 0) { out.push({ act, fam: 'rfi', vs: null, with: [] }); continue; }
+      if (before.length === 0) { out.push({ act, fam: 'rfi', vs: null, with: [], desc: 'first in' }); continue; }
       if (before.length === 1) {
         const a = before[0];
         if (a.kind === 'call') {
           out.push(pos[a.player] === 'SB' && pos[hero.name] === 'BB'
-            ? { act, fam: 'vslimp', vs: 'SB', with: [a.player] }
+            ? { act, fam: 'vslimp', vs: 'SB', with: [a.player], desc: 'vs SB limp' }
             : { act, skip: 'facing a limp, only the BB against an SB limp is charted' });
         } else if (isRaise(a)) {
           out.push(jammed(a)
-            ? { act, fam: 'vsjam', vs: pos[a.player], with: [a.player] }
-            : { act, fam: 'vsopen', vs: pos[a.player], with: [a.player], face: a.to / hand.bb });
+            ? { act, fam: 'vsjam', vs: pos[a.player], with: [a.player], desc: `vs ${pos[a.player]} jam` }
+            : { act, fam: 'vsopen', vs: pos[a.player], with: [a.player], face: a.to / hand.bb,
+              desc: `vs ${pos[a.player]} ${+(a.to / hand.bb).toFixed(1)}bb open` });
         } else {
           out.push({ act, skip: 'could not tell what we were facing' });
         }
@@ -361,12 +363,12 @@ function decisions(hand, hero, pos, jammed) {
           // A jam and a call. The CO chart holds either caller behind it.
           const vs = pos[a.player] === 'CO' && ['BTN', 'SB'].includes(pos[b.player])
             ? 'CO+BTN/SB' : `${pos[a.player]}+${pos[b.player]}`;
-          out.push({ act, fam: 'vsjam', vs, with: [a.player, b.player] });
+          out.push({ act, fam: 'vsjam', vs, with: [a.player, b.player], desc: `vs ${pos[a.player]} jam and ${pos[b.player]} call` });
           continue;
         }
         if (isRaise(a) && !jammed(a) && isRaise(b) && jammed(b)) {
           out.push({ act, fam: 'vsjam', vs: `${pos[b.player]}+${pos[a.player]}`, with: [a.player, b.player],
-            face: a.to / hand.bb });
+            face: a.to / hand.bb, desc: `vs ${pos[a.player]} open and ${pos[b.player]} jam` });
           continue;
         }
       }
@@ -380,11 +382,13 @@ function decisions(hand, hero, pos, jammed) {
     if (seen === 2 && firstIn && others.length === 1 && isRaise(others[0])) {
       const b = others[0];
       if (mine.kind === 'call') {
-        out.push({ act, fam: 'afterlimp', vs: jammed(b) ? 'jam' : 'iso', with: [b.player], face: b.to / hand.bb });
+        out.push({ act, fam: 'afterlimp', vs: jammed(b) ? 'jam' : 'iso', with: [b.player], face: b.to / hand.bb,
+          desc: `after limping, vs ${pos[b.player]} ${jammed(b) ? 'jam' : 'raise'}` });
         continue;
       }
       if (isRaise(mine) && !jammed(mine) && jammed(b)) {
-        out.push({ act, fam: 'afteropen', vs: 'jam', with: [b.player], mine: mine.to / hand.bb });
+        out.push({ act, fam: 'afteropen', vs: 'jam', with: [b.player], mine: mine.to / hand.bb,
+          desc: `after opening, vs ${pos[b.player]} jam` });
         continue;
       }
     }
@@ -415,6 +419,8 @@ const freshResult = () => ({ hands: 0, dups: 0, dec: 0, cov: 0, flags: [], skips
     `seen` holds the hands already counted: the same hand turns up twice when a
     session was exported twice, and it should only be judged once. */
 function analyzeInto(res, text, seen) {
+  // DriveHUD's .xml exports are rewritten as PokerStars-style text first.
+  if (FEXml.looksLike(text)) text = FEXml.toStars(text);
   const chunks = FEParse.splitHands(text);
   const bump = (bag, k) => { bag[k] = (bag[k] || 0) + 1; };
 
@@ -468,10 +474,7 @@ function analyzeInto(res, text, seen) {
       const spot = FIVEMAX_SPOTS.find((s) => s.players === live.length && s.stack === stack
         && s.hero === heroPos && s.fam === d.fam && (d.fam === 'rfi' || s.vs === d.vs));
       if (!spot) {
-        const what = d.fam === 'rfi' ? 'first in' : d.fam === 'afterlimp' ? 'after limping'
-          : d.fam === 'afteropen' ? 'after opening' : `vs ${d.vs.replace('+', ' and ')}`
-            + (d.fam === 'vsjam' ? ' jam' : d.fam === 'vsopen' ? ' open' : ' limp');
-        bump(res.skips, `${heroPos} ${what} at ${stack}bb ${PLAYERS[live.length].toLowerCase()} is not charted`);
+        bump(res.skips, `${heroPos} ${d.desc} at ${stack}bb, ${PLAYERS[live.length].toLowerCase()}, is not charted`);
         return;
       }
 
@@ -636,7 +639,7 @@ async function readText(file) {
   return new TextDecoder(enc).decode(buf);
 }
 
-const isHistory = (f) => /\.txt$/i.test(f.name) && !f.name.startsWith('.');
+const isHistory = (f) => /\.(txt|xml)$/i.test(f.name) && !f.name.startsWith('.');
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const plural = (n, word) => `${n.toLocaleString()} ${word}${n === 1 ? '' : 's'}`;
 let busy = false;
@@ -646,7 +649,7 @@ async function run(all) {
   const files = all.filter(isHistory);
   if (!files.length) {
     $('status').textContent = all.length
-      ? 'No .txt hand history files in that selection.' : '';
+      ? 'No .txt or .xml hand history files in that selection.' : '';
     return;
   }
   busy = true;

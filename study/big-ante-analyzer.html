@@ -176,13 +176,13 @@
       <button type="button" class="btn go" id="pickFiles">Upload files</button>
       <button type="button" class="btn go" id="pickDir">Upload folder</button>
       <button type="button" class="btn" id="clear" hidden>Clear</button>
-      <input type="file" id="files" accept=".txt" multiple hidden />
+      <input type="file" id="files" accept=".txt,.xml" multiple hidden />
       <input type="file" id="dir" webkitdirectory multiple hidden />
     </div>
     <p class="status" id="status" aria-live="polite"></p>
     <p class="note">
       A folder is read with everything inside it, subfolders included, and only
-      its .txt files are used. You can also drop files or a folder onto the page.
+      its .txt files and DriveHUD .xml exports are used. You can also drop files or a folder onto the page.
       Nothing leaves your computer: the hands are read here in your browser.
     </p>
     <p class="note">
@@ -245,6 +245,7 @@
 
 <script src="/study/bigante-ranges.js"></script>
 <script src="/study/fe-parse.js"></script>
+<script src="/study/fe-xml.js"></script>
 <script>
 (function () {
 "use strict";
@@ -385,6 +386,8 @@ const freshResult = () => ({ hands: 0, dups: 0, dec: 0, cov: 0, flags: [], skips
     `seen` holds the hands already counted: the same hand turns up twice when a
     session was exported twice, and it should only be judged once. */
 function analyzeInto(res, text, seen) {
+  // DriveHUD's .xml exports are rewritten as PokerStars-style text first.
+  if (FEXml.looksLike(text)) text = FEXml.toStars(text);
   const chunks = FEParse.splitHands(text);
   const bump = (bag, k) => { bag[k] = (bag[k] || 0) + 1; };
 
@@ -614,7 +617,7 @@ async function readText(file) {
   return new TextDecoder(enc).decode(buf);
 }
 
-const isHistory = (f) => /\.txt$/i.test(f.name) && !f.name.startsWith('.');
+const isHistory = (f) => /\.(txt|xml)$/i.test(f.name) && !f.name.startsWith('.');
 const tick = () => new Promise((r) => setTimeout(r, 0));
 const plural = (n, word) => `${n.toLocaleString()} ${word}${n === 1 ? '' : 's'}`;
 let busy = false;
@@ -624,7 +627,7 @@ async function run(all) {
   const files = all.filter(isHistory);
   if (!files.length) {
     $('status').textContent = all.length
-      ? 'No .txt hand history files in that selection.' : '';
+      ? 'No .txt or .xml hand history files in that selection.' : '';
     return;
   }
   busy = true;
