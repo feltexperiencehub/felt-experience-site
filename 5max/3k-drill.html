@@ -595,12 +595,12 @@ function scenario(q) {
     wager.BB = sp.vs === 'iso' ? isoOf(sp) : jam;
     aggro.add('BB');
     line = sp.vs === 'iso' ? `BB raises to ${bb(wager.BB)}bb` : 'BB jams';
-  } else {                                     // afteropen: the chart covers a jam from either blind
-    wager[hero] = 2;
-    heroAction = 'we open 2bb';
+  } else {                                     // afteropen: 3-handed the chart covers a jam from either blind
+    wager[hero] = +sp.sub.match(/opened ([\d.]+)x/)[1];
+    heroAction = `we open ${bb(wager[hero])}bb`;
     wager.BB = jam;
     aggro.add('BB');
-    line = 'SB or BB jams';
+    line = sp.players === 2 ? 'BB jams' : 'SB or BB jams';
   }
 
   const pot = RING.length * ANTE + RING.reduce((t, p) => t + wager[p], 0);

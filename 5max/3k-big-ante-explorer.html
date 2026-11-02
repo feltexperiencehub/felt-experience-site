@@ -323,7 +323,7 @@ const GREEN = { rfi: 'limp', vsopen: 'call', vsjam: 'call', vslimp: 'check', aft
 const cap = (t) => t[0].toUpperCase() + t.slice(1);
 const word = (sp, k) => (sp.words && sp.words[k]) || (k === 'call' ? GREEN[sp.fam] : k);
 const OOR_TEXT = {
-  afterlimp: 'Never, or almost never, limped', afteropen: 'Never, or almost never, opened 2x',
+  afterlimp: 'Never, or almost never, limped', afteropen: 'Never, or almost never, opened',
 };
 
 const KEY = 'fe-5max-v2';
