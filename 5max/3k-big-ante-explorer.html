@@ -485,6 +485,24 @@ function paintTheme() {
 paintTheme();
 render();
 
+/* Drop the rail so its STRATEGY heading sits on the same line as the chart
+   title, centred on it since the title is the bigger text, beside the chart it
+   sums up. The picker and the title above
+   the grid can wrap to more lines, so measure rather than fix it; stacked on a
+   narrow screen the rail just follows the chart. */
+function alignRail() {
+  const rail = document.querySelector('.rail');
+  rail.style.marginTop = '';
+  if (getComputedStyle(document.querySelector('.cols')).gridTemplateColumns.split(' ').length < 2) return;
+  const mid = (el) => { const r = document.createRange(); r.selectNodeContents(el); const b = r.getBoundingClientRect(); return (b.top + b.bottom) / 2; };
+  const gap = mid($('spot-title')) - mid(rail.querySelector('h2'));
+  rail.style.marginTop = Math.max(0, gap) + 'px';
+}
+const watch = new ResizeObserver(alignRail);
+watch.observe(document.querySelector('.picker'));
+watch.observe(document.querySelector('.gridhead'));
+addEventListener('resize', alignRail);
+
 })();
 </script>
 

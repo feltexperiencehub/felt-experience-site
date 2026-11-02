@@ -351,6 +351,16 @@ const oorText = (fam) => `Not in our ${OOR_LABEL[fam] || 'opening'} range`;
 /* A spot can rename an action: first in, the green action is a limp and the
    red one an open. */
 const word = (sp, k) => (sp && sp.words && sp.words[k]) || k;
+/* Our raise that is not all in, named for what it is in the node and sized
+   from the chart: an open first in, a 3-bet facing an open or an iso, and a
+   4-bet facing a 3-bet (the captures give no size for that one). */
+function raiseName(sp) {
+  const size = sp.sizes.find((z) => z.face === state.face) || sp.sizes[0];
+  if (sp.fam === 'first') return `open ${size.face}`;
+  if (['rfi', 'limp', 'hurfi'].includes(sp.fam)) return `3-bet ${size.ours}bb`;
+  if (sp.fam === 'vs3b' || sp.fam === 'huvs3b') return '4-bet';
+  return 'raise';
+}
 const GAME_KEY = 'fe-bigante-game-v1';
 
 /* The size is held by its face rather than its index, so switching who
@@ -418,7 +428,7 @@ function detail(c) {
   // Each frequency wears the color it has on the grid.
   const parts = [];
   const sp = spot();
-  if (c.r) parts.push(`<span class="a raise">${c.r}% ${word(sp, 'raise')}</span>`);
+  if (c.r) parts.push(`<span class="a raise">${c.r}% ${raiseName(sp)}</span>`);
   if (c.j) parts.push(`<span class="a jam">${c.j}% jam</span>`);
   if (c.c) parts.push(`<span class="a call">${c.c}% ${word(sp, 'call')}</span>`);
   if (c.f) parts.push(`<span class="a fold">${c.f}% fold</span>`);
@@ -502,7 +512,7 @@ function render() {
     b.classList.toggle('oor', !!c.oor);
     b.setAttribute('aria-label', c.oor
       ? `${c.h.code}: ${oorText(sp.fam).toLowerCase()}`
-      : `${c.h.code}: ${c.r + c.j}% ${c.j > c.r ? 'jam' : word(sp, 'raise')}, ${c.c}% ${word(sp, 'call')}, ${c.f}% fold`);
+      : `${c.h.code}: ${c.r + c.j}% ${c.j > c.r ? 'jam' : raiseName(sp)}, ${c.c}% ${word(sp, 'call')}, ${c.f}% fold`);
     b.onmouseenter = () => detail(c);
     b.onfocus = () => detail(c);
     b.onblur = clearDetail;
@@ -527,7 +537,7 @@ function render() {
   // The jam entry doubles as the legend for the purple, so it only shows up
   // in the spots that actually have one.
   const d = n || 1;
-  $('overall').innerHTML = [['r', raiseW, word(sp, 'raise')], ['j', jamW, 'jam'], ['c', callW, word(sp, 'call')], ['f', foldW, 'fold']]
+  $('overall').innerHTML = [['r', raiseW, raiseName(sp)], ['j', jamW, 'jam'], ['c', callW, word(sp, 'call')], ['f', foldW, 'fold']]
     .filter(([, v]) => v / d >= 0.05)
     .map(([k, v, nm]) => `<div class="ov-row ${k}"><span>${nm[0].toUpperCase() + nm.slice(1)}</span><span class="pc">${(v / d).toFixed(1)}%</span></div>`).join('');
 
@@ -568,6 +578,24 @@ function paintTheme() {
 }
 paintTheme();
 render();
+
+/* Drop the rail so its STRATEGY heading sits on the same line as the chart
+   title, centred on it since the title is the bigger text, beside the chart it
+   sums up. The picker and the title above
+   the grid can wrap to more lines, so measure rather than fix it; stacked on a
+   narrow screen the rail just follows the chart. */
+function alignRail() {
+  const rail = document.querySelector('.rail');
+  rail.style.marginTop = '';
+  if (getComputedStyle(document.querySelector('.cols')).gridTemplateColumns.split(' ').length < 2) return;
+  const mid = (el) => { const r = document.createRange(); r.selectNodeContents(el); const b = r.getBoundingClientRect(); return (b.top + b.bottom) / 2; };
+  const gap = mid($('spot-title')) - mid(rail.querySelector('h2'));
+  rail.style.marginTop = Math.max(0, gap) + 'px';
+}
+const watch = new ResizeObserver(alignRail);
+watch.observe(document.querySelector('.picker'));
+watch.observe(document.querySelector('.gridhead'));
+addEventListener('resize', alignRail);
 clearDetail();
 if (link.get('hand')) {
   const i = HANDS.findIndex((h) => h.code === link.get('hand'));
