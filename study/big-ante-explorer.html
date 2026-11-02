@@ -353,12 +353,12 @@ const oorText = (fam) => `Not in our ${OOR_LABEL[fam] || 'opening'} range`;
 const word = (sp, k) => (sp && sp.words && sp.words[k]) || k;
 /* Our raise that is not all in, named for what it is in the node and sized
    from the chart: an open first in, a 3-bet facing an open or an iso, and a
-   4-bet facing a 3-bet (the captures give no size for that one). */
+   4-bet facing a 3-bet (sized only where the chart names it). */
 function raiseName(sp) {
   const size = sp.sizes.find((z) => z.face === state.face) || sp.sizes[0];
   if (sp.fam === 'first') return `open ${size.face}`;
   if (['rfi', 'limp', 'hurfi'].includes(sp.fam)) return `3-bet ${size.ours}bb`;
-  if (sp.fam === 'vs3b' || sp.fam === 'huvs3b') return '4-bet';
+  if (sp.fam === 'vs3b' || sp.fam === 'huvs3b') return size.fourbet ? `4-bet ${size.fourbet}bb` : '4-bet';
   return 'raise';
 }
 const GAME_KEY = 'fe-bigante-game-v1';
