@@ -226,6 +226,16 @@
   }
   .rngnote b { color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 600; }
 
+  .prev {
+    position: absolute; left: 1.4cqw; bottom: 1.4cqw; z-index: 6;
+    appearance: none; cursor: pointer; border: 1px solid var(--line); border-radius: 8px;
+    background: rgba(18,20,24,.85); color: var(--muted);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: max(10px, 1.42cqw); font-weight: 500;
+    padding: .45em .85em;
+  }
+  .prev:hover { color: var(--ink); border-color: var(--muted); }
+  .prev[hidden] { display: none; }
+
   /* ---- answer ---- */
   .answer {
     display: flex; align-items: center; justify-content: center;
@@ -383,6 +393,7 @@
           <div class="felt"></div>
           <div class="pot"><div class="lb">POT</div><div class="amt" id="pot">—</div></div>
         </div>
+        <button type="button" class="prev" id="prev" hidden title="See the last hand you played (P)">&lsaquo; Previous hand</button>
         <button type="button" class="rng" id="rng" hidden
                 aria-label="RNG settings">RNG<b id="rnum">—</b><i id="rngrange"></i></button>
       </div>
@@ -678,7 +689,8 @@ function drawTable(q, cards) {
     const el = document.createElement('div');
     el.className = 'seat ' + s.role;
     el.style.left = p.x + '%';
-    el.style.top = p.y + '%';
+    // The seat straight across from us sits a little lower, so its cards clear the top edge.
+    el.style.top = (p.y < 15 ? p.y + 2.5 : p.y) + '%';
     // Everyone still in the hand holds two cards; only ours are face up.
     const hole = s.role === 'hero'
       ? `<div class="cards"><span class="l">${cardSVG(q.h.hiR, cards[0])}</span>` +
@@ -787,6 +799,15 @@ const lives = load();
 let session = sessions[game];
 let life = lives[game];
 let current = null, answered = false;
+/* Hands already answered, newest last, for the Previous hand button. While one
+   is on screen `viewing` is its index, and an unanswered hand we stepped back
+   from waits in `waiting` to be put back exactly as it was. */
+const history = [];
+let viewing = -1, waiting = null;
+/* A hand we got wrong comes back 5 to 10 hands later: the same spot and hand,
+   fresh suits and a fresh roll. `dealt` counts new hands dealt. */
+const retry = [];
+let dealt = 0;
 
 function load() {
   const rec = (v) => ({ n: (v && v.n) || 0, sum: (v && v.sum) || 0,
@@ -938,6 +959,7 @@ function linkedHand() {
 function nextHand(forced) {
   // The Next button passes its click event in here, so check for a real hand.
   const f = forced && forced.q ? forced : null;
+  if (!f || !f.restore) { viewing = -1; waiting = null; }
   const p = f ? [f.q] : pool();
   answered = false;
   closeRange();
@@ -952,10 +974,16 @@ function nextHand(forced) {
     $('hint').textContent = 'No hands match these filters.';
     return;
   }
-  const q = f ? f.q : p[Math.floor(Math.random() * p.length)];
-  const roll = rollOnce();
+  let q = f ? f.q : null, again = false;
+  if (!f) {
+    dealt++;
+    const due = retry.findIndex((r) => r.due <= dealt && p.includes(r.q));
+    if (due >= 0) { q = retry[due].q; retry.splice(due, 1); again = true; }
+    else q = p[Math.floor(Math.random() * p.length)];
+  }
+  const roll = f && f.roll != null ? f.roll : rollOnce();
   const cards = f && f.suits ? f.suits : dealSuits(q.h);
-  current = { q, roll };
+  current = { q, roll, cards };
   current.sc = drawTable(q, cards);
   const sc = current.sc;
 
@@ -976,8 +1004,10 @@ function nextHand(forced) {
     b.addEventListener('click', () => answer(a.id));
     acts.appendChild(b);
   });
-  $('hint').textContent = f ? 'The hand from your history. Keys Q, W, E left to right.'
+  $('hint').textContent = f && !f.restore ? 'The hand from your history. Keys Q, W, E left to right.'
+    : again ? 'You missed this one a few hands ago. Keys Q, W, E left to right.'
     : 'Keys Q, W, E left to right.';
+  $('prev').hidden = history.length === 0;
   frameTable();
 }
 
@@ -1030,6 +1060,21 @@ function answer(pick) {
   life.best = Math.max(life.best, session.streak);
   save();
 
+  history.push({ q, roll, cards: current.cards, pick, right });
+  if (history.length > 50) history.shift();
+  if (!right) {
+    const k = retry.findIndex((r) => r.q === q);
+    if (k >= 0) retry.splice(k, 1);
+    retry.push({ q, due: dealt + 5 + Math.floor(Math.random() * 6) });
+  }
+  showResult(q, roll, pick, right, '');
+  $('prev').hidden = history.length < 2;
+  paintStats();
+}
+
+/** The verdict, the bars and our action on the felt, for a hand just answered
+    or one brought back with Previous hand. */
+function showResult(q, roll, pick, right, label) {
   [...$('acts').children].forEach((b, i) => {
     b.disabled = true;
     if (q.acts[i].id === pick) b.classList.add('picked');
@@ -1039,7 +1084,7 @@ function answer(pick) {
   const v = $('verdict');
   v.className = 'verdict ' + (right ? 'good' : 'bad');
   v.innerHTML = (right ? 'Correct' : 'Not this time') +
-    `<small>${q.h.code} · ${q.sp.title} · ${q.z.face} · ${startOf(q)}bb</small>`;
+    `<small>${label}${q.h.code} · ${q.sp.title} · ${q.z.face} · ${startOf(q)}bb</small>`;
 
   const bars = $('bars');
   bars.innerHTML = '';
@@ -1062,7 +1107,52 @@ function answer(pick) {
   $('bar').hidden = true;
   $('answer').hidden = false;
   $('next').focus({ preventScroll: true });
-  paintStats();
+}
+
+/** Show answered hand `i` again, as it was played. */
+function showPast(i) {
+  const h = history[i];
+  viewing = i;
+  answered = true;
+  closeRange();
+  current = { q: h.q, roll: h.roll, cards: h.cards };
+  current.sc = drawTable(h.q, h.cards);
+  $('rng').hidden = false;
+  showRoll(h.roll);
+  $('acts').innerHTML = '';
+  const back = history.length - 1 - i + (waiting ? 1 : 0);
+  showResult(h.q, h.roll, h.pick, h.right, back === 0 ? '' : back === 1 ? 'Previous hand · ' : `${back} hands back · `);
+  $('prev').hidden = i === 0;
+  $('hint').textContent = 'Next hand steps forward again, back to where you were.';
+}
+
+function previousHand() {
+  if (viewing === -1) {
+    // Leaving the hand in front of us: keep it if we have not answered it yet.
+    if (!answered && current) waiting = { q: current.q, roll: current.roll, cards: current.cards };
+    const i = history.length - (answered ? 2 : 1);
+    if (i >= 0) showPast(i);
+    else waiting = null;
+  } else if (viewing > 0) {
+    showPast(viewing - 1);
+  }
+}
+
+function forward() {
+  if (viewing === -1) { nextHand(); return; }
+  if (viewing < history.length - 1) {
+    showPast(viewing + 1);
+    // The newest answered hand is where we were if nothing was left waiting.
+    if (viewing === history.length - 1 && !waiting) {
+      viewing = -1;
+      $('hint').textContent = 'Keys Q, W, E left to right.';
+    }
+    return;
+  }
+  const w = waiting;
+  viewing = -1; waiting = null;
+  if (w) nextHand({ q: w.q, suits: w.cards, roll: w.roll, restore: true });
+  else nextHand();
 }
 
 /* ---- the whole range for this spot -------------------------------------- */
@@ -1234,7 +1324,8 @@ function paintStats() {
 }
 
 /* ---- wiring ------------------------------------------------------------- */
-$('next').addEventListener('click', nextHand);
+$('next').addEventListener('click', forward);
+$('prev').addEventListener('click', previousHand);
 $('reset-session').addEventListener('click', () => {
   session.n = session.sum = session.good = session.streak = session.best = 0;
   paintStats();
@@ -1271,7 +1362,8 @@ document.addEventListener('keydown', (e) => {
     const i = ['q','w','e'].indexOf(e.key.toLowerCase());
     if (i >= 0 && current.q.acts[i]) { e.preventDefault(); answer(current.q.acts[i].id); return; }
   }
-  if (answered && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); nextHand(); }
+  if (e.key === 'p' || e.key === 'P' || e.key === 'ArrowLeft') { if (!$('prev').hidden) { e.preventDefault(); previousHand(); } return; }
+  if (answered && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); forward(); }
 });
 
 const linked = linkedHand();
