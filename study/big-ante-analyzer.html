@@ -11,30 +11,38 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
 </head>
 <body>
+<script>
+  // Dark unless a light preference was saved, the same choice the explorers use.
+  let t = 'dark';
+  try { if (localStorage.getItem('fe-theme-v1') === 'light') t = 'light'; } catch (e) { /* storage can be unavailable */ }
+  document.documentElement.dataset.theme = t;
+</script>
 <style>
+  /* The explorers' neutral charcoal in dark and cool gray in light, so the
+     page stays out of the way of the grids. */
   :root {
-    --bg: #eef2ec; --panel: #ffffff; --sunk: #e6ebe3; --line: #d5ddd2;
-    --ink: #171c18; --soft: #3a433c; --muted: #5c665e; --faint: #838d85;
+    --bg: #f2f3f5; --panel: #ffffff; --sunk: #eceef1; --line: #dcdfe4;
+    --ink: #16191d; --soft: #2f353c; --muted: #4f5660; --faint: #6b727c;
     --did-fold: #2a72ad; --did-call: #97750c; --did-raise: #c45f1c;
-    --raise: #e95858; --jam: #7c2d8a; --call: #57a257; --fold: #b9c2b7; --oor: #d3dad1;
-    --shadow: 0 1px 2px rgba(20,30,22,.06), 0 6px 18px rgba(20,30,22,.06);
+    --raise: #e95858; --jam: #7c2d8a; --call: #4f9a52; --fold: #a7adb6; --oor: #e4e7eb;
+    --shadow: 0 1px 2px rgba(20,24,30,.06), 0 6px 18px rgba(20,24,30,.06);
     --focus: #2f6d8f;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-      --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
+      --bg: #121418; --panel: #1a1d22; --sunk: #15181c; --line: #2a2f37;
+      --ink: #f1f3f5; --soft: #dde1e6; --muted: #c2c7cf; --faint: #a3a9b2;
       --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
-      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+      --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2c3139; --oor: #1a1d22;
       --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
       --focus: #7fb6d4;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e110e; --panel: #171b17; --sunk: #121612; --line: #262d26;
-    --ink: #eaefe8; --soft: #cbd3cd; --muted: #a3ada5; --faint: #78827a;
+    --bg: #121418; --panel: #1a1d22; --sunk: #15181c; --line: #2a2f37;
+    --ink: #f1f3f5; --soft: #dde1e6; --muted: #c2c7cf; --faint: #a3a9b2;
     --did-fold: #8ec5ee; --did-call: #f2de90; --did-raise: #f5a872;
-    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2b322c; --oor: #171b17;
+    --raise: #e95858; --jam: #9c4bab; --call: #43904a; --fold: #2c3139; --oor: #1a1d22;
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.34);
     --focus: #7fb6d4;
   }
@@ -43,11 +51,11 @@
   body {
     margin: 0; background: var(--bg); color: var(--ink);
     font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
-    font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+    font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
   .shell { max-width: 1100px; margin: 0 auto; padding: 22px 20px 52px; }
   .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-  .top a { font-size: 13px; color: var(--muted); }
+  .top a { font-size: 14px; color: var(--muted); }
   h1 {
     font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
     font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em; margin: 0;
@@ -57,26 +65,28 @@
     border-radius: 12px; box-shadow: var(--shadow); padding: 16px; margin-bottom: 16px;
   }
   .card > h2 {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 12px;
     font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
-    color: var(--faint); margin: 0 0 11px;
+    color: var(--faint); margin: 0 0 12px;
   }
   .card[hidden] { display: none; }
 
   button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  /* Montserrat stays for the paragraphs; data and lists read better in Inter. */
+  table, .depths span, ul.reasons, .status, .why, .rb-hand, .rb-legend { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .status { font-size: 13px; color: var(--muted); margin: 11px 0 0; font-variant-numeric: tabular-nums; }
+  .status { font-size: 14.5px; color: var(--muted); margin: 11px 0 0; font-variant-numeric: tabular-nums; }
   .status:empty { display: none; }
   body.dragging .card.drop { border-color: var(--call); }
   .depths { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
   .depths div { background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; }
-  .depths b { display: block; font-family: 'League Spartan', system-ui, sans-serif; font-size: 19px; font-weight: 700; line-height: 1.1; }
-  .depths span { font-size: 13px; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .depths b { display: block; font-family: 'League Spartan', system-ui, sans-serif; font-size: 21px; font-weight: 700; line-height: 1.1; }
+  .depths span { font-size: 14.5px; color: var(--soft); font-variant-numeric: tabular-nums; }
   @media (max-width: 620px) { .depths { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .btn {
     appearance: none; border: 1px solid var(--line); background: var(--sunk); color: var(--ink);
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 13.5px; font-weight: 600;
-    padding: 9px 18px; border-radius: 8px; cursor: pointer;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 14.5px; font-weight: 600;
+    padding: 10px 19px; border-radius: 8px; cursor: pointer;
   }
   .btn:hover:not([disabled]) { border-color: var(--faint); }
   .btn.go { background: var(--call); border-color: var(--call); color: #fff; }
@@ -85,35 +95,35 @@
 
   .tot { display: flex; gap: 26px; flex-wrap: wrap; }
   .tot div { min-width: 92px; }
-  .tot .n { font-family: 'League Spartan', system-ui, sans-serif; font-size: 27px; font-weight: 700; line-height: 1.1; }
+  .tot .n { font-family: 'League Spartan', system-ui, sans-serif; font-size: 30px; font-weight: 700; line-height: 1.1; }
   .tot .n.bad { color: var(--raise); }
   .tot .k {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11px;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 12px;
     letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
   }
 
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
   th {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 10.5px;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
     letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
     text-align: left; font-weight: 600; padding: 0 10px 7px 0; white-space: nowrap;
   }
-  td { padding: 8px 10px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  td { padding: 10px 12px 10px 0; border-top: 1px solid var(--line); vertical-align: top; }
   td.h { font-family: Inter, sans-serif; font-weight: 600; white-space: nowrap; }
   .did { font-weight: 600; white-space: nowrap; }
   .did.fold { color: var(--did-fold); }
   .did.call { color: var(--did-call); }
   .did.raise { color: var(--did-raise); }
-  .freqs { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+  .freqs { font-variant-numeric: tabular-nums; color: var(--soft); white-space: nowrap; }
   .freqs b { color: var(--ink); font-weight: 600; }
   .k { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
   .k.r { background: var(--raise); } .k.j { background: var(--jam); }
   .k.c { background: var(--call); } .k.f { background: var(--fold); }
   .muted { color: var(--muted); }
-  .why { font-size: 12.5px; color: var(--muted); }
-  .note { font-size: 14px; line-height: 1.55; color: var(--soft); margin: 12px 0 0; }
+  .why { font-size: 13.5px; color: var(--muted); }
+  .note { font-size: 15.5px; line-height: 1.6; color: var(--soft); margin: 13px 0 0; }
   .err { color: var(--raise); font-size: 13px; }
-  ul.reasons { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); }
+  ul.reasons { margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.7; color: var(--soft); }
   ul.reasons b { color: var(--ink); font-variant-numeric: tabular-nums; }
   tr.go { cursor: pointer; }
   tr.go:hover td { background: var(--sunk); }
@@ -130,19 +140,19 @@
     background: var(--panel); color: var(--ink);
     box-shadow: 0 20px 60px rgba(0,0,0,.45);
   }
-  #rangebox::backdrop { background: rgba(6,9,7,.62); }
+  #rangebox::backdrop { background: rgba(6,8,11,.62); }
   .rb-in { padding: 16px 18px 18px; }
   .rb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
   .rb-head strong { display: block; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; }
-  .rb-head .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .rb-head .sub { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
   .rb-x {
     appearance: none; border: 0; background: transparent; color: var(--muted);
     font-size: 24px; line-height: 1; cursor: pointer; padding: 2px 7px; border-radius: 6px;
   }
   .rb-x:hover { color: var(--ink); background: var(--sunk); }
-  .rb-hand { margin: 11px 0 9px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+  .rb-hand { margin: 11px 0 9px; font-size: 15px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
   .rb-hand .code { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 17px; font-weight: 600; }
-  .rb-legend { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .rb-legend { font-size: 13.5px; color: var(--soft); margin-bottom: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
   .rb-wrap { container-type: inline-size; }
   .rb-wrap .grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
   .rb-wrap .cell {
