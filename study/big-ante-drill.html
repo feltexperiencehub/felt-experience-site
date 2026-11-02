@@ -804,8 +804,9 @@ let current = null, answered = false;
    from waits in `waiting` to be put back exactly as it was. */
 const history = [];
 let viewing = -1, waiting = null;
-/* A hand we got wrong comes back 5 to 10 hands later: the same spot and hand,
-   fresh suits and a fresh roll. `dealt` counts new hands dealt. */
+/* A hand we got wrong comes back twice: 3 to 5 hands later, then 10 to 20
+   hands after that, the same spot and hand with fresh suits and a fresh roll.
+   Missing either repeat starts the pair over. `dealt` counts new hands dealt. */
 const retry = [];
 let dealt = 0;
 
@@ -974,16 +975,16 @@ function nextHand(forced) {
     $('hint').textContent = 'No hands match these filters.';
     return;
   }
-  let q = f ? f.q : null;
+  let q = f ? f.q : null, stage = 0;
   if (!f) {
     dealt++;
     const due = retry.findIndex((r) => r.due <= dealt && p.includes(r.q));
-    if (due >= 0) { q = retry[due].q; retry.splice(due, 1); }
+    if (due >= 0) { ({ q, stage } = retry[due]); retry.splice(due, 1); }
     else q = p[Math.floor(Math.random() * p.length)];
   }
   const roll = f && f.roll != null ? f.roll : rollOnce();
   const cards = f && f.suits ? f.suits : dealSuits(q.h);
-  current = { q, roll, cards };
+  current = { q, roll, cards, stage };
   current.sc = drawTable(q, cards);
   const sc = current.sc;
 
@@ -1061,10 +1062,13 @@ function answer(pick) {
 
   history.push({ q, roll, cards: current.cards, pick, right });
   if (history.length > 50) history.shift();
+  const between = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
   if (!right) {
     const k = retry.findIndex((r) => r.q === q);
     if (k >= 0) retry.splice(k, 1);
-    retry.push({ q, due: dealt + 5 + Math.floor(Math.random() * 6) });
+    retry.push({ q, due: dealt + between(3, 5), stage: 1 });
+  } else if (current.stage === 1) {
+    retry.push({ q, due: dealt + between(10, 20), stage: 2 });
   }
   showResult(q, roll, pick, right, '');
   $('prev').hidden = history.length < 2;
