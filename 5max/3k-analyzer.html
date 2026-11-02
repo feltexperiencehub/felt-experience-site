@@ -189,7 +189,8 @@
     <p class="note">
       Judged against the 3k charts, so a hand is only read when it matches what
       was solved: five, three, or two players dealt in, with a half-blind ante,
-      at one of the depths below.
+      at one of the depths below. Four-handed hands are judged on the
+      five-handed charts, as if the HJ had folded.
     </p>
     <p class="note">Each decision is judged on the chart nearest its effective stack:</p>
     <div class="depths" id="depths"></div>
@@ -268,6 +269,8 @@
 
 const RANKS = 'AKQJT98765432';
 const PLAYERS = { 5: '5 players', 3: '3 players', 2: 'Heads up' };
+/* How many were dealt in, saying so when a four-handed hand used the five-handed chart. */
+const dealt = (k) => (k === 4 ? '4 players, on the 5-player charts' : PLAYERS[k]);
 /* Solved with everyone posting half a blind. Judging a no-ante hand against
    these would flag folds that are perfectly correct without the dead money. */
 const ANTE_LO = 0.35, ANTE_HI = 0.65;
@@ -442,7 +445,10 @@ function analyzeInto(res, text, seen) {
     const live = hand.players.filter((p) => !p.sittingOut);
     const hero = hand.players.find((p) => p.isHero);
     const ante = hand.bb ? hand.ante / hand.bb : 0;
-    if (!PLAYERS[live.length]) { bump(res.skips, `${live.length} players dealt in, the charts are for 5, 3, or 2`); return; }
+    /* Four handed is judged on the five-handed charts, as if the HJ had folded:
+       the seats the table names (CO, BTN, SB, BB) are already the chart's. */
+    const n = live.length === 4 ? 5 : live.length;
+    if (!PLAYERS[n]) { bump(res.skips, `${live.length} players dealt in, the charts are for 2 to 5`); return; }
     if (ante < ANTE_LO || ante > ANTE_HI) { bump(res.skips, 'not a half-blind ante game'); return; }
     if (!hero) { bump(res.skips, 'no hero in the hand, nothing of ours to check'); return; }
     const hc = handCode(hero.cards);
@@ -468,13 +474,13 @@ function analyzeInto(res, text, seen) {
         ? live.filter((p) => p !== hero && !folded(p)).map((p) => p.stack)
         : d.with.map(stackOf);
       const eff = Math.round(Math.min(hero.stack, Math.max(0, ...against)) / hand.bb * 10) / 10;
-      const stack = depthFor(live.length, eff);
-      if (!stack) { bump(res.skips, `${Math.round(eff)}bb effective, outside the ${PLAYERS[live.length].toLowerCase()} charts`); return; }
+      const stack = depthFor(n, eff);
+      if (!stack) { bump(res.skips, `${Math.round(eff)}bb effective, outside the ${n === 2 ? 'heads-up' : n + '-player'} charts`); return; }
 
-      const spot = FIVEMAX_SPOTS.find((s) => s.players === live.length && s.stack === stack
+      const spot = FIVEMAX_SPOTS.find((s) => s.players === n && s.stack === stack
         && s.hero === heroPos && s.fam === d.fam && (d.fam === 'rfi' || s.vs === d.vs));
       if (!spot) {
-        bump(res.skips, `${heroPos} ${d.desc} at ${stack}bb, ${PLAYERS[live.length].toLowerCase()}, is not charted`);
+        bump(res.skips, `${heroPos} ${d.desc} at ${stack}bb, ${live.length === 2 ? 'heads up' : live.length + ' players'}, is not charted`);
         return;
       }
 
@@ -494,7 +500,7 @@ function analyzeInto(res, text, seen) {
       if (!cat) { bump(res.skips, 'could not tell what we did'); return; }
       res.cov++;
 
-      const flag = { hand, hc, spot, stack, eff, cat, allIn: cat === 'raise' && jammed(d.act) };
+      const flag = { hand, hc, spot, stack, eff, cat, allIn: cat === 'raise' && jammed(d.act), dealt: live.length };
       if (!cell) { res.flags.push({ ...flag, oor: true, cell: null }); return; }
       const freq = cat === 'raise' ? cell.raise + cell.jam : cell[cat];
       if (freq === 0) res.flags.push({ ...flag, oor: false, cell });
@@ -535,7 +541,7 @@ const plainFreqs = (c, sp) => ['raise', 'jam', 'call', 'fold']
 
 /** The whole chart the decision was judged against, with our hand outlined. */
 function openRange(f) {
-  $('rb-title').textContent = `${f.spot.title} · ${f.stack}bb · ${PLAYERS[f.spot.players]}`;
+  $('rb-title').textContent = `${f.spot.title} · ${f.stack}bb · ${dealt(f.dealt)}`;
   $('rb-sub').textContent = f.spot.sub;
   $('rb-hand').innerHTML =
     `<span class="code">${f.hc.code}</span>` +
@@ -569,7 +575,7 @@ function openRange(f) {
    tenth above the midpoint. */
 (function depthTable() {
   const fmt = (n) => (Number.isInteger(n) ? n : n.toFixed(1));
-  $('depths').innerHTML = [5, 3, 2].map((p) => `<div class="who">${PLAYERS[p]}</div>` + bands(p).map((b) =>
+  $('depths').innerHTML = [5, 3, 2].map((p) => `<div class="who">${p === 5 ? '5 players, and 4' : PLAYERS[p]}</div>` + bands(p).map((b) =>
     `<div><b>${b.n}bb</b><span>${fmt(b.lo)} to ${fmt(b.hi)}bb</span></div>`).join('')).join('');
   $('depthnote').textContent = 'Outside these, or facing a raise more than'
     + ` ${SIZE_SLACK}bb away from the size on the chart, a decision isn't judged.`;
@@ -608,7 +614,7 @@ function show(res) {
     tr.innerHTML =
       `<td class="h"><button type="button" class="hbtn">${f.hc.code}</button>` +
         `<div class="why">${f.hand.handId || ''}</div></td>` +
-      `<td>${f.spot.title}<div class="why">${PLAYERS[f.spot.players]} · ${f.spot.sub}</div></td>` +
+      `<td>${f.spot.title}<div class="why">${dealt(f.dealt)} · ${f.spot.sub}</div></td>` +
       `<td class="hide">${f.stack}bb${f.eff === f.stack ? ''
         : `<div class="why">${+f.eff.toFixed(1)}bb in play</div>`}</td>` +
       `<td class="did ${f.cat}">${did(f)}</td>` +
