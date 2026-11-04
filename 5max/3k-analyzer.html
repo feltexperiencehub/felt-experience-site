@@ -8,7 +8,7 @@
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Montserrat:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Lato:wght@400;700&display=swap">
 </head>
 <body>
 <script>
@@ -50,12 +50,12 @@
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--ink);
-    font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
-    font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+    font-family: Lato, ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased;
   }
   .shell { max-width: 1100px; margin: 0 auto; padding: 22px 20px 52px; }
   .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-  .top a { font-size: 14px; color: var(--muted); }
+  .top a { font-size: 15px; color: var(--muted); }
   h1 {
     font-family: 'League Spartan', system-ui, sans-serif; font-weight: 700;
     font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em; margin: 0;
@@ -65,52 +65,52 @@
     border-radius: 12px; box-shadow: var(--shadow); padding: 16px; margin-bottom: 16px;
   }
   .card > h2 {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 12px;
+    font-family: Lato, ui-sans-serif, system-ui, sans-serif; font-size: 13px;
     font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
     color: var(--faint); margin: 0 0 12px;
   }
   .card[hidden] { display: none; }
 
   button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-  /* Montserrat stays for the paragraphs; data and lists read better in Inter. */
-  table, .depths span, ul.reasons, .status, .why, .rb-hand, .rb-legend { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+  /* Lato throughout, League Spartan only for the headings and big numbers. */
+  table, .depths span, ul.reasons, .status, .why, .rb-hand, .rb-legend { font-family: Lato, ui-sans-serif, system-ui, sans-serif; }
   .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .status { font-size: 14.5px; color: var(--muted); margin: 11px 0 0; font-variant-numeric: tabular-nums; }
+  .status { font-size: 15.5px; color: var(--muted); margin: 11px 0 0; font-variant-numeric: tabular-nums; }
   .status:empty { display: none; }
   body.dragging .card.drop { border-color: var(--call); }
   .depths { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
-  .depths .who { grid-column: 1 / -1; background: none; border: 0; padding: 6px 0 0; font-size: 14px; font-weight: 600; color: var(--soft); }
+  .depths .who { grid-column: 1 / -1; background: none; border: 0; padding: 6px 0 0; font-size: 15px; font-weight: 600; color: var(--soft); }
   .depths div { background: var(--sunk); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; }
   .depths b { display: block; font-family: 'League Spartan', system-ui, sans-serif; font-size: 21px; font-weight: 700; line-height: 1.1; }
-  .depths span { font-size: 14.5px; color: var(--soft); font-variant-numeric: tabular-nums; }
+  .depths span { font-size: 15.5px; color: var(--soft); font-variant-numeric: tabular-nums; }
   @media (max-width: 620px) { .depths { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .btn {
     appearance: none; border: 1px solid var(--line); background: var(--sunk); color: var(--ink);
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 14.5px; font-weight: 600;
+    font-family: Lato, ui-sans-serif, system-ui, sans-serif; font-size: 15.5px; font-weight: 600;
     padding: 10px 19px; border-radius: 8px; cursor: pointer;
   }
   .btn:hover:not([disabled]) { border-color: var(--faint); }
   .btn.go { background: var(--call); border-color: var(--call); color: #fff; }
   .btn[disabled] { opacity: .45; cursor: not-allowed; }
-  .hint { font-size: 12.5px; color: var(--faint); }
+  .hint { font-size: 13.5px; color: var(--faint); }
 
   .tot { display: flex; gap: 26px; flex-wrap: wrap; }
   .tot div { min-width: 92px; }
   .tot .n { font-family: 'League Spartan', system-ui, sans-serif; font-size: 30px; font-weight: 700; line-height: 1.1; }
   .tot .n.bad { color: var(--raise); }
   .tot .k {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 12px;
+    font-family: Lato, ui-sans-serif, system-ui, sans-serif; font-size: 13px;
     letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
   }
 
-  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
   th {
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 11.5px;
+    font-family: Lato, ui-sans-serif, system-ui, sans-serif; font-size: 12.5px;
     letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
     text-align: left; font-weight: 600; padding: 0 10px 7px 0; white-space: nowrap;
   }
   td { padding: 10px 12px 10px 0; border-top: 1px solid var(--line); vertical-align: top; }
-  td.h { font-family: Inter, sans-serif; font-weight: 600; white-space: nowrap; }
+  td.h { font-family: Lato, sans-serif; font-weight: 600; white-space: nowrap; }
   .did { font-weight: 600; white-space: nowrap; }
   .did.fold { color: var(--did-fold); }
   .did.call { color: var(--did-call); }
@@ -121,10 +121,10 @@
   .k.r { background: var(--raise); } .k.j { background: var(--jam); }
   .k.c { background: var(--call); } .k.f { background: var(--fold); }
   .muted { color: var(--muted); }
-  .why { font-size: 13.5px; color: var(--muted); }
-  .note { font-size: 15.5px; line-height: 1.6; color: var(--soft); margin: 13px 0 0; }
-  .err { color: var(--raise); font-size: 13px; }
-  ul.reasons { margin: 0; padding-left: 18px; font-size: 15px; line-height: 1.7; color: var(--soft); }
+  .why { font-size: 14.5px; color: var(--muted); }
+  .note { font-size: 16.5px; line-height: 1.6; color: var(--soft); margin: 13px 0 0; }
+  .err { color: var(--raise); font-size: 14px; }
+  ul.reasons { margin: 0; padding-left: 18px; font-size: 16px; line-height: 1.7; color: var(--soft); }
   ul.reasons b { color: var(--ink); font-variant-numeric: tabular-nums; }
   tr.go { cursor: pointer; }
   tr.go:hover td { background: var(--sunk); }
@@ -135,7 +135,7 @@
   tr.go:hover .hbtn, .hbtn:focus-visible { text-decoration: underline; }
   .rpbtn {
     appearance: none; margin-top: 6px; padding: 4px 10px; border: 1px solid var(--call); border-radius: 7px;
-    background: var(--call); color: #fff; font: 600 12.5px Inter, ui-sans-serif, system-ui, sans-serif; cursor: pointer;
+    background: var(--call); color: #fff; font: 600 13.5px Lato, ui-sans-serif, system-ui, sans-serif; cursor: pointer;
   }
   .rpbtn:hover, .rpbtn:focus-visible { filter: brightness(1.12); }
 
@@ -160,21 +160,21 @@
   #rangebox::backdrop { background: rgba(6,8,11,.62); }
   .rb-in { padding: 16px 18px 18px; }
   .rb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .rb-head strong { display: block; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 600; }
-  .rb-head .sub { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .rb-head strong { display: block; font-family: Lato, ui-sans-serif, system-ui, sans-serif; font-size: 17px; font-weight: 600; }
+  .rb-head .sub { display: block; font-size: 15px; color: var(--muted); margin-top: 2px; }
   .rb-x {
     appearance: none; border: 0; background: transparent; color: var(--muted);
     font-size: 24px; line-height: 1; cursor: pointer; padding: 2px 7px; border-radius: 6px;
   }
   .rb-x:hover { color: var(--ink); background: var(--sunk); }
-  .rb-hand { margin: 11px 0 9px; font-size: 15px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
-  .rb-hand .code { font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 17px; font-weight: 600; }
-  .rb-legend { font-size: 13.5px; color: var(--soft); margin-bottom: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .rb-hand { margin: 11px 0 9px; font-size: 16px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+  .rb-hand .code { font-family: Lato, ui-sans-serif, system-ui, sans-serif; font-size: 18px; font-weight: 600; }
+  .rb-legend { font-size: 14.5px; color: var(--soft); margin-bottom: 8px; display: flex; gap: 14px; flex-wrap: wrap; }
   .rb-wrap { container-type: inline-size; }
   .rb-wrap .grid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
   .rb-wrap .cell {
     aspect-ratio: 1; border-radius: 3px; overflow: hidden; color: #fff;
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-weight: 500;
+    font-family: Lato, ui-sans-serif, system-ui, sans-serif; font-weight: 500;
     font-size: clamp(7px, 2.05cqw, 12.5px); padding: .3em 0 0 .35em;
   }
   .rb-wrap .cell span { text-shadow: 0 1px 1px rgba(0,0,0,.3); }
