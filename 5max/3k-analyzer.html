@@ -510,9 +510,19 @@ function analyzeInto(res, text, seen) {
       if (!cat) { bump(res.skips, 'could not tell what we did'); return; }
       res.cov++;
 
+      /* Going all in over a jam is as good as calling it unless someone else
+         still in could play a real pot over it: both they and we have more
+         than twice the jam. Below that, the extra a rejam puts in is too
+         little to matter, so calling and jamming are one action, and either
+         matches the chart's call or jam. */
+      const before = hand.actions.slice(0, idx).filter((a) => a.street === 'preflop');
+      const jamTotal = Math.max(hand.bb, ...before.map((a) => a.to || 0)) + hand.ante;
+      const sameAsCall = (d.fam === 'vsjam' || d.vs === 'jam') && (cat === 'call' || (cat === 'raise' && jammed(d.act)))
+        && live.every((p) => p === hero || folded(p) || Math.min(p.stack, hero.stack) <= 2 * jamTotal + 1e-6);
+
       const flag = { hand, hc, spot, stack, eff, cat, allIn: cat === 'raise' && jammed(d.act), dealt: live.length };
       if (!cell) { res.flags.push({ ...flag, oor: true, cell: null }); return; }
-      const freq = cat === 'raise' ? cell.raise + cell.jam : cell[cat];
+      const freq = sameAsCall ? cell.call + cell.raise + cell.jam : cat === 'raise' ? cell.raise + cell.jam : cell[cat];
       if (freq === 0) res.flags.push({ ...flag, oor: false, cell });
     });
   });
