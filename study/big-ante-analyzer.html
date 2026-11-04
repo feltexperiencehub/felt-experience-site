@@ -132,6 +132,22 @@
     font: inherit; font-weight: 600; color: var(--ink); cursor: pointer;
   }
   tr.go:hover .hbtn, .hbtn:focus-visible { text-decoration: underline; }
+  .rpbtn {
+    appearance: none; margin-top: 6px; padding: 4px 10px; border: 1px solid var(--call); border-radius: 7px;
+    background: var(--call); color: #fff; font: 600 12.5px Inter, ui-sans-serif, system-ui, sans-serif; cursor: pointer;
+  }
+  .rpbtn:hover, .rpbtn:focus-visible { filter: brightness(1.12); }
+
+  /* ---- the replay popup ---- */
+  #replaybox {
+    width: min(96vw, 1180px); padding: 0;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: var(--panel); color: var(--ink);
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+  }
+  #replaybox::backdrop { background: rgba(6,8,11,.62); }
+  #replaybox .rb-in { padding: 12px 14px 14px; }
+  #rp-frame { display: block; width: 100%; aspect-ratio: 16 / 10; max-height: 80vh; border: 0; border-radius: 9px; background: #111; margin-top: 10px; }
 
   /* ---- the range popup ---- */
   #rangebox {
@@ -229,7 +245,8 @@
     <p class="note">
       Only decisions the charts never make are listed. Anything the solver does
       even occasionally is left alone, and bet sizing is not judged. Click a
-      hand to see the whole range, with your hand outlined.
+      hand to see the whole range, with your hand outlined, or Replay to watch
+      the hand itself.
     </p>
   </div>
 
@@ -250,6 +267,16 @@
     <div class="rb-wrap">
       <div class="grid" id="rb-grid"></div>
     </div>
+  </div>
+</dialog>
+
+<dialog id="replaybox" aria-labelledby="rp-title">
+  <div class="rb-in">
+    <div class="rb-head">
+      <div><strong id="rp-title"></strong><span class="sub" id="rp-sub"></span></div>
+      <button type="button" class="rb-x" id="rp-close" aria-label="Close">&times;</button>
+    </div>
+    <iframe id="rp-frame" title="Hand replay"></iframe>
   </div>
 </dialog>
 
@@ -562,6 +589,25 @@ function openRange(f) {
     + ` ${SIZE_SLACK}bb or more above the largest size on the chart, a decision isn't judged.`;
 })();
 
+/** The real hand, exact stacks and all, in the replayer. The hand rides in the
+    link's #fragment, which browsers never send, so it still never leaves this
+    computer. */
+async function openReplay(f) {
+  $('rp-title').textContent = `${f.hc.code} · ${f.spot.title} · ${f.size.face}`;
+  $('rp-sub').textContent = [f.hand.handId, `You ${did(f).toLowerCase()}`].filter(Boolean).join(' · ');
+  $('rp-frame').src = 'about:blank';
+  $('replaybox').showModal();
+  try {
+    $('rp-frame').src = 'https://replayer.feltexperiencepoker.com/#h=' + await FEParse.encodeShare(f.hand, {});
+  } catch (e) {
+    $('rp-sub').textContent = 'This hand could not be opened in the replayer.';
+  }
+}
+// Blank the frame on close, so the next hand loads fresh rather than as a jump within this one.
+$('replaybox').addEventListener('close', () => { $('rp-frame').src = 'about:blank'; });
+$('rp-close').addEventListener('click', () => $('replaybox').close());
+$('replaybox').addEventListener('click', (e) => { if (e.target === $('replaybox')) $('replaybox').close(); });
+
 $('rb-close').addEventListener('click', () => $('rangebox').close());
 // A click on the dimmed backdrop lands on the dialog itself, not its contents.
 $('rangebox').addEventListener('click', (e) => { if (e.target === $('rangebox')) $('rangebox').close(); });
@@ -596,7 +642,8 @@ function show(res) {
     const sizeNote = f.clamped ? ` <span class="why">(faced ${faced}, judged on ${f.size.face})</span>` : '';
     tr.innerHTML =
       `<td class="h"><button type="button" class="hbtn">${f.hc.code}</button>` +
-        `<div class="why">${f.hand.handId || ''}</div></td>` +
+        `<div class="why">${f.hand.handId || ''}</div>` +
+        `<button type="button" class="rpbtn">▶ Replay</button></td>` +
       `<td>${f.spot.title} · ${f.size.face}${sizeNote}<div class="why">${f.size.sub}</div></td>` +
       `<td class="hide">${f.stack}bb${f.eff === f.stack ? ''
         : `<div class="why">${+f.eff.toFixed(1)}bb in play</div>`}</td>` +
@@ -604,6 +651,7 @@ function show(res) {
       `<td class="freqs">${f.oor
         ? '<span class="muted">this hand is never in our range here at all</span>'
         : freqBits(f.cell, f.spot)}</td>`;
+    tr.querySelector('.rpbtn').addEventListener('click', (e) => { e.stopPropagation(); openReplay(f); });
     tb.appendChild(tr);
   });
   $('flagcard').hidden = res.flags.length === 0;
