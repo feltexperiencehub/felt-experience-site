@@ -12,6 +12,7 @@ ENTRY="$REPLAYER/_fe_parse_entry.ts"
 cat > "$ENTRY" <<'TS'
 export { parseHandHistory, splitHands, detectSite, ParseError } from './src/parsers/index.ts';
 export { positionMap } from './src/model/position.ts';
+export { encodeShare } from './src/model/share.ts';
 TS
 
 "$REPLAYER/node_modules/.bin/esbuild" "$ENTRY" \

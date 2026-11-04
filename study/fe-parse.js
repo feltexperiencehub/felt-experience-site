@@ -19,17 +19,18 @@ var FEParse = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // ../../Replayer/_fe_parse_entry.ts
+  // ../Replayer/_fe_parse_entry.ts
   var fe_parse_entry_exports = {};
   __export(fe_parse_entry_exports, {
     ParseError: () => ParseError,
     detectSite: () => detectSite,
+    encodeShare: () => encodeShare,
     parseHandHistory: () => parseHandHistory,
     positionMap: () => positionMap,
     splitHands: () => splitHands
   });
 
-  // ../../Replayer/src/model/types.ts
+  // ../Replayer/src/model/types.ts
   function displayCurrency(sym) {
     return sym === "\xA5" ? "$" : sym;
   }
@@ -59,7 +60,7 @@ var FEParse = (() => {
   }
   var round2 = (n) => Math.round(n * 100) / 100;
 
-  // ../../Replayer/src/parsers/common.ts
+  // ../Replayer/src/parsers/common.ts
   var ParseError = class extends Error {
     constructor(message, lineNumber, line) {
       super(message);
@@ -96,7 +97,7 @@ var FEParse = (() => {
     return hands.map((h) => h.join("\n").trim()).filter((h) => h.length > 0);
   }
 
-  // ../../Replayer/src/parsers/starslike.ts
+  // ../Replayer/src/parsers/starslike.ts
   var MONEY = String.raw`[$€£¥]?([\d][\d,]*(?:\.\d+)?)`;
   var ALLIN = /\s*and is all[ -]?in/i;
   function parseStarsLike(text, site) {
@@ -405,7 +406,7 @@ var FEParse = (() => {
     return { player, type, amount: parseMoney(amt), allIn: ALLIN.test(rest) || void 0 };
   }
 
-  // ../../Replayer/src/parsers/ignition.ts
+  // ../Replayer/src/parsers/ignition.ts
   var MONEY2 = String.raw`[$€£¥]?([\d][\d,]*(?:\.\d+)?)`;
   function parseIgnition(text) {
     var _a, _b, _c, _d, _e, _f;
@@ -619,7 +620,7 @@ var FEParse = (() => {
     return hand;
   }
 
-  // ../../Replayer/src/model/pot.ts
+  // ../Replayer/src/model/pot.ts
   function uncalledRefund(contribs) {
     const entries = Object.entries(contribs);
     if (entries.length < 2) return null;
@@ -629,7 +630,7 @@ var FEParse = (() => {
     return null;
   }
 
-  // ../../Replayer/src/parsers/drivehud.ts
+  // ../Replayer/src/parsers/drivehud.ts
   var RINGS = {
     2: ["SB", "BB"],
     3: ["SB", "BB", "BTN"],
@@ -892,7 +893,7 @@ var FEParse = (() => {
     return hand;
   }
 
-  // ../../Replayer/src/parsers/index.ts
+  // ../Replayer/src/parsers/index.ts
   function detectSite(text) {
     const head = text.trimStart().slice(0, 200);
     if (/^PokerStars/.test(head)) return "PokerStars";
@@ -935,7 +936,7 @@ var FEParse = (() => {
     return { hand, totalHands: Math.max(detectable.length, 1) };
   }
 
-  // ../../Replayer/src/model/position.ts
+  // ../Replayer/src/model/position.ts
   function positionLabels(n) {
     switch (n) {
       case 2:
@@ -975,6 +976,109 @@ var FEParse = (() => {
       map[sorted[(btnIdx + i) % sorted.length].name] = labels[i];
     }
     return map;
+  }
+
+  // ../Replayer/src/model/share.ts
+  var SITES = ["PokerStars", "GGPoker", "ACR", "Ignition", "ClubGG", "DriveHUD", "Manual", "Other"];
+  var STREETS = ["preflop", "flop", "turn", "river"];
+  var KINDS = ["fold", "check", "call", "bet", "raise", "return"];
+  var POSTS = ["sb", "bb", "ante", "straddle", "dead"];
+  var CURRENCIES = ["", "$", "\u20AC", "\xA5", "\xA3"];
+  async function pump(stream) {
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+  async function deflate(bytes) {
+    const cs = new CompressionStream("deflate-raw");
+    return pump(new Blob([bytes]).stream().pipeThrough(cs));
+  }
+  function toBase64Url(bytes) {
+    let bin = "";
+    const CHUNK = 32768;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function trimTail(arr, minLen = 0) {
+    const out = [...arr];
+    while (out.length > minLen) {
+      const last = out[out.length - 1];
+      const empty = last === 0 || last === null || last === void 0 || Array.isArray(last) && last.length === 0;
+      if (!empty) break;
+      out.pop();
+    }
+    return out;
+  }
+  function packHand(hand, captions) {
+    var _a;
+    const idx = /* @__PURE__ */ new Map();
+    hand.players.forEach((p, i) => idx.set(p.name, i));
+    const pi = (name) => {
+      var _a2;
+      return (_a2 = idx.get(name)) != null ? _a2 : -1;
+    };
+    const players = hand.players.map(
+      (p) => {
+        var _a2;
+        return trimTail([
+          p.seat,
+          p.name,
+          p.stack,
+          ((_a2 = p.cards) != null ? _a2 : []).join(""),
+          (p.isHero ? 1 : 0) | (p.sittingOut ? 2 : 0)
+        ], 3);
+      }
+    );
+    const posts = hand.posts.map((p) => trimTail([pi(p.player), POSTS.indexOf(p.type), p.amount, p.allIn ? 1 : 0], 3));
+    const actions = hand.actions.map(
+      (a) => {
+        var _a2, _b;
+        return trimTail([
+          STREETS.indexOf(a.street),
+          pi(a.player),
+          KINDS.indexOf(a.kind),
+          (_a2 = a.to) != null ? _a2 : 0,
+          (_b = a.add) != null ? _b : 0,
+          a.allIn ? 1 : 0
+        ], 3);
+      }
+    );
+    const showdowns = hand.showdowns.map((s) => {
+      var _a2;
+      return trimTail([pi(s.player), ((_a2 = s.cards) != null ? _a2 : []).join(""), s.mucked ? 1 : 0], 1);
+    });
+    const winnings = hand.winnings.map(
+      (w) => trimTail([pi(w.player), w.amount, w.pot === "side" ? 2 : w.pot === "main" ? 1 : 0], 2)
+    );
+    const caps = Object.entries(captions).filter(([, v]) => v && v.trim()).map(([k, v]) => [Number(k), v]);
+    return trimTail([
+      2,
+      // version
+      SITES.indexOf(hand.site),
+      hand.gameType === "tournament" ? 1 : 0,
+      Math.max(0, CURRENCIES.indexOf(hand.currency)),
+      hand.sb,
+      hand.bb,
+      hand.ante,
+      hand.maxSeats,
+      hand.buttonSeat,
+      players,
+      posts,
+      actions,
+      hand.board.join(""),
+      showdowns,
+      winnings,
+      hand.rake,
+      caps,
+      // Index 17: the second runout. Appended at the tail on purpose — older
+      // links simply have nothing here and decode as single-board hands, and
+      // trimTail drops it again for the ordinary hands that have no second run.
+      ((_a = hand.board2) == null ? void 0 : _a.length) ? hand.board2.join("") : 0
+    ], 9);
+  }
+  async function encodeShare(hand, captions) {
+    const bytes = new TextEncoder().encode(JSON.stringify(packHand(hand, captions)));
+    return toBase64Url(await deflate(bytes));
   }
   return __toCommonJS(fe_parse_entry_exports);
 })();
