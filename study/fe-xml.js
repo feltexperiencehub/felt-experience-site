@@ -7,13 +7,19 @@
    street; a call's or an all-in's is what that action adds. Cards are suit
    first ("H6 CT"), and the hero is the session's <nickname>.
 
+   DriveHUD also exports its own layout, seen from ClubGG: one <HandHistory>
+   document per hand, joined in a single file that is often named .txt. Every
+   action's Amount is the chips that action adds, so a raise's total has to be
+   worked out. Cards are rank first ("Ac"), the board is one run of them, and
+   <HeroName> is an id, matched to the nickname through <Player>.
+
    Kept free of DOMParser so it runs the same in a page and under Node. */
 "use strict";
 var FEXml = (() => {
   const TYPE = { 0: 'fold', 1: 'sb', 2: 'bb', 3: 'call', 4: 'check', 5: 'bet', 7: 'allin', 15: 'ante', 23: 'raise' };
   const STREET = { 2: 'FLOP', 3: 'TURN', 4: 'RIVER' };
 
-  const looksLike = (text) => /^\s*(<\?xml[^>]*>\s*)?<session\b/.test(text);
+  const looksLike = (text) => /^\s*(<\?xml[^>]*>\s*)?<(session|HandHistory)\b/.test(text);
   const tag = (src, name) => { const m = src.match(new RegExp(`<${name}>([^<]*)</${name}>`)); return m ? m[1].trim() : ''; };
   const attrs = (s) => { const o = {}; s.replace(/(\w+)="([^"]*)"/g, (_, k, v) => { o[k] = v; }); return o; };
   const unesc = (s) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
@@ -90,8 +96,98 @@ var FEXml = (() => {
     return L.join('\n');
   }
 
+  /** One <HandHistory> document. Its amounts are all chips added, so `put` and
+      `top` track each street to give raises the total the text format wants. */
+  function oneHandHistory(h) {
+    const players = [...h.matchAll(/<Player\b([^>]*)\/>/g)].map((m) => attrs(m[1]))
+      .map((p) => ({ id: p.PlayerName, name: unesc(p.PlayerNick || p.PlayerName), seat: +p.SeatNumber,
+        chips: +p.StartingStack, cards: (p.Cards || '').match(/[2-9TJQKA][shdc]/g) || [] }));
+    const who = {};
+    players.forEach((p) => { who[p.id] = p.name; });
+    const actions = [...h.matchAll(/<HandAction\b([^>]*)\/>/g)].map((m) => attrs(m[1]))
+      .map((a) => ({ type: a.HandActionType, who: who[a.PlayerName] || unesc(a.PlayerName),
+        amt: Math.abs(+a.Amount || 0), street: a.Street }));
+    const sb = +tag(h, 'SmallBlind'), bb = +tag(h, 'BigBlind');
+    const site = tag(h, 'Site') === 'ClubGG' ? 'ClubGG' : 'PokerStars';
+    const date = tag(h, 'DateOfHandUtc').replace(/\.\d+Z?$/, '').replace('T', ' ').replace(/-/g, '/');
+    const max = (h.match(/MaxPlayers="(\d+)"/) || [])[1] || 6;
+    const board = tag(h, 'CommunityCards').match(/[2-9TJQKA][shdc]/g) || [];
+    const hero = players.find((p) => p.id === tag(h, 'HeroName'));
+
+    const L = [];
+    L.push(`${site} Hand #${tag(h, 'HandId')}:  Hold'em No Limit (${money(sb)}/${money(bb)} USD) - ${date} UTC`);
+    L.push(`Table '${unesc(tag(h, 'TableName')).replace(/'/g, '')}' ${max}-max Seat #${tag(h, 'DealerButtonPosition')} is the button`);
+    players.forEach((p) => L.push(`Seat ${p.seat}: ${p.name} (${money(p.chips)} in chips)`));
+
+    let put = {}, top = 0;
+    const post = (a, what) => {
+      L.push(`${a.who}: posts ${what} ${money(a.amt)}`);
+      put[a.who] = (put[a.who] || 0) + a.amt;
+      top = Math.max(top, put[a.who]);
+    };
+    actions.filter((a) => a.type === 'ANTE').forEach((a) => L.push(`${a.who}: posts the ante ${money(a.amt)}`));
+    actions.filter((a) => a.type === 'SMALL_BLIND').forEach((a) => post(a, 'small blind'));
+    actions.filter((a) => a.type === 'BIG_BLIND').forEach((a) => post(a, 'big blind'));
+    // A player sitting back in posts a live big blind out of position.
+    actions.filter((a) => a.type === 'POSTS').forEach((a) => post(a, 'big blind'));
+    L.push('*** HOLE CARDS ***');
+    if (hero && hero.cards.length === 2) L.push(`Dealt to ${hero.name} [${hero.cards.join(' ')}]`);
+
+    const SETUP = new Set(['ANTE', 'SMALL_BLIND', 'BIG_BLIND', 'POSTS', 'WINS', 'CASHED_OUT']);
+    const play = (street) => actions.filter((a) => a.street === street && !SETUP.has(a.type)).forEach((a) => {
+      const had = put[a.who] || 0, to = had + a.amt;
+      if (a.type === 'FOLD') L.push(`${a.who}: folds`);
+      else if (a.type === 'CHECK') L.push(`${a.who}: checks`);
+      else if (a.type === 'UNCALLED_BET') L.push(`Uncalled bet (${money(a.amt)}) returned to ${a.who}`);
+      else if (a.type === 'CALL') { L.push(`${a.who}: calls ${money(a.amt)}`); put[a.who] = to; }
+      else if (a.type === 'BET') { L.push(`${a.who}: bets ${money(a.amt)}`); put[a.who] = to; top = to; }
+      else if (a.type === 'RAISE') { L.push(`${a.who}: raises ${money(to - top)} to ${money(to)}`); put[a.who] = to; top = to; }
+      else if (a.type === 'ALL_IN') {
+        if (to > top + 1e-9) {
+          L.push(top === 0 ? `${a.who}: bets ${money(a.amt)} and is all-in` : `${a.who}: raises ${money(to - top)} to ${money(to)} and is all-in`);
+          top = to;
+        } else {
+          L.push(`${a.who}: calls ${money(a.amt)} and is all-in`);
+        }
+        put[a.who] = to;
+      }
+      // Anything new goes through as written, so the reader refuses the hand
+      // rather than judging it with an action quietly missing.
+      else L.push(`${a.who}: ${a.type.toLowerCase()}`);
+    });
+
+    play('Preflop');
+    [['Flop', 3], ['Turn', 4], ['River', 5]].forEach(([street, n]) => {
+      if (board.length < n) return;
+      put = {}; top = 0;
+      L.push(street === 'Flop' ? `*** FLOP *** [${board.slice(0, 3).join(' ')}]`
+        : `*** ${street.toUpperCase()} *** [${board.slice(0, n - 1).join(' ')}] [${board[n - 1]}]`);
+      play(street);
+    });
+
+    const shows = players.filter((p) => p !== hero && p.cards.length === 2);
+    if (shows.length) {
+      L.push('*** SHOW DOWN ***');
+      shows.forEach((p) => L.push(`${p.name}: shows [${p.cards.join(' ')}]`));
+    }
+    actions.filter((a) => a.type === 'WINS' || a.type === 'CASHED_OUT')
+      .forEach((a) => L.push(`${a.who} collected ${money(a.amt)} from pot`));
+    L.push('*** SUMMARY ***');
+    // Run it twice: the second board lists only the cards it does not share.
+    const second = (h.match(/<CommunityCardsMultipleRun>\s*<string>([^<]*)/) || [])[1];
+    if (second) {
+      const extra = second.match(/[2-9TJQKA][shdc]/g) || [];
+      L.push(`FIRST Board [${board.join(' ')}]`);
+      L.push(`SECOND Board [${[...board.slice(0, 5 - extra.length), ...extra].join(' ')}]`);
+    }
+    return L.join('\n');
+  }
+
   /** Every hand in one exported file, as PokerStars-style text. */
   function toStars(text) {
+    if (/^\s*(<\?xml[^>]*>\s*)?<HandHistory\b/.test(text)) {
+      return [...text.matchAll(/<HandHistory>[\s\S]*?<\/HandHistory>/g)].map((m) => oneHandHistory(m[0])).join('\n\n\n');
+    }
     const general = (text.match(/<general>([\s\S]*?)<\/general>/) || [])[1] || '';
     const stakes = tag(general, 'gametype').match(/([\d.]+)\s*\/\s*\D*([\d.]+)/) || [];
     const head = {

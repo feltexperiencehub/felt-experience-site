@@ -214,6 +214,7 @@
     <p class="note">
       Judged against the big ante charts, so a hand is only read when it matches
       what was solved: six handed, with a half-blind ante, at one of the depths below.
+      Five handed hands are judged as six handed with UTG gone, so the first seat to act is HJ.
     </p>
     <p class="note">Each decision is judged on the chart nearest its effective stack:</p>
     <div class="depths" id="depths"></div>
@@ -446,13 +447,19 @@ function analyzeInto(res, text, seen) {
     const live = hand.players.filter((p) => !p.sittingOut);
     const hero = hand.players.find((p) => p.isHero);
     const ante = hand.bb ? hand.ante / hand.bb : 0;
-    if (live.length !== 6) { bump(res.skips, `${live.length}-handed, the charts are six handed`); return; }
+    if (live.length !== 6 && live.length !== 5) { bump(res.skips, `${live.length}-handed, the charts are six handed`); return; }
     if (ante < ANTE_LO || ante > ANTE_HI) { bump(res.skips, 'not a half-blind ante game'); return; }
     if (!hero) { bump(res.skips, 'no hero in the hand, nothing of ours to check'); return; }
     const hc = handCode(hero.cards);
     if (!hc) { bump(res.skips, 'our cards are not in the history'); return; }
 
+    /* With no small blind posted, the seat labels would start one seat off. */
+    if (!hand.posts.some((p) => p.type === 'sb')) { bump(res.skips, 'no small blind posted'); return; }
+
     const pos = FEParse.positionMap(hand);
+    /* Five handed is six handed with UTG gone: the first seat has four players
+       behind it, the same as HJ, though the replayer labels it UTG. */
+    if (live.length === 5) Object.keys(pos).forEach((k) => { if (pos[k] === 'UTG') pos[k] = 'HJ'; });
     const heroPos = pos[hero.name];
 
     decisions(hand, hero).forEach((d) => {
