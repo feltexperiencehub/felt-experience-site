@@ -38,7 +38,8 @@
     font-size: clamp(23px, 2.5vw, 30px); letter-spacing: -.015em;
     margin: 0; color: var(--ink);
   }
-  .gameseg { align-self: center; }
+  .gamegrp { align-self: center; display: flex; align-items: center; gap: 10px; }
+  .gamegrp .lbl { min-width: 0; }
   .gameseg button { font-size: 14px; padding: 6px 14px; }
   .gameseg button[aria-pressed="true"] { color: var(--accent); }
   .top a { font-size: 14px; color: var(--muted); text-decoration: none; }
@@ -367,7 +368,7 @@
 <div class="shell">
   <div class="top">
     <h1>Big Ante Preflop Drill</h1>
-    <div class="seg gameseg" role="group" aria-label="Game format" id="game-seg"></div>
+    <div class="gamegrp"><span class="lbl" id="gl">Players</span><div class="seg gameseg" role="group" aria-labelledby="gl" id="game-seg"></div></div>
     <a href="/study/big-ante-explorer">Back to the explorer</a>
   </div>
 
@@ -847,7 +848,7 @@ function setGame(v) {
 }
 
 function buildGameToggle() {
-  single('game-seg', Object.entries(GAME).map(([v, g]) => ({ label: g.label, v })),
+  single('game-seg', Object.entries(GAME).map(([v, g]) => ({ label: String(g.seats.length), v })),
     () => game, setGame);
 }
 

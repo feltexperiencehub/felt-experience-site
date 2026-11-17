@@ -213,7 +213,7 @@
       <div class="picker">
         <div class="prow">
           <div class="pline">
-            <div class="grp"><span class="lbl" id="l5">Game</span><div class="seg" role="group" aria-labelledby="l5" id="game-seg"></div></div>
+            <div class="grp"><span class="lbl" id="l5">Players</span><div class="seg" role="group" aria-labelledby="l5" id="game-seg"></div></div>
             <div class="grp"><span class="lbl" id="l6">Depth</span><div class="seg" role="group" aria-labelledby="l6" id="stack-seg"></div></div>
             <div class="grp"><span class="lbl" id="l1">Position</span><div class="seg" role="group" aria-labelledby="l1" id="hero-seg"></div></div>
           </div>
@@ -341,7 +341,7 @@ const OURS_LABEL = {
   first: 'Our open', rfi: 'Our 3-bet', rfic: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet',
   hurfi: 'Our 3-bet', huvs3b: 'Our jam', huvs4b: 'Our jam', huvsjam: null,
 };
-const GAME_LABEL = { '6max': '6-max', '3max': '3-max', hu: 'Heads up' };
+const GAME_LABEL = { '6max': '6', '3max': '3', hu: '2' };
 /* Why a hand is missing from a grid depends on the node. Facing a 4-bet or a
    jam, the hand was dealt and defended; it just did not 3-bet. */
 const OOR_LABEL = {
@@ -476,10 +476,8 @@ function render() {
       render();
     });
 
-  seg('stack-seg', STACKS.map((n) => ({
-      label: n + 'bb', v: n,
-      off: !SPOT_DATA.some((z) => z.stack === n && z.game === state.game),
-    })),
+  // Only the depths this player count was solved at; the rest are left off.
+  seg('stack-seg', depths.map((n) => ({ label: n + 'bb', v: n })),
     (it) => it.v === state.stack,
     (it) => {
       state.stack = it.v;
