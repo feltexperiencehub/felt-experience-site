@@ -215,6 +215,7 @@
       Judged against the big ante charts, so a hand is only read when it matches
       what was solved: six handed, with a half-blind ante, at one of the depths below.
       Five handed hands are judged as six handed with UTG gone, so the first seat to act is HJ.
+      Three handed hands are judged on the 3-max charts, which exist at 100bb only.
     </p>
     <p class="note">Each decision is judged on the chart nearest its effective stack:</p>
     <div class="depths" id="depths"></div>
@@ -336,11 +337,11 @@ function cellAt(row, idx) {
 }
 
 /** 100bb lumps UTG and HJ together as EP for the blinds; the other depths don't. */
-function findSpot(stack, fam, hero, vs) {
+function findSpot(stack, fam, hero, vs, game) {
   const tries = [vs];
   if ((hero === 'SB' || hero === 'BB') && (vs === 'UTG' || vs === 'HJ')) tries.push('EP');
   for (const v of tries) {
-    const s = SPOT_DATA.find((x) => x.stack === stack && x.game === '6max'
+    const s = SPOT_DATA.find((x) => x.stack === stack && x.game === game
       && x.fam === fam && x.hero === hero && x.vs === v);
     if (s) return s;
   }
@@ -363,7 +364,7 @@ function chooseSize(sizes, want) {
 
     Only the shapes the charts actually solve are picked up, and anything the
     least bit unusual is left alone rather than forced onto the nearest node. */
-function decisions(hand, hero) {
+function decisions(hand, hero, three) {
   const pre = hand.actions.filter((a) => a.street === 'preflop' && a.kind !== 'return');
   const out = [];
   let seen = 0;
@@ -379,6 +380,12 @@ function decisions(hand, hero) {
       if (nonFold.length === 0) { out.push({ act, fam: 'first', vs: null, face: null }); continue; }
       if (nonFold.length === 1 && isRaise(nonFold[0])) {
         out.push({ act, fam: 'rfi', vs: nonFold[0].player, face: nonFold[0].to / hand.bb, unit: 'x' });
+        continue;
+      }
+      /* Three handed, the big blind facing the button's open after the small
+         blind flatted has its own charts. Six handed that is still multiway. */
+      if (three && nonFold.length === 2 && isRaise(nonFold[0]) && nonFold[1].kind === 'call') {
+        out.push({ act, fam: 'rfic', vs: nonFold[0].player, face: nonFold[0].to / hand.bb, unit: 'x' });
         continue;
       }
       const raises = nonFold.filter(isRaise).length;
@@ -447,7 +454,8 @@ function analyzeInto(res, text, seen) {
     const live = hand.players.filter((p) => !p.sittingOut);
     const hero = hand.players.find((p) => p.isHero);
     const ante = hand.bb ? hand.ante / hand.bb : 0;
-    if (live.length !== 6 && live.length !== 5) { bump(res.skips, `${live.length}-handed, the charts are six handed`); return; }
+    if (![6, 5, 3].includes(live.length)) { bump(res.skips, `${live.length}-handed, the charts are six, five or three handed`); return; }
+    const game = live.length === 3 ? '3max' : '6max';
     if (ante < ANTE_LO || ante > ANTE_HI) { bump(res.skips, 'not a half-blind ante game'); return; }
     if (!hero) { bump(res.skips, 'no hero in the hand, nothing of ours to check'); return; }
     const hc = handCode(hero.cards);
@@ -462,7 +470,7 @@ function analyzeInto(res, text, seen) {
     if (live.length === 5) Object.keys(pos).forEach((k) => { if (pos[k] === 'UTG') pos[k] = 'HJ'; });
     const heroPos = pos[hero.name];
 
-    decisions(hand, hero).forEach((d) => {
+    decisions(hand, hero, game === '3max').forEach((d) => {
       res.dec++;
       if (d.skip) { bump(res.skips, d.skip); return; }
 
@@ -484,7 +492,8 @@ function analyzeInto(res, text, seen) {
       const stack = nearest(STACKS, eff);
       if (d.fam === 'first' && heroPos === 'SB') { bump(res.skips, 'SB first in, the SB limps every hand'); return; }
       if (d.fam === 'first' && stack !== 100) { bump(res.skips, 'first in at a depth other than 100bb, charted at 100bb only'); return; }
-      const spot = findSpot(stack, d.fam, heroPos, d.fam === 'first' ? null : pos[d.vs]);
+      if (game === '3max' && stack !== 100) { bump(res.skips, 'three handed at a depth other than 100bb, charted at 100bb only'); return; }
+      const spot = findSpot(stack, d.fam, heroPos, d.fam === 'first' ? null : pos[d.vs], game);
       if (!spot) {
         bump(res.skips, d.fam === 'first' ? `${heroPos} first in is not in the set`
           : `${heroPos} vs ${pos[d.vs]} at ${stack}bb is not in the set`);
@@ -499,9 +508,19 @@ function analyzeInto(res, text, seen) {
         }
         ({ size, clamped } = chooseSize(spot.sizes, d.face));
       }
-      const cell = cellAt(size.g, hc.idx);
       const cat = CATEGORY(d.act);
       if (!cat) { bump(res.skips, 'could not tell what we did'); return; }
+      /* Two charts can share an open size and differ only in our 3-bet (3-max,
+         BB vs a 5x open: 20bb or 26bb). A raise is judged on the one nearest
+         the size we picked; anything else is only flagged if neither does it. */
+      const twins = spot.sizes.filter((z) => parseFloat(z.face) === parseFloat(size.face));
+      if (twins.length > 1 && cat === 'raise' && d.act.to) {
+        const ours = d.act.to / hand.bb;
+        size = twins.reduce((b, z) => (Math.abs(z.ours - ours) < Math.abs(b.ours - ours) ? z : b), twins[0]);
+      } else if (twins.length > 1) {
+        size = twins.find((z) => { const c = cellAt(z.g, hc.idx); return c && c[cat] > 0; }) || size;
+      }
+      const cell = cellAt(size.g, hc.idx);
       res.cov++;
 
       if (!cell) {

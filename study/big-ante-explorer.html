@@ -321,6 +321,7 @@ function paint(c) {
 const FAM_ORDER = [
   { id: 'first', label: 'First in' },
   { id: 'rfi',  label: 'vs RFI' },
+  { id: 'rfic', label: 'vs RFI + Call' },
   { id: 'limp', label: 'Limp vs ISO' },
   { id: 'vs3b', label: 'vs 3-bet' },
   { id: 'hurfi',   label: 'vs Open' },
@@ -337,10 +338,10 @@ const away = (sp) => (sp.vs ? Math.abs(seat(sp.hero) - seat(sp.vs)) : 0);
 /* The size card names our own bet where we have one. Facing a jam there is no
    raise left, so that spot has nothing to put there and the card comes off. */
 const OURS_LABEL = {
-  first: 'Our open', rfi: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet',
+  first: 'Our open', rfi: 'Our 3-bet', rfic: 'Our 3-bet', vs3b: 'Their 3-bet', limp: 'Our 3-bet',
   hurfi: 'Our 3-bet', huvs3b: 'Our jam', huvs4b: 'Our jam', huvsjam: null,
 };
-const GAME_LABEL = { '6max': '6-max', hu: 'Heads up' };
+const GAME_LABEL = { '6max': '6-max', '3max': '3-max', hu: 'Heads up' };
 /* Why a hand is missing from a grid depends on the node. Facing a 4-bet or a
    jam, the hand was dealt and defended; it just did not 3-bet. */
 const OOR_LABEL = {
@@ -357,7 +358,7 @@ const word = (sp, k) => (sp && sp.words && sp.words[k]) || k;
 function raiseName(sp) {
   const size = sp.sizes.find((z) => z.face === state.face) || sp.sizes[0];
   if (sp.fam === 'first') return `open ${size.face}`;
-  if (['rfi', 'limp', 'hurfi'].includes(sp.fam)) return `3-bet ${size.ours}bb`;
+  if (['rfi', 'rfic', 'limp', 'hurfi'].includes(sp.fam)) return `3-bet ${size.ours}bb`;
   if (sp.fam === 'vs3b' || sp.fam === 'huvs3b') return size.fourbet ? `4-bet ${size.fourbet}bb` : '4-bet';
   return 'raise';
 }

@@ -521,10 +521,10 @@ HANDS.forEach((h) => {
 });
 
 const FAM_LABEL = {
-  first: 'First in', rfi: 'vs RFI', vs3b: 'vs 3-bet', limp: 'Limp vs ISO',
+  first: 'First in', rfi: 'vs RFI', rfic: 'vs RFI + Call', vs3b: 'vs 3-bet', limp: 'Limp vs ISO',
   hurfi: 'vs Open', huvs3b: 'vs 3-bet', huvs4b: 'vs 4-bet', huvsjam: 'vs Jam',
 };
-const FAM_ORDER = ['first','rfi','limp','vs3b','hurfi','huvs3b','huvs4b','huvsjam'];
+const FAM_ORDER = ['first','rfi','rfic','limp','vs3b','hurfi','huvs3b','huvs4b','huvsjam'];
 const HERO_ORDER = ['BB','SB','BTN','CO','HJ','UTG'];
 const POS_ORDER = ['UTG','EP','HJ','CO','BTN','SB','BB'];
 
@@ -534,6 +534,7 @@ const POS_ORDER = ['UTG','EP','HJ','CO','BTN','SB','BB'];
    whatever the node calls it. */
 const ACT_SET = {
   rfi:     [['fold','Fold'], ['call','Call'], ['raise','3-bet']],
+  rfic:    [['fold','Fold'], ['call','Call'], ['raise','3-bet']],
   vs3b:    [['fold','Fold'], ['call','Call'], ['jam','Jam']],
   limp:    [['fold','Fold'], ['call','Call'], ['raise','3-bet']],
   hurfi:   [['fold','Fold'], ['call','Call'], ['raise','3-bet']],
@@ -551,6 +552,7 @@ const actsOf = (sp) => sp.fam !== 'first' ? ACT_SET[sp.fam]
    and the pot are both built from however many seats the format has. */
 const GAME = {
   '6max': { seats: ['UTG','HJ','CO','BTN','SB','BB'], label: '6-max' },
+  '3max': { seats: ['BTN','SB','BB'], label: '3-max' },
   hu:     { seats: ['SB','BB'], label: 'Heads up' },
 };
 
@@ -594,6 +596,10 @@ function scenario(q) {
     verb = '';                                 // folded to us, nobody has bet
   } else if (fam === 'rfi') {
     wager[vsSeat] = face;
+  } else if (fam === 'rfic') {
+    // Three handed: the button opens and the small blind flats in front of us.
+    wager[vsSeat] = face;
+    wager.SB = face;
   } else if (fam === 'vs3b') {
     wager[heroSeat] = 5;                       // every vs-3-bet sim opens 5x
     wager[vsSeat] = face;
@@ -619,7 +625,8 @@ function scenario(q) {
   const seats = RING.map((p) => ({
     seat: p,
     label: (p === 'UTG' && (q.sp.vs === 'EP' || q.sp.hero === 'EP')) ? 'EP' : p,
-    role: p === heroSeat ? 'hero' : p === vsSeat ? 'aggro' : yetToAct(p) ? 'live' : 'out',
+    role: p === heroSeat ? 'hero' : p === vsSeat ? 'aggro'
+      : yetToAct(p) || (fam === 'rfic' && p === 'SB') ? 'live' : 'out',
     wager: wager[p],
     stack: startOf(q) - ANTE - wager[p],
   }));
@@ -627,7 +634,8 @@ function scenario(q) {
   return {
     seats, pot, toCall, heroSeat, vsSeat, heroWager: wager[heroSeat],
     line: fam === 'first' ? 'Folded to us'
-      : fam === 'huvsjam' ? `${q.sp.vs} jams` : `${q.sp.vs} ${verb} ${bb(wager[vsSeat])}bb`,
+      : fam === 'huvsjam' ? `${q.sp.vs} jams`
+      : `${q.sp.vs} ${verb} ${bb(wager[vsSeat])}bb` + (fam === 'rfic' ? ' · SB calls' : ''),
     heroAction,
   };
 }
@@ -794,7 +802,7 @@ const filters = { stack: new Set(), hero: new Set(), fam: new Set(), vs: new Set
 /* Stats are kept per format. Mixing a heads-up session into a six-max average
    would make both numbers mean less than either does alone. */
 const blank = () => ({ n: 0, sum: 0, good: 0, streak: 0, best: 0 });
-const sessions = { '6max': blank(), hu: blank() };
+const sessions = { '6max': blank(), '3max': blank(), hu: blank() };
 const lives = load();
 let session = sessions[game];
 let life = lives[game];
@@ -816,10 +824,10 @@ function load() {
   try {
     const v = JSON.parse(localStorage.getItem(LIFE_KEY) || 'null');
     // A record saved before the formats split is the six-max one.
-    if (v && !v['6max'] && !v.hu) return { '6max': rec(v), hu: rec(null) };
-    if (v) return { '6max': rec(v['6max']), hu: rec(v.hu) };
+    if (v && !v['6max'] && !v.hu) return { '6max': rec(v), '3max': rec(null), hu: rec(null) };
+    if (v) return { '6max': rec(v['6max']), '3max': rec(v['3max']), hu: rec(v.hu) };
   } catch (e) { /* storage can be unavailable; carry on in memory */ }
-  return { '6max': rec(null), hu: rec(null) };
+  return { '6max': rec(null), '3max': rec(null), hu: rec(null) };
 }
 function save() {
   try { localStorage.setItem(LIFE_KEY, JSON.stringify(lives)); } catch (e) { /* ignore */ }
@@ -907,7 +915,7 @@ function buildFilters() {
   here.forEach((s) => s.sizes.forEach((z) => { if (!sizes.includes(z.face)) sizes.push(z.face); }));
   // Open sizes are multiples ("3x") and isolation and 3-bet sizes are absolute
   // ("7bb"), so keep the two kinds apart rather than interleaving 4x with 4bb.
-  const unit = (s) => (s.endsWith('x') ? 0 : 1);
+  const unit = (s) => (/^[\d.]+x/.test(s) ? 0 : 1);
   sizes.sort((a, b) => unit(a) - unit(b) || parseFloat(a) - parseFloat(b));
 
   const redraw = () => { buildFilters(); nextHand(); };
